@@ -7,11 +7,9 @@ using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed partial class PInspector
+internal sealed class PInspectorCurveCanvas
 {
     private const double PCurveCanvasSize = 150;
-
-    private Canvas pCurveCanvas = null!;
 
     private static readonly Brush PCurveGuideBrush =
         new SolidColorBrush(Color.FromRgb(0xC5, 0xCC, 0xD3));
@@ -42,23 +40,10 @@ public sealed partial class PInspector
         new SolidColorBrush(Color.FromArgb(0x30, 0x2B, 0x6C, 0xB0))
     };
 
-    private static IReadOnlyDictionary<string, Brush> PCurveFillCreate(Brush pChannel) => new Dictionary<string, Brush>
+    internal PInspectorCurveCanvas(QCurve lCurve)
     {
-        ["Selected"] = pChannel,
-        ["Endpoint"] = PCurveGuideBrush,
-        ["Plain"] = Brushes.White
-    };
-
-    private Canvas PCurveCanvasBuild()
-    {
-        Canvas pCanvas = PCurvePlotBuild();
-        PCurveCanvasAttach();
-        return pCanvas;
-    }
-
-    private Canvas PCurvePlotBuild()
-    {
-        pCurveCanvas = new Canvas
+        QCurve = lCurve;
+        PCurveCanvas = new Canvas
         {
             Width = PCurveCanvasSize,
             Height = PCurveCanvasSize,
@@ -66,43 +51,54 @@ public sealed partial class PInspector
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
         };
-        return pCurveCanvas;
+        PCurveCanvasAttach();
     }
+
+    private QCurve QCurve { get; }
+
+    internal Canvas PCurveCanvas { get; }
+
+    private static IReadOnlyDictionary<string, Brush> PCurveFillCreate(Brush pChannel) => new Dictionary<string, Brush>
+    {
+        ["Selected"] = pChannel,
+        ["Endpoint"] = PCurveGuideBrush,
+        ["Plain"] = Brushes.White
+    };
 
     private void PCurveCanvasAttach()
     {
-        pCurveCanvas.MouseLeftButtonDown += PCurvePressHandle;
-        pCurveCanvas.MouseMove += PCurveMoveHandle;
-        pCurveCanvas.MouseLeftButtonUp += PCurveReleaseHandle;
+        PCurveCanvas.MouseLeftButtonDown += PCurvePressHandle;
+        PCurveCanvas.MouseMove += PCurveMoveHandle;
+        PCurveCanvas.MouseLeftButtonUp += PCurveReleaseHandle;
     }
 
     private void PCurvePressHandle(object pSender, MouseButtonEventArgs pArgs)
     {
-        Point pPixel = pArgs.GetPosition(pCurveCanvas);
+        Point pPixel = pArgs.GetPosition(PCurveCanvas);
         QCurve.QCurveDrag.QCurvePressHandle(pPixel.X, pPixel.Y, PCurveCanvasSize);
-        pCurveCanvas.CaptureMouse();
+        PCurveCanvas.CaptureMouse();
         pArgs.Handled = true;
     }
 
     private void PCurveMoveHandle(object pSender, MouseEventArgs pArgs)
     {
-        Point pPixel = pArgs.GetPosition(pCurveCanvas);
+        Point pPixel = pArgs.GetPosition(PCurveCanvas);
         pArgs.Handled = QCurve.QCurveDrag.QCurveMoveHandle(pPixel.X, pPixel.Y, PCurveCanvasSize);
     }
 
     private void PCurveReleaseHandle(object pSender, MouseButtonEventArgs pArgs)
     {
         pArgs.Handled = QCurve.QCurveDrag.QCurveReleaseHandle();
-        pCurveCanvas.ReleaseMouseCapture();
+        PCurveCanvas.ReleaseMouseCapture();
     }
 
-    private void PCurveRebuild()
+    internal void PCurveRebuild()
     {
-        pCurveCanvas.Children.Clear();
+        PCurveCanvas.Children.Clear();
         QCurveCanvas pPlan = QCurve.QCurveCanvas;
-        pCurveCanvas.Children.Add(PCurveHistogramBuild(pPlan.QCurveHistogramRead(PCurveCanvasSize)));
+        PCurveCanvas.Children.Add(PCurveHistogramBuild(pPlan.QCurveHistogramRead(PCurveCanvasSize)));
         pPlan.QCurveGridRead(PCurveCanvasSize).ToList().ForEach(PCurveLineDraw);
-        pCurveCanvas.Children.Add(PCurveTrackBuild(pPlan.QCurveTrackRead(PCurveCanvasSize)));
+        PCurveCanvas.Children.Add(PCurveTrackBuild(pPlan.QCurveTrackRead(PCurveCanvasSize)));
         pPlan.QCurveDotsRead(PCurveCanvasSize).ToList().ForEach(PCurveDotDraw);
     }
 
@@ -113,7 +109,7 @@ public sealed partial class PInspector
         Points = new PointCollection(pArea.Select(PCurvePointBuild))
     };
 
-    private void PCurveLineDraw(QCurveLine pLine) => pCurveCanvas.Children.Add(new Line
+    private void PCurveLineDraw(QCurveLine pLine) => PCurveCanvas.Children.Add(new Line
     {
         X1 = pLine.QCurveLineFrom.QCurvePointX,
         Y1 = pLine.QCurveLineFrom.QCurvePointY,
@@ -144,7 +140,7 @@ public sealed partial class PInspector
         };
         Canvas.SetLeft(pEllipse, pDot.QCurveDotLeft);
         Canvas.SetTop(pEllipse, pDot.QCurveDotTop);
-        pCurveCanvas.Children.Add(pEllipse);
+        PCurveCanvas.Children.Add(pEllipse);
     }
 
     private static Point PCurvePointBuild(QCurvePoint pPoint) => new(pPoint.QCurvePointX, pPoint.QCurvePointY);

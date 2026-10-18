@@ -2,55 +2,14 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
-using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed partial class PInspector
+internal static class PInspectorTool
 {
-    private ToggleButton PInspectorToolBuild()
-    {
-        ToggleButton pToolButton = PCropToolBuild();
-        PCropToolAttach(pToolButton);
-        return pToolButton;
-    }
+    internal static Style PInspectorToolCreate() => PInspectorToolCreate(typeof(ToggleButton));
 
-    private ToggleButton PCropToolBuild()
-    {
-        pInspectorToolIcon = new Image
-        {
-            Width = 18,
-            Height = 18,
-            Source = QIcon.QIconRead(PCropIcon, pInspectorIconBrush),
-            Stretch = Stretch.Uniform
-        };
-
-        return new ToggleButton
-        {
-            Content = pInspectorToolIcon,
-            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.DrawTooltip"),
-            Width = 32,
-            Height = 32,
-            VerticalAlignment = VerticalAlignment.Center,
-            Style = PInspectorToolCreate()
-        };
-    }
-
-    private void PCropToolAttach(ToggleButton pToolButton)
-    {
-        pToolButton.Checked += (_, _) => PCropToolHandle();
-        pToolButton.Unchecked += (_, _) => QInspector.QInspectorToolSet(false);
-    }
-
-    private void PCropToolHandle()
-    {
-        QWhitebalance.QWhitebalanceToolCancel();
-        QInspector.QInspectorToolSet(true);
-    }
-
-    private static Style PInspectorToolCreate() => PInspectorToolCreate(typeof(ToggleButton));
-
-    private static Style PInspectorToolCreate(Type pControlType)
+    internal static Style PInspectorToolCreate(Type pControlType)
     {
         var pTemplate = new ControlTemplate(pControlType);
         var pBorder = new FrameworkElementFactory(typeof(Border));

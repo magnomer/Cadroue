@@ -1,27 +1,42 @@
 using System.Windows;
 using System.Windows.Controls;
+using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
-internal sealed partial class PSEncoder
+internal sealed class PSEncoderAudioChannel
 {
     private static readonly string[] psAudioChannelStandard =
         ["mono", "stereo", "2.1", "3.0", "4.0", "5.0", "5.1", "6.1", "7.1"];
 
-    private void PSAudioChannelRebuild()
+    private readonly QSEncoderAudio lsEncoderAudio;
+    private readonly LPreset lsEncoderDraft;
+    private Slider? psAudioChannelSlider;
+    private TextBox? psAudioChannelReadout;
+    private IReadOnlyList<string> psAudioChannelLayouts = Array.Empty<string>();
+
+    internal PSEncoderAudioChannel(QSEncoderAudio lsAudio, LPreset lsDraft)
+    {
+        lsEncoderAudio = lsAudio;
+        lsEncoderDraft = lsDraft;
+    }
+
+    internal StackPanel PSAudioChannelPanel { get; } = new();
+
+    internal void PSAudioChannelRebuild()
     {
         string pStored = PSAudioLayoutRead();
-        string pEncoder = LCapability.LCapabilityNameRead(lsEncoder.QSEncoderAudio.QSEncoderAudioEncoder);
+        string pEncoder = LCapability.LCapabilityNameRead(lsEncoderAudio.QSEncoderAudioEncoder);
         IReadOnlyList<string> pLayouts = PSAudioLayoutsResolve(LInventoryHelp.LInventoryLayoutRead(pEncoder));
         PSAudioLayoutsSet(pLayouts);
         PSAudioLayoutRebuild(PSAudioCaptionsResolve(pLayouts), PSAudioPositionResolve(pLayouts, pStored));
     }
 
     private string PSAudioLayoutRead() => psAudioChannelReadout is null
-        ? lsExportSpecificEdit.LPresetAudio.LPresetChannels
+        ? lsEncoderDraft.LPresetAudio.LPresetChannels
         : PSAudioChannelRead();
 
     private static IReadOnlyList<string> PSAudioLayoutsResolve(IReadOnlyList<string> pLayouts) =>
@@ -63,13 +78,13 @@ internal sealed partial class PSEncoder
         UIElement pRow = PSFader.PSFaderLayoutBuild(psAudioChannelSlider, pLabels, pIndex, psAudioChannelReadout,
             pNotice);
 
-        psAudioChannelPanel.Children.Clear();
-        psAudioChannelPanel.Children.Add(PSField.PSFieldBuild(
+        PSAudioChannelPanel.Children.Clear();
+        PSAudioChannelPanel.Children.Add(PSField.PSFieldBuild(
             QLocalizationCatalog.QLocalizationTextRead("Encoder.Audio.Field.Channels"), pRow));
-        psAudioChannelPanel.Children.Add(pNotice);
+        PSAudioChannelPanel.Children.Add(pNotice);
     }
 
-    private string PSAudioChannelRead()
+    internal string PSAudioChannelRead()
     {
         if (psAudioChannelSlider is null)
         {

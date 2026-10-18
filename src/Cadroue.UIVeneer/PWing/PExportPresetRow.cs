@@ -2,21 +2,48 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PHouse;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed partial class PExport
+internal sealed class PExportPresetRow
 {
-    private Border PExportRowBuild(string lPresetName, LPreset lWorking)
+    private readonly QExport lExport;
+    private readonly StackPanel pPresetRowPanel;
+    private readonly PExportPresetBox pExportBox;
+    private readonly PExportPresetDrag pExportDrag;
+    private readonly PExportPresetCommand pExportCommand;
+    private readonly Action<string> pPresetClick;
+
+    public PExportPresetRow(
+        QExport lExport,
+        StackPanel pPresetRowPanel,
+        PExportPresetBox pExportBox,
+        PExportPresetDrag pExportDrag,
+        PExportPresetCommand pExportCommand,
+        Action<string> pPresetClick)
+    {
+        this.lExport = lExport;
+        this.pPresetRowPanel = pPresetRowPanel;
+        this.pExportBox = pExportBox;
+        this.pExportDrag = pExportDrag;
+        this.pExportCommand = pExportCommand;
+        this.pPresetClick = pPresetClick;
+    }
+
+    internal Border PExportRowBuild(string lPresetName, LPreset lWorking)
     {
         (bool pPresetNative, bool pPresetSelected, bool pPresetModified, bool pPresetEditing, bool pPresetUnsupported) =
             PExportFlagResolve(lPresetName, lWorking);
         UIElement pNameElement = pPresetEditing
-            ? PExportBoxBuild(lPresetName)
-            : PExportDisplayBuild(lPresetName, pPresetModified, pPresetUnsupported);
+            ? pExportBox.PExportBoxBuild(lPresetName)
+            : PExportPresetName.PExportDisplayBuild(
+                lPresetName,
+                pPresetModified,
+                pPresetUnsupported,
+                pExportCommand.PExportModificationApply,
+                pExportCommand.PExportModificationRestore);
         (Brush pFill, double pOpacity) = PExportShadeResolve(pPresetSelected, pPresetUnsupported);
         Border pRowBorder = PExportBorderBuild(pNameElement, pFill, pOpacity, PExportTipRead(pPresetUnsupported));
         PExportRowAttach(pRowBorder, lPresetName, pPresetNative, pPresetEditing);
@@ -27,12 +54,12 @@ public sealed partial class PExport
         bool pPresetUnsupported) PExportFlagResolve(string lPresetName, LPreset lWorking)
     {
         bool pPresetNative = LPresetTable.LPresetNativeCheck(lPresetName);
-        bool pPresetSelected = QExport.QExportSelectedCheck(lPresetName);
+        bool pPresetSelected = lExport.QExportSelectedCheck(lPresetName);
         bool pPresetModified = !pPresetNative
             && pPresetSelected
             && !LPresetTable.LPresetMatch(lPresetName, lWorking);
-        bool pPresetEditing = QExport.QExportEditingCheck(lPresetName);
-        bool pPresetUnsupported = !QExport.QExportSupportCheck(lPresetName, lWorking);
+        bool pPresetEditing = lExport.QExportEditingCheck(lPresetName);
+        bool pPresetUnsupported = !lExport.QExportSupportCheck(lPresetName, lWorking);
         return (pPresetNative, pPresetSelected, pPresetModified, pPresetEditing, pPresetUnsupported);
     }
 
@@ -42,7 +69,7 @@ public sealed partial class PExport
             pPresetUnsupported ? 0.42 : 1);
 
     private string? PExportTipRead(bool pPresetUnsupported) =>
-        pPresetUnsupported ? QLocalizationCatalog.QLocalizationTextRead(QExport.QExportSupportNotice) : null;
+        pPresetUnsupported ? QLocalizationCatalog.QLocalizationTextRead(lExport.QExportSupportNotice) : null;
 
     private static Border PExportBorderBuild(
         UIElement pNameElement, Brush pFill, double pOpacity, string? pTip) => new()
@@ -81,24 +108,40 @@ public sealed partial class PExport
 
         if (!pPresetNative && pEvent.ClickCount >= 2)
         {
-            PExportDragClear();
+            pExportDrag.PExportDragClear();
             pPresetRowPanel.ReleaseMouseCapture();
-            QExport.QExportEditStart(lPresetName);
+            lExport.QExportEditStart(lPresetName);
             return true;
         }
 
         if (pPresetNative || PExportSourceCheck(pEvent.OriginalSource))
         {
-            PExportOriginSet(null);
-            QExport.QExportDrag.QExportDragClear();
+            pExportDrag.PExportOriginSet(null);
+            lExport.QExportDrag.QExportDragClear();
             return false;
         }
 
         Point pGrabPoint = pEvent.GetPosition(pRowBorder);
-        QExport.QExportDrag.QExportDragStart(lPresetName, pGrabPoint.X, pGrabPoint.Y);
-        PExportDragSet(pRowBorder);
-        PExportOriginSet(pEvent.GetPosition(pPresetRowPanel));
+        lExport.QExportDrag.QExportDragStart(lPresetName, pGrabPoint.X, pGrabPoint.Y);
+        pExportDrag.PExportDragSet(pRowBorder);
+        pExportDrag.PExportOriginSet(pEvent.GetPosition(pPresetRowPanel));
         pPresetRowPanel.CaptureMouse();
+        return false;
+    }
+
+    private static bool PExportSourceCheck(object pSource)
+    {
+        DependencyObject? pObject = pSource as DependencyObject;
+        while (pObject is not null)
+        {
+            if (pObject is Button)
+            {
+                return true;
+            }
+
+            pObject = VisualTreeHelper.GetParent(pObject);
+        }
+
         return false;
     }
 
@@ -109,10 +152,10 @@ public sealed partial class PExport
             return false;
         }
 
-        if (!QExport.QExportEditingCheck(lPresetName))
+        if (!lExport.QExportEditingCheck(lPresetName))
         {
-            PExportEditCommit();
-            PExportPresetSelect(lPresetName);
+            pExportBox.PExportEditCommit();
+            pPresetClick(lPresetName);
         }
 
         return true;

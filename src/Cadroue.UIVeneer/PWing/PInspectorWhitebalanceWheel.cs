@@ -9,24 +9,16 @@ using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed partial class PInspector
+internal sealed class PInspectorWhitebalanceWheel
 {
-    private const int PWhitebalanceWheelSize = 120;
+    internal const int PWhitebalanceWheelSize = 120;
     private const double PWhitebalanceWheelValue = 0.9;
 
-    private Canvas pWhitebalanceWheelCanvas = null!;
-    private Image pWhitebalanceWheelImage = null!;
-    private Slider pWhitebalanceWheelBrightness = null!;
-    private Ellipse pWhitebalanceWheelDot = null!;
+    private readonly Canvas pWhitebalanceWheelCanvas;
+    private readonly Image pWhitebalanceWheelImage;
+    private readonly Slider pWhitebalanceWheelBrightness;
 
-    private UIElement PWhitebalanceWheelBuild()
-    {
-        UIElement pWheel = PWhitebalancePaletteBuild();
-        PWhitebalanceWheelAttach();
-        return pWheel;
-    }
-
-    private UIElement PWhitebalancePaletteBuild()
+    internal PInspectorWhitebalanceWheel()
     {
         pWhitebalanceWheelCanvas = new Canvas
         {
@@ -44,7 +36,7 @@ public sealed partial class PInspector
         };
         pWhitebalanceWheelCanvas.Children.Add(pWhitebalanceWheelImage);
 
-        pWhitebalanceWheelDot = new Ellipse
+        PWhitebalanceWheelDot = new Ellipse
         {
             Width = 11,
             Height = 11,
@@ -61,7 +53,7 @@ public sealed partial class PInspector
                 Opacity = 0.8
             }
         };
-        pWhitebalanceWheelCanvas.Children.Add(pWhitebalanceWheelDot);
+        pWhitebalanceWheelCanvas.Children.Add(PWhitebalanceWheelDot);
 
         pWhitebalanceWheelBrightness = new Slider
         {
@@ -75,7 +67,7 @@ public sealed partial class PInspector
         };
         QSlider.QSliderAttach(pWhitebalanceWheelBrightness);
 
-        return new StackPanel
+        PWhitebalancePalette = new StackPanel
         {
             HorizontalAlignment = HorizontalAlignment.Center,
             Margin = new Thickness(0, 0, 0, 8),
@@ -83,31 +75,39 @@ public sealed partial class PInspector
         };
     }
 
-    private void PWhitebalanceWheelAttach()
+    internal Ellipse PWhitebalanceWheelDot { get; }
+
+    internal StackPanel PWhitebalancePalette { get; }
+
+    // The wheel driver exists only once the section's driver is made from this wheel's dot; the wheel is then drawn
+    // at its slider's brightness.
+    internal void PWhitebalanceWheelAttach(QWhitebalanceWheel lWheel)
     {
-        pWhitebalanceWheelCanvas.MouseLeftButtonDown += PWhitebalancePressHandle;
-        pWhitebalanceWheelCanvas.MouseMove += PWhitebalanceWheelHandle;
+        pWhitebalanceWheelCanvas.MouseLeftButtonDown += (_, pWheelMouse) =>
+            PWhitebalancePressHandle(lWheel, pWheelMouse);
+        pWhitebalanceWheelCanvas.MouseMove += (_, pWheelMouse) => PWhitebalanceWheelHandle(lWheel, pWheelMouse);
         pWhitebalanceWheelCanvas.MouseLeftButtonUp += (_, _) => pWhitebalanceWheelCanvas.ReleaseMouseCapture();
-        pWhitebalanceWheelBrightness.ValueChanged += (_, _) => PWhitebalanceBrightnessHandle();
+        pWhitebalanceWheelBrightness.ValueChanged += (_, _) => PWhitebalanceBrightnessHandle(lWheel);
+        PWhitebalanceBrightnessHandle(lWheel);
     }
 
-    private void PWhitebalanceBrightnessHandle() =>
-        pWhitebalanceWheelImage.Source = PWhitebalanceWheelDraw(pWhitebalanceWheelBrightness.Value);
+    private void PWhitebalanceBrightnessHandle(QWhitebalanceWheel lWheel) =>
+        pWhitebalanceWheelImage.Source = PWhitebalanceWheelDraw(lWheel, pWhitebalanceWheelBrightness.Value);
 
-    private void PWhitebalancePressHandle(object pSender, MouseButtonEventArgs pWheelMouse)
+    private void PWhitebalancePressHandle(QWhitebalanceWheel lWheel, MouseButtonEventArgs pWheelMouse)
     {
         pWhitebalanceWheelCanvas.CaptureMouse();
-        PWhitebalanceWheelHandle(pSender, pWheelMouse);
+        PWhitebalanceWheelHandle(lWheel, pWheelMouse);
     }
 
-    private void PWhitebalanceWheelHandle(object pSender, MouseEventArgs pWheelMouse)
+    private void PWhitebalanceWheelHandle(QWhitebalanceWheel lWheel, MouseEventArgs pWheelMouse)
     {
         Point pWheelPoint = pWheelMouse.GetPosition(pWhitebalanceWheelCanvas);
-        QWhitebalance.QWhitebalanceWheel.QWhitebalanceWheelHandle(
+        lWheel.QWhitebalanceWheelHandle(
             PLook.PLookPressed[pWheelMouse.LeftButton], pWheelPoint.X, pWheelPoint.Y, PWhitebalanceWheelSize);
     }
 
     // The driver draws the wheel; the blank tool's wheel shares it.
-    private ImageSource PWhitebalanceWheelDraw(double pWheelValue) =>
-        QWhitebalance.QWhitebalanceWheel.QWhitebalanceWheelDraw(PWhitebalanceWheelSize, pWheelValue);
+    internal static ImageSource PWhitebalanceWheelDraw(QWhitebalanceWheel lWheel, double pWheelValue) =>
+        lWheel.QWhitebalanceWheelDraw(PWhitebalanceWheelSize, pWheelValue);
 }

@@ -1,76 +1,21 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Cadroue.UIVeneer.PHouse;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed partial class PExport : UserControl
+internal sealed class PExportSummary : Border
 {
-    private static readonly Brush PLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
-    private static readonly Brush PExportSoftBrush = new SolidColorBrush(Color.FromRgb(0xF7, 0xF9, 0xFC));
-    private static readonly Brush PExportTextBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
-    private static readonly Brush PExportMutedBrush = new SolidColorBrush(Color.FromRgb(0x62, 0x6F, 0x83));
-    private static readonly Brush PHeaderFillBrush = new SolidColorBrush(Color.FromRgb(0xF3, 0xF5, 0xF8));
-    private static readonly Brush PHeaderTextBrush = new SolidColorBrush(Color.FromRgb(0x26, 0x36, 0x4A));
-
-    private readonly LPresetSelection lPresetOwner;
     private TextBlock pExportSummaryBox = null!;
     private TextBlock pExportSummaryVideo = null!;
     private TextBlock pExportSummaryAudio = null!;
     private TextBlock pExportSummaryOutput = null!;
-    private StackPanel pPresetRowPanel = null!;
-    private Point? pExportDragOrigin;
-    private Border? pPresetRowDragging;
-    private double pPresetOpacityOrigin;
-    private TextBox? pExportBoxCurrent;
 
-    public QExport QExport { get; }
-
-    public PExport(QExport lExport, LPresetSelection lPresetOwner)
+    public PExportSummary()
     {
-        this.lPresetOwner = lPresetOwner;
-        QExport = lExport;
-        PExportBuild();
-        PExportPresetsUpdate();
-        PExportAttach();
-    }
-
-    private void PExportBuild()
-    {
-        FocusVisualStyle = null;
-        QScrollbar.QScrollbarAttach(this);
-        pPresetRowPanel = new StackPanel();
-
-        var pPanel = new Grid();
-        pPanel.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        pPanel.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-
-        UIElement pHeader = PHeaderBuild();
-        Grid.SetRow(pHeader, 0);
-        pPanel.Children.Add(pHeader);
-
-        var pBody = new Grid();
-        pBody.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-        pBody.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        pBody.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        pBody.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-
-        UIElement pPreset = PExportPresetBuild();
-        Grid.SetRow(pPreset, 0);
-        pBody.Children.Add(pPreset);
-
-        UIElement pAction = PExportActionBuild();
-        Grid.SetRow(pAction, 1);
-        pBody.Children.Add(pAction);
-
-        UIElement pSeparator = PSeparatorBuild();
-        Grid.SetRow(pSeparator, 2);
-        pBody.Children.Add(pSeparator);
-
-        UIElement pSummary = PExportSummaryBuild(
+        PExportSummaryBuild(
             PExportLineBuild(
                 QLocalizationCatalog.QLocalizationTextRead("Roster.Field.Container"), out pExportSummaryBox),
             PExportLineBuild(
@@ -79,69 +24,9 @@ public sealed partial class PExport : UserControl
                 QLocalizationCatalog.QLocalizationTextRead("ExportSummary.Audio"), out pExportSummaryAudio),
             PExportLineBuild(
                 QLocalizationCatalog.QLocalizationTextRead("Roster.Section.Output"), out pExportSummaryOutput));
-        Grid.SetRow(pSummary, 3);
-        pBody.Children.Add(pSummary);
-
-        Grid.SetRow(pBody, 1);
-        pPanel.Children.Add(pBody);
-        Content = PExportFrameBuild(pPanel);
     }
 
-    private void PExportAttach()
-    {
-        QExport.QExportPresetsChanged += PExportPresetsUpdate;
-        pPresetRowPanel.PreviewMouseMove += PExportMoveHandle;
-        pPresetRowPanel.MouseLeftButtonUp += PExportUpHandle;
-        pPresetRowPanel.LostMouseCapture += PExportLostHandle;
-        Loaded += (_, _) => QExport.QExportAttach();
-        Unloaded += (_, _) => QExport.QExportDetach();
-    }
-
-    private LPreset PExportWorkingRead() => LPreset.LPresetStateCreate(lPresetOwner.LPresetSelectionValue);
-
-    private static Border PExportFrameBuild(UIElement pContent)
-    {
-        Border pInnerBorder = PExportInnerBuild(pContent);
-        PExportClipApply(pInnerBorder, 9);
-        return PExportOuterBuild(pInnerBorder);
-    }
-
-    private static Border PExportInnerBuild(UIElement pContent) => new()
-    {
-        Background = PExportSoftBrush,
-        CornerRadius = new CornerRadius(9),
-        Child = pContent,
-        SnapsToDevicePixels = true
-    };
-
-    private static Border PExportOuterBuild(Border pInnerBorder) => new()
-    {
-        Margin = new Thickness(8),
-        BorderBrush = PLineBrush,
-        BorderThickness = new Thickness(1),
-        Background = PExportSoftBrush,
-        CornerRadius = new CornerRadius(10),
-        Child = pInnerBorder,
-        SnapsToDevicePixels = true
-    };
-
-    private static void PExportClipApply(Border pBorder, double pRadius) =>
-        pBorder.SizeChanged += (_, _) => PExportClipUpdate(pBorder, pRadius);
-
-    private static void PExportClipUpdate(Border pBorder, double pRadius) =>
-        pBorder.Clip = new RectangleGeometry(
-            new Rect(0, 0, pBorder.ActualWidth, pBorder.ActualHeight),
-            pRadius,
-            pRadius);
-
-    private void PExportPresetsUpdate()
-    {
-        LPreset lWorking = PExportWorkingRead();
-        PExportPresetRebuild();
-        PExportSummarySet(lWorking);
-    }
-
-    private void PExportSummarySet(LPreset lWorking)
+    internal void PExportSummarySet(LPreset lWorking)
     {
         pExportSummaryBox.Text = lWorking.LPresetContainer;
         pExportSummaryVideo.Text = lWorking.LPresetVideoSummary;
@@ -149,24 +34,7 @@ public sealed partial class PExport : UserControl
         pExportSummaryOutput.Text = lWorking.LPresetOutputSummary;
     }
 
-    private static UIElement PHeaderBuild() => new Border
-    {
-        Padding = new Thickness(12, 10, 12, 10),
-        BorderBrush = PLineBrush,
-        BorderThickness = new Thickness(0, 0, 0, 1),
-        Background = PHeaderFillBrush,
-        CornerRadius = new CornerRadius(9, 9, 0, 0),
-        Child = new TextBlock
-        {
-            Text = QLocalizationCatalog.QLocalizationTextRead("ExportSummary.Header.Export"),
-            FontSize = 12,
-            FontWeight = FontWeights.SemiBold,
-            Foreground = PHeaderTextBrush,
-            VerticalAlignment = VerticalAlignment.Center
-        }
-    };
-
-    private static Border PExportSummaryBuild(params UIElement[] pChildren)
+    private void PExportSummaryBuild(params UIElement[] pChildren)
     {
         var pPanel = new StackPanel();
         pPanel.Children.Add(new TextBlock
@@ -174,7 +42,7 @@ public sealed partial class PExport : UserControl
             Text = QLocalizationCatalog.QLocalizationTextRead("ExportSummary.Header.Summary"),
             FontSize = 12,
             FontWeight = FontWeights.SemiBold,
-            Foreground = PExportTextBrush,
+            Foreground = PExportTheme.PExportTextBrush,
             Margin = new Thickness(0, 0, 0, 6)
         });
 
@@ -183,22 +51,12 @@ public sealed partial class PExport : UserControl
             pPanel.Children.Add(pChild);
         }
 
-        return new Border
-        {
-            BorderBrush = Brushes.Transparent,
-            BorderThickness = new Thickness(0),
-            Background = Brushes.Transparent,
-            Padding = new Thickness(10, 4, 10, 10),
-            Child = pPanel
-        };
+        BorderBrush = Brushes.Transparent;
+        BorderThickness = new Thickness(0);
+        Background = Brushes.Transparent;
+        Padding = new Thickness(10, 4, 10, 10);
+        Child = pPanel;
     }
-
-    private static UIElement PSeparatorBuild() => new Border
-    {
-        Height = 1,
-        Background = PLineBrush,
-        Margin = new Thickness(0, 8, 0, 8)
-    };
 
     private static UIElement PExportLineBuild(string pName, out TextBlock pValueBlock)
     {
@@ -208,12 +66,17 @@ public sealed partial class PExport : UserControl
         pGrid.Children.Add(new TextBlock
         {
             Text = pName,
-            Foreground = PExportMutedBrush,
+            Foreground = PExportTheme.PExportMutedBrush,
             FontSize = 11,
             VerticalAlignment = VerticalAlignment.Top
         });
 
-        pValueBlock = new TextBlock { Foreground = PExportTextBrush, FontSize = 11, TextWrapping = TextWrapping.Wrap };
+        pValueBlock = new TextBlock
+        {
+            Foreground = PExportTheme.PExportTextBrush,
+            FontSize = 11,
+            TextWrapping = TextWrapping.Wrap
+        };
         Grid.SetColumn(pValueBlock, 1);
         pGrid.Children.Add(pValueBlock);
         return pGrid;

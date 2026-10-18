@@ -74,8 +74,8 @@ public sealed class PAudioTab : PTabSurface
 
     private void PAudioEventsAttach()
     {
-        QAudioTab.QAudioPresetMissing += PExport.PExportMissingShow;
-        QAudioTab.QAudioPresetIncompatible += PExport.PExportIncompatibleShow;
+        QAudioTab.QAudioPresetMissing += PExportNotice.PExportMissingShow;
+        QAudioTab.QAudioPresetIncompatible += PExportNotice.PExportIncompatibleShow;
         QAudioTab.QAudioViewerDeferred += PAudioViewerDefer;
         pAudioViewerTimer.Tick += PAudioViewerTick;
     }

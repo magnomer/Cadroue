@@ -1,19 +1,45 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed partial class PExport
+internal sealed class PExportPresetDrag
 {
-    private void PExportDragClear()
+    private readonly QExport lExport;
+    private readonly StackPanel pPresetRowPanel;
+    private readonly PExportPresetBox pExportBox;
+    private readonly Action<string> pPresetClick;
+    private Point? pExportDragOrigin;
+    private Border? pPresetRowDragging;
+    private double pPresetOpacityOrigin;
+
+    public PExportPresetDrag(
+        QExport lExport,
+        StackPanel pPresetRowPanel,
+        PExportPresetBox pExportBox,
+        Action<string> pPresetClick)
+    {
+        this.lExport = lExport;
+        this.pPresetRowPanel = pPresetRowPanel;
+        this.pExportBox = pExportBox;
+        this.pPresetClick = pPresetClick;
+    }
+
+    internal void PExportDragAttach()
+    {
+        pPresetRowPanel.PreviewMouseMove += PExportMoveHandle;
+        pPresetRowPanel.MouseLeftButtonUp += PExportUpHandle;
+        pPresetRowPanel.LostMouseCapture += PExportLostHandle;
+    }
+
+    internal void PExportDragClear()
     {
         PExportOpacityRestore();
         QGhostLayer.QGhostLayerClear(pPresetRowDragging);
         PExportDragReset();
-        QExport.QExportDrag.QExportDragClear();
+        lExport.QExportDrag.QExportDragClear();
     }
 
     private void PExportOpacityRestore()
@@ -24,13 +50,13 @@ public sealed partial class PExport
         }
     }
 
-    private void PExportDragSet(Border pRowBorder)
+    internal void PExportDragSet(Border pRowBorder)
     {
         pPresetRowDragging = pRowBorder;
         pPresetOpacityOrigin = pRowBorder.Opacity;
     }
 
-    private void PExportOriginSet(Point? pOrigin) => pExportDragOrigin = pOrigin;
+    internal void PExportOriginSet(Point? pOrigin) => pExportDragOrigin = pOrigin;
 
     private void PExportDragReset()
     {
@@ -43,9 +69,9 @@ public sealed partial class PExport
 
     private bool PExportDragHandle(System.Windows.Input.MouseEventArgs pEvent)
     {
-        if (QExport.QExportDrag.QExportDragging is not { } lPresetName
+        if (lExport.QExportDrag.QExportDragging is not { } lPresetName
             || pPresetRowDragging is not { } pPresetRow
-            || QExport.QExportEditing is not null
+            || lExport.QExportEditing is not null
             || pExportDragOrigin is not Point pStart
             || pEvent.LeftButton != System.Windows.Input.MouseButtonState.Pressed)
         {
@@ -53,15 +79,15 @@ public sealed partial class PExport
         }
 
         Point pCurrent = pEvent.GetPosition(pPresetRowPanel);
-        if (!QExport.QExportDrag.QExportDragActive && PExportThresholdCheck(pCurrent, pStart))
+        if (!lExport.QExportDrag.QExportDragActive && PExportThresholdCheck(pCurrent, pStart))
         {
             return false;
         }
 
-        if (QExport.QExportDrag.QExportDragMove())
+        if (lExport.QExportDrag.QExportDragMove())
         {
             PExportGhostApply(pPresetRow);
-            QGhostLayer.QGhostLayerShow(pPresetRow, QExport.QExportDrag.QExportGhost);
+            QGhostLayer.QGhostLayerShow(pPresetRow, lExport.QExportDrag.QExportGhost);
         }
 
         QGhostLayer.QGhostLayerSync(pPresetRow);
@@ -80,19 +106,19 @@ public sealed partial class PExport
 
     private bool PExportDropHandle()
     {
-        if (pPresetRowDragging is null || QExport.QExportDrag.QExportDragging is not { } lPresetName)
+        if (pPresetRowDragging is null || lExport.QExportDrag.QExportDragging is not { } lPresetName)
         {
             return false;
         }
 
-        bool pDragMoved = QExport.QExportDrag.QExportDragActive;
+        bool pDragMoved = lExport.QExportDrag.QExportDragActive;
         PExportDragClear();
         pPresetRowPanel.ReleaseMouseCapture();
 
-        if (!pDragMoved && !QExport.QExportEditingCheck(lPresetName))
+        if (!pDragMoved && !lExport.QExportEditingCheck(lPresetName))
         {
-            PExportEditCommit();
-            PExportPresetSelect(lPresetName);
+            pExportBox.PExportEditCommit();
+            pPresetClick(lPresetName);
         }
 
         return true;
@@ -173,38 +199,5 @@ public sealed partial class PExport
         }
 
         return lHeaderCount;
-    }
-
-    private static bool PExportInsideCheck(DependencyObject? pSource, DependencyObject pTarget)
-    {
-        while (pSource is not null)
-        {
-            if (ReferenceEquals(pSource, pTarget))
-            {
-                return true;
-            }
-
-            pSource = pSource is Visual or System.Windows.Media.Media3D.Visual3D
-                ? VisualTreeHelper.GetParent(pSource)
-                : LogicalTreeHelper.GetParent(pSource);
-        }
-
-        return false;
-    }
-
-    private static bool PExportSourceCheck(object pSource)
-    {
-        DependencyObject? pObject = pSource as DependencyObject;
-        while (pObject is not null)
-        {
-            if (pObject is Button)
-            {
-                return true;
-            }
-
-            pObject = VisualTreeHelper.GetParent(pObject);
-        }
-
-        return false;
     }
 }

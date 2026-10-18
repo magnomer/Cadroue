@@ -1,7 +1,6 @@
 using Cadroue.UIDeportment;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIVeneer.PPorch;
@@ -10,39 +9,17 @@ namespace Cadroue.UIVeneer.PWing;
 
 public sealed class PFunnelRules : UserControl
 {
-    private const string pFunnelAddIcon = "/PAsset/PPanel/PFunnelAdd.svg";
-    private const string pFunnelRemoveIcon = "/PAsset/PPanel/PFunnelRemove.svg";
     private static readonly FontFamily pFunnelFontFamily = new("Segoe UI");
     private static readonly Brush pFunnelLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
     private static readonly Brush pFunnelTitleBrush = new SolidColorBrush(Color.FromRgb(0x26, 0x36, 0x4A));
     private static readonly Brush pFunnelMutedBrush = new SolidColorBrush(Color.FromRgb(0x8A, 0x93, 0x9E));
-    private static readonly Brush pFunnelIconBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
-
-    private static readonly IReadOnlyDictionary<bool, Action<PFunnelRules, PFunnelRuleRow, MouseEventArgs>>
-        pFunnelMoves = new Dictionary<bool, Action<PFunnelRules, PFunnelRuleRow, MouseEventArgs>>
-        {
-            [true] = (pRules, pRow, pEvent) => pRules.PFunnelMoveRun(pRow, pEvent),
-            [false] = (pRules, pRow, pEvent) => { },
-        };
-
-    private static readonly IReadOnlyDictionary<bool, Action<PFunnelRules, PFunnelRuleRow>> pFunnelGhosts =
-        new Dictionary<bool, Action<PFunnelRules, PFunnelRuleRow>>
-        {
-            [true] = (pRules, pRow) => pRules.PFunnelGhostShow(pRow),
-            [false] = (pRules, pRow) => { },
-        };
-
-    private static readonly IReadOnlyDictionary<bool, Action<PFunnelRules, PFunnelRuleRow>> pFunnelReleases =
-        new Dictionary<bool, Action<PFunnelRules, PFunnelRuleRow>>
-        {
-            [true] = (pRules, pRow) => pRules.PFunnelDragClear(pRow),
-            [false] = (pRules, pRow) => { },
-        };
 
     private readonly QFunnel lFunnel;
     private readonly Grid pFunnelRowGrid;
     private readonly TextBlock pFunnelEmptyNotice;
     private readonly Dictionary<QFunnelRule, PFunnelRuleRow> pFunnelRows = new();
+    private readonly PFunnelRulesDrag pFunnelDrag;
+    private readonly PFunnelRulesAction pFunnelAction;
 
     public PFunnelRules(QFunnel lFunnelOwner)
     {
@@ -51,13 +28,13 @@ public sealed class PFunnelRules : UserControl
         PFunnelWidthApply();
         pFunnelRowGrid = PFunnelGridBuild();
         pFunnelEmptyNotice = PFunnelNoticeBuild();
+        pFunnelDrag = new PFunnelRulesDrag(lFunnelOwner, pFunnelRowGrid, pFunnelRows);
+        pFunnelAction = new PFunnelRulesAction(lFunnelOwner);
         PFunnelContentBuild();
         PFunnelHandlerAttach();
         lFunnel.QFunnelRules.ToList().ForEach(PFunnelRowAdd);
         PFunnelRowsUpdate();
     }
-
-    public QFunnel QFunnel => lFunnel;
 
     private void PFunnelWidthApply() => MinWidth = 300;
 
@@ -91,7 +68,7 @@ public sealed class PFunnelRules : UserControl
 
         var pRoot = new DockPanel { LastChildFill = true };
         UIElement pHeader = PFunnelHeaderBuild();
-        UIElement pActionBar = PFunnelActionBuild();
+        UIElement pActionBar = pFunnelAction.PFunnelActionBuild();
         DockPanel.SetDock(pHeader, Dock.Top);
         DockPanel.SetDock(pActionBar, Dock.Bottom);
         pRoot.Children.Add(pHeader);
@@ -119,10 +96,7 @@ public sealed class PFunnelRules : UserControl
 
     private void PFunnelRowAttach(PFunnelRuleRow pRow, QFunnelRule lRule)
     {
-        pRow.PFunnelHeader.MouseLeftButtonDown += (_, pEvent) => PFunnelPressHandle(pRow, pEvent);
-        pRow.PFunnelHeader.MouseMove += (_, pEvent) => PFunnelMoveHandle(pRow, pEvent);
-        pRow.PFunnelHeader.MouseLeftButtonUp += (_, pEvent) => PFunnelUpHandle(pRow, pEvent);
-        pRow.PFunnelHeader.LostMouseCapture += (_, _) => PFunnelReleaseHandle(pRow);
+        pFunnelDrag.PFunnelDragAttach(pRow);
         pRow.PreviewMouseLeftButtonDown += (_, _) => lFunnel.QFunnelRuleSelect(lRule);
         pRow.GotKeyboardFocus += (_, _) => lFunnel.QFunnelRuleSelect(lRule);
     }
@@ -163,65 +137,6 @@ public sealed class PFunnelRules : UserControl
         pRow.PFunnelSelectSet(lSlot.QFunnelSlotSelected);
     }
 
-    private void PFunnelPressHandle(PFunnelRuleRow pRow, MouseButtonEventArgs pEvent)
-    {
-        Point pGridPoint = pEvent.GetPosition(pFunnelRowGrid);
-        Point pOffset = pEvent.GetPosition(pRow);
-        lFunnel.QFunnelDrag.QFunnelPressHandle(pRow.PFunnelRule, pGridPoint.X, pGridPoint.Y, pOffset.X, pOffset.Y);
-        pRow.PFunnelHeader.CaptureMouse();
-    }
-
-    private void PFunnelMoveHandle(PFunnelRuleRow pRow, MouseEventArgs pEvent) =>
-        pFunnelMoves[lFunnel.QFunnelDrag.QFunnelMoveCheck(pRow.PFunnelRule, PLook.PLookPressed[pEvent.LeftButton])](
-            this, pRow, pEvent);
-
-    private void PFunnelMoveRun(PFunnelRuleRow pRow, MouseEventArgs pEvent)
-    {
-        Point pCurrent = pEvent.GetPosition(pFunnelRowGrid);
-        bool pStart = lFunnel.QFunnelDrag.QFunnelDragResolve(
-            pCurrent.X,
-            pCurrent.Y,
-            SystemParameters.MinimumHorizontalDragDistance,
-            SystemParameters.MinimumVerticalDragDistance);
-        pFunnelGhosts[pStart](this, pRow);
-        QGhostLayer.QGhostLayerSync(pRow);
-        lFunnel.QFunnelDrag.QFunnelDragMove(pCurrent.Y, PFunnelCentersRead());
-        pEvent.Handled = true;
-    }
-
-    private List<double> PFunnelCentersRead() => lFunnel.QFunnelRules.Select(PFunnelCenterRead).ToList();
-
-    private void PFunnelGhostShow(PFunnelRuleRow pRow)
-    {
-        pRow.Opacity = 0.72;
-        QGhostLayer.QGhostLayerShow(pRow, lFunnel.QFunnelDrag.QFunnelGhost);
-    }
-
-    private double PFunnelCenterRead(QFunnelRule lRule)
-    {
-        PFunnelRuleRow pRow = pFunnelRows[lRule];
-        Point pRowPoint = pRow.TransformToAncestor(pFunnelRowGrid).Transform(new Point(0, 0));
-        return QFunnelDrag.QFunnelCenterResolve(pRowPoint.Y, pRow.ActualHeight);
-    }
-
-    private void PFunnelUpHandle(PFunnelRuleRow pRow, MouseButtonEventArgs pEvent)
-    {
-        bool pReleased = lFunnel.QFunnelDrag.QFunnelReleaseCheck(pRow.PFunnelRule);
-        pFunnelReleases[pReleased](this, pRow);
-        pRow.PFunnelHeader.ReleaseMouseCapture();
-        pEvent.Handled = pReleased;
-    }
-
-    private void PFunnelReleaseHandle(PFunnelRuleRow pRow) =>
-        pFunnelReleases[lFunnel.QFunnelDrag.QFunnelReleaseCheck(pRow.PFunnelRule)](this, pRow);
-
-    private void PFunnelDragClear(PFunnelRuleRow pRow)
-    {
-        pRow.Opacity = 1;
-        QGhostLayer.QGhostLayerClear(pRow);
-        lFunnel.QFunnelDrag.QFunnelDragClear();
-    }
-
     private static Border PFunnelHeaderBuild()
     {
         var pTitleLabel = new TextBlock
@@ -244,98 +159,4 @@ public sealed class PFunnelRules : UserControl
             Child = pTitleLabel
         };
     }
-
-    private Border PFunnelActionBuild()
-    {
-        Button pAddButton = PFunnelButtonBuild(pFunnelAddIcon, "Inspector.Funnel.Add");
-        Button pRemoveButton = PFunnelButtonBuild(pFunnelRemoveIcon, "Inspector.Funnel.Remove");
-        PFunnelActionAttach(pAddButton, pRemoveButton);
-        return PFunnelBarBuild(pAddButton, pRemoveButton);
-    }
-
-    private void PFunnelActionAttach(Button pAddButton, Button pRemoveButton)
-    {
-        pAddButton.Click += (_, _) => PFunnelMenuShow(pAddButton);
-        pRemoveButton.Click += (_, _) => lFunnel.QFunnelSelectedRemove();
-    }
-
-    private static Border PFunnelBarBuild(Button pAddButton, Button pRemoveButton)
-    {
-        var pButtonPanel = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            HorizontalAlignment = HorizontalAlignment.Left
-        };
-        pButtonPanel.Children.Add(pAddButton);
-        pButtonPanel.Children.Add(pRemoveButton);
-
-        return new Border
-        {
-            Padding = new Thickness(10, 4, 10, 6),
-            BorderBrush = pFunnelLineBrush,
-            BorderThickness = new Thickness(0, 1, 0, 0),
-            Background = Brushes.White,
-            Child = pButtonPanel
-        };
-    }
-
-    private static Button PFunnelButtonBuild(string pIconPath, string pTooltipKey)
-    {
-        return QButton.QButtonBuild(
-            new Button
-            {
-                Content = new Image
-                {
-                    Width = 20,
-                    Height = 20,
-                    Source = QIcon.QIconRead(pIconPath, pFunnelIconBrush),
-                    Stretch = Stretch.Uniform
-                },
-                Width = 28,
-                Height = 26,
-                Margin = new Thickness(0, 0, 2, 0),
-                ToolTip = QLocalizationCatalog.QLocalizationTextRead(pTooltipKey)
-            },
-            QButtonLook.QButtonLookPanel);
-    }
-
-    private void PFunnelMenuShow(UIElement pTarget)
-    {
-        MenuItem pFilenameItem = QMenu.QMenuItemBuild(
-            QLocalizationCatalog.QLocalizationTextRead("Inspector.Funnel.Filename"));
-        PFunnelItemAttach(pFilenameItem, QFunnelForm.QFunnelFormFilename);
-
-        MenuItem pRegexItem = QMenu.QMenuItemBuild(
-            QLocalizationCatalog.QLocalizationTextRead("Inspector.Funnel.Regex"));
-        PFunnelItemAttach(pRegexItem, QFunnelForm.QFunnelFormRegex);
-
-        MenuItem pRemainderItem = QMenu.QMenuItemBuild(
-            QLocalizationCatalog.QLocalizationTextRead("Inspector.Funnel.Remainder"));
-        PFunnelRemainderShow(pRemainderItem);
-        PFunnelItemAttach(pRemainderItem, QFunnelForm.QFunnelFormRemainder);
-
-        ContextMenu pAddMenu = PFunnelMenuBuild(pTarget, pFilenameItem, pRegexItem, pRemainderItem);
-        PFunnelPopupShow(pAddMenu);
-    }
-
-    private void PFunnelItemAttach(MenuItem pItem, QFunnelForm lForm) =>
-        pItem.Click += (_, _) => lFunnel.QFunnelRuleAdd(lForm);
-
-    private void PFunnelRemainderShow(MenuItem pRemainderItem) =>
-        pRemainderItem.IsEnabled = !lFunnel.QFunnelRemainderCheck();
-
-    private static ContextMenu PFunnelMenuBuild(
-        UIElement pTarget,
-        MenuItem pFilenameItem,
-        MenuItem pRegexItem,
-        MenuItem pRemainderItem)
-    {
-        ContextMenu pAddMenu = QMenu.QMenuBuild(pTarget, QMenuSide.QMenuSideAbove);
-        pAddMenu.Items.Add(pFilenameItem);
-        pAddMenu.Items.Add(pRegexItem);
-        pAddMenu.Items.Add(pRemainderItem);
-        return pAddMenu;
-    }
-
-    private static void PFunnelPopupShow(ContextMenu pAddMenu) => pAddMenu.IsOpen = true;
 }

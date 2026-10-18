@@ -47,14 +47,14 @@ internal static class TAuditObjectSetting
 
     public static readonly IReadOnlyDictionary<string, int> TAuditObjectCeiling = new Dictionary<string, int>
     {
-        ["Hydra"] = 4,
-        ["Kraken"] = 3,
+        ["Hydra"] = 1,
+        ["Kraken"] = 2,
         ["Spider"] = 0,
-        ["Chameleon"] = 60,
-        ["Octopus"] = 3,
-        ["Centipede"] = 54,
-        ["Serpent"] = 7,
-        ["Hub"] = 8,
+        ["Chameleon"] = 59,
+        ["Octopus"] = 2,
+        ["Centipede"] = 47,
+        ["Serpent"] = 3,
+        ["Hub"] = 1,
     };
 
     public static readonly IReadOnlyDictionary<string, int> TAuditPartsCeiling = new Dictionary<string, int>
@@ -91,10 +91,10 @@ internal static class TAuditObjectSetting
         ["Cadroue.UIVeneer.PSDiagnosis"] = 2,
         ["Cadroue.UIVeneer.PSFader"] = 2,
         ["Cadroue.UIVeneer.PSOptions"] = 9,
-        ["Cadroue.UIVeneer.PWing.PExport"] = 10,
-        ["Cadroue.UIVeneer.PWing.PInspector"] = 22,
-        ["Cadroue.UIVeneer.PWing.PSEncoder"] = 17,
-        ["Cadroue.UIVeneer.PWing.PSMonitor"] = 2,
+        ["Cadroue.UIVeneer.PWing.PExport"] = 1,
+        ["Cadroue.UIVeneer.PWing.PInspector"] = 1,
+        ["Cadroue.UIVeneer.PWing.PSEncoder"] = 1,
+        ["Cadroue.UIVeneer.PWing.PSMonitor"] = 1,
     };
 
     public static readonly string[] TAuditObjectInclude =

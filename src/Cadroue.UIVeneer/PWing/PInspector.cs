@@ -6,24 +6,11 @@ using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed partial class PInspector : PPanel
+public sealed class PInspector : PPanel
 {
-    private static readonly FontFamily pInspectorFontFamily = new("Segoe UI");
     private static readonly Brush pInspectorTitleBrush = new SolidColorBrush(Color.FromRgb(0x26, 0x36, 0x4A));
-    private static readonly Brush pInspectorMutedBrush = new SolidColorBrush(Color.FromRgb(0x8A, 0x93, 0x9E));
-
-    private const double PInspectorLabelWidth = 80;
-    private const double PInspectorFieldHeight = 26;
-    private const double PInspectorRowHeight = 34;
 
     public const double PInspectorStripWidth = 48;
-
-    private static readonly IReadOnlyDictionary<bool, HorizontalAlignment> pInspectorFieldAligns =
-        new Dictionary<bool, HorizontalAlignment>
-        {
-            [true] = HorizontalAlignment.Center,
-            [false] = HorizontalAlignment.Left
-        };
 
     public QInspector QInspector { get; }
 
@@ -35,16 +22,30 @@ public sealed partial class PInspector : PPanel
     private UIElement pInspectorStripBody = null!;
     private ScrollViewer pInspectorSectionsHost = null!;
 
+    private PInspectorCrop pInspectorCrop = null!;
+    private PInspectorCurve pInspectorCurve = null!;
+    private PInspectorWhitebalance pInspectorWhitebalance = null!;
+    private PInspectorLoudness pInspectorLoudness = null!;
+    private PInspectorNoise pInspectorNoise = null!;
+    private PInspectorPass pInspectorHighPass = null!;
+    private PInspectorPass pInspectorLowPass = null!;
+    private PInspectorEqualizer pInspectorEqualizer = null!;
+    private PInspectorSkip pInspectorSkip = null!;
+    private PBlank pInspectorBlank = null!;
+    private readonly PSensor pInspectorSensor;
+
     public PInspector(QInspector lInspector) : base("")
     {
         QInspector = lInspector;
         (Border pHeader, Grid pBody) = PInspectorBodyBuild();
-        pSensorSections = QSensor.QSensorPlans.Select(PSensorBuild).ToList();
+        pInspectorSensor = new PSensor(QInspector.QInspectorSensor);
         PInspectorFrameBuild(pHeader, pBody);
         PInspectorChangeAttach();
         PInspectorAttach();
         PInspectorUpdate();
     }
+
+    public PSensorSweep PInspectorSweep { get; private set; } = null!;
 
     private (Border, Grid) PInspectorBodyBuild()
     {
@@ -52,13 +53,13 @@ public sealed partial class PInspector : PPanel
         {
             Text = QLocalizationCatalog.QLocalizationTextRead("Inspector.Header.Title"),
             FontSize = 12,
-            FontFamily = pInspectorFontFamily,
+            FontFamily = PInspectorLook.PInspectorFontFamily,
             FontWeight = FontWeights.SemiBold,
             Foreground = pInspectorTitleBrush,
             VerticalAlignment = VerticalAlignment.Center
         };
 
-        Button pMinimizeButton = PInspectorButtonBuild(
+        Button pMinimizeButton = PInspectorButton.PInspectorButtonBuild(
             "/PAsset/PPanel/PListMinimize.svg",
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Panel.HideTooltip"),
             () => QInspector.QInspectorMinimizedSet(true));
@@ -84,43 +85,64 @@ public sealed partial class PInspector : PPanel
         {
             Text = QLocalizationCatalog.QLocalizationTextRead("Inspector.Empty.Notice"),
             FontSize = 12,
-            FontFamily = pInspectorFontFamily,
-            Foreground = pInspectorMutedBrush,
+            FontFamily = PInspectorLook.PInspectorFontFamily,
+            Foreground = PInspectorLook.PInspectorMutedBrush,
             TextWrapping = TextWrapping.Wrap,
             HorizontalAlignment = HorizontalAlignment.Center,
             TextAlignment = TextAlignment.Center,
             Margin = new Thickness(16, 24, 16, 16)
         };
 
+        return (pHeader, PInspectorSectionsBuild());
+    }
+
+    // The sections in panel order; the crop tool reaches the white balance pickers only when it is clicked.
+    private Grid PInspectorSectionsBuild()
+    {
+        QInspectorAudio lAudio = QInspector.QInspectorAudio;
         var pBody = new Grid();
         pBody.Children.Add(pInspectorEmptyNotice);
-        pBody.Children.Add(PCropBodyBuild());
-        pBody.Children.Add(PInspectorBrightnessBuild());
-        pBody.Children.Add(PInspectorContrastBuild());
-        pBody.Children.Add(PInspectorSaturationBuild());
-        PToneBuild();
+        pInspectorCrop = new PInspectorCrop(
+            QInspector, () => pInspectorWhitebalance.QWhitebalance.QWhitebalanceToolCancel());
+        pBody.Children.Add(pInspectorCrop.PInspectorCropBody);
+        var pTone = new PInspectorTone(QInspector);
+        pBody.Children.Add(pTone.PInspectorBrightnessBody);
+        pBody.Children.Add(pTone.PInspectorContrastBody);
+        pBody.Children.Add(pTone.PInspectorSaturationBody);
         var pGamma = new QGamma(QInspector);
         pBody.Children.Add(pGamma.QGammaBody);
         var pExposure = new QExposure(QInspector);
         pBody.Children.Add(pExposure.QExposureBody);
-        pBody.Children.Add(PCurveBuild());
-        pBody.Children.Add(PWhitebalanceBuild());
+        pInspectorCurve = new PInspectorCurve(QInspector.QInspectorVideo.QInspectorCurve);
+        pBody.Children.Add(pInspectorCurve.PCurveBody);
+        pInspectorWhitebalance = new PInspectorWhitebalance(QInspector);
+        pBody.Children.Add(pInspectorWhitebalance.PWhitebalanceBody);
         var pVolume = new QVolume(QInspector);
         pBody.Children.Add(pVolume.QVolumeBody);
-        pBody.Children.Add(PLoudnessBodyBuild());
-        pBody.Children.Add(PNoiseBodyBuild());
-        pBody.Children.Add(PFilterHighBuild());
-        pBody.Children.Add(PFilterLowBuild());
-        pBody.Children.Add(PEqualizerBodyBuild());
-        pBody.Children.Add(PSkipBodyBuild());
-        pBody.Children.Add(PBlankBuild());
-        pInspectorSections = PInspectorSectionsCreate(pGamma, pExposure, pVolume);
-        return (pHeader, pBody);
+        pInspectorLoudness = new PInspectorLoudness(lAudio.QInspectorLoudness);
+        pBody.Children.Add(pInspectorLoudness.PLoudnessBody);
+        pInspectorNoise = new PInspectorNoise(lAudio.QInspectorNoise);
+        pBody.Children.Add(pInspectorNoise.PNoiseBody);
+        pInspectorHighPass = new PInspectorPass(
+            lAudio.QInspectorHighpass, QLocalizationCatalog.QLocalizationTextRead("Inspector.Pass.HighApply"));
+        pBody.Children.Add(pInspectorHighPass.PInspectorPassBody);
+        pInspectorLowPass = new PInspectorPass(
+            lAudio.QInspectorLowpass, QLocalizationCatalog.QLocalizationTextRead("Inspector.Pass.LowApply"));
+        pBody.Children.Add(pInspectorLowPass.PInspectorPassBody);
+        pInspectorEqualizer = new PInspectorEqualizer(lAudio.QInspectorEqualizer);
+        pBody.Children.Add(pInspectorEqualizer.PEqualizerBody);
+        pInspectorSkip = new PInspectorSkip(QInspector.QInspectorSkip);
+        pBody.Children.Add(pInspectorSkip.PSkipBody);
+        pInspectorBlank = new PBlank(
+            QInspector.QInspectorBlank, pInspectorWhitebalance.QWhitebalance.QWhitebalanceWheel);
+        pBody.Children.Add(pInspectorBlank.PBlankBody);
+        pInspectorSections = PInspectorSectionsCreate(pTone, pGamma, pExposure, pVolume);
+        return pBody;
     }
 
     private void PInspectorFrameBuild(Border pHeader, Grid pBody)
     {
-        pSensorSections.ForEach(pSection => pBody.Children.Add(pSection.PSensorBody));
+        pInspectorSensor.PSensorSections.ForEach(pSection => pBody.Children.Add(pSection.PSensorBody));
 
         var pScroll = new ScrollViewer
         {
@@ -132,7 +154,8 @@ public sealed partial class PInspector : PPanel
 
         pInspectorPersistentRow = PInspectorPersistentBuild();
 
-        UIElement pRunRow = PSensorRunBuild();
+        PInspectorSweep = new PSensorSweep(QInspector.QInspectorSensor.QSensorSweep);
+        UIElement pRunRow = PInspectorSweep.PSensorRunRow;
 
         var pRoot = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(pHeader, Dock.Top);
@@ -157,55 +180,39 @@ public sealed partial class PInspector : PPanel
 
     private void PInspectorChangeAttach()
     {
-        QSensor.QSensorChanged += PSensorUpdate;
+        QInspector.QInspectorSensor.QSensorChanged += pInspectorSensor.PSensorUpdate;
         QInspector.QInspectorChanged += PInspectorUpdate;
     }
-
-    public QCurve QCurve => QInspector.QInspectorVideo.QInspectorCurve;
-
-    public QWhitebalance QWhitebalance { get; private set; } = null!;
-
-    public QLoudness QLoudness => QInspector.QInspectorAudio.QInspectorLoudness;
-
-    public QNoise QNoise => QInspector.QInspectorAudio.QInspectorNoise;
-
-    public QFilter LFilterHigh => QInspector.QInspectorAudio.QInspectorHighpass;
-
-    public QFilter LFilterLow => QInspector.QInspectorAudio.QInspectorLowpass;
-
-    public QEqualizer QEqualizer => QInspector.QInspectorAudio.QInspectorEqualizer;
-
-    public QSkip QSkip => QInspector.QInspectorSkip;
 
     private void PInspectorAttach()
     {
         PInspectorStepAttach();
         PInspectorStepUpdate();
-        PInspectorCropAttach();
+        pInspectorCrop.PInspectorCropAttach();
     }
 
     private void PInspectorStepAttach()
     {
-        QCurve.QCurveChanged += PCurveUpdate;
-        QWhitebalance.QWhitebalanceChanged += PWhitebalanceUpdate;
-        QLoudness.QLoudnessChanged += PLoudnessUpdate;
-        QNoise.QNoiseChanged += PNoiseUpdate;
-        LFilterHigh.QFilterChanged += () => PFilterUpdate(pInspectorHighPass);
-        LFilterLow.QFilterChanged += () => PFilterUpdate(pInspectorLowPass);
-        QEqualizer.QEqualizerChanged += PEqualizerUpdate;
-        QSkip.QSkipChanged += PSkipUpdate;
+        pInspectorCurve.PCurveChangeAttach();
+        pInspectorWhitebalance.PWhitebalanceChangeAttach();
+        pInspectorLoudness.PLoudnessChangeAttach();
+        pInspectorNoise.PNoiseChangeAttach();
+        pInspectorHighPass.PFilterChangeAttach();
+        pInspectorLowPass.PFilterChangeAttach();
+        pInspectorEqualizer.PEqualizerChangeAttach();
+        pInspectorSkip.PSkipChangeAttach();
     }
 
     private void PInspectorStepUpdate()
     {
-        PCurveUpdate();
-        PWhitebalanceUpdate();
-        PLoudnessUpdate();
-        PNoiseUpdate();
-        PFilterUpdate(pInspectorHighPass);
-        PFilterUpdate(pInspectorLowPass);
-        PEqualizerUpdate();
-        PSkipUpdate();
+        pInspectorCurve.PCurveUpdate();
+        pInspectorWhitebalance.PWhitebalanceUpdate();
+        pInspectorLoudness.PLoudnessUpdate();
+        pInspectorNoise.PNoiseUpdate();
+        pInspectorHighPass.PFilterUpdate();
+        pInspectorLowPass.PFilterUpdate();
+        pInspectorEqualizer.PEqualizerUpdate();
+        pInspectorSkip.PSkipUpdate();
     }
 
     public bool PInspectorMinimizedCheck() => QInspector.QInspectorMinimized;
@@ -215,17 +222,20 @@ public sealed partial class PInspector : PPanel
 
     public void PInspectorStepShow(string? pStepName) => QInspector.QInspectorStepSet(pStepName);
 
+    public void PSensorLockSet(bool pSensorLocked) => pInspectorSectionsHost.IsEnabled = !pSensorLocked;
+
     private void PInspectorUpdate()
     {
         pInspectorFullBody.Visibility = PLook.PLookVisible[!QInspector.QInspectorMinimized];
         pInspectorStripBody.Visibility = PLook.PLookVisible[QInspector.QInspectorMinimized];
-        pSensorSections.ForEach(PSensorSectionShow);
-        pBlankBody.Visibility = PLook.PLookVisible[QInspector.QInspectorSensorCheck(QBlank.QBlankKind)];
+        pInspectorSensor.PSensorSections.ForEach(PSensorSectionShow);
+        pInspectorBlank.PBlankBody.Visibility =
+            PLook.PLookVisible[QInspector.QInspectorSensorCheck(QInspector.QInspectorBlank.QBlankKind)];
         pInspectorSections.ForEach(PInspectorSectionShow);
         pInspectorTitleLabel.Text = QInspector.QInspectorTitleRead();
         pInspectorPersistentRow.Visibility = PLook.PLookVisible[QInspector.QInspectorPersistentShown];
         pInspectorEmptyNotice.Visibility = PLook.PLookVisible[QInspector.QInspectorEmptyShown];
-        PInspectorCropUpdate();
+        pInspectorCrop.PInspectorCropUpdate();
     }
 
     private void PSensorSectionShow(PSensorSection pSection) => pSection.PSensorBody.Visibility =
@@ -238,23 +248,24 @@ public sealed partial class PInspector : PPanel
         pSection.PInspectorSectionPersistent.Visibility = PLook.PLookVisible[pShown];
     }
 
-    private List<PInspectorSection> PInspectorSectionsCreate(QGamma pGamma, QExposure pExposure, QVolume pVolume) =>
+    private List<PInspectorSection> PInspectorSectionsCreate(
+        PInspectorTone pTone, QGamma pGamma, QExposure pExposure, QVolume pVolume) =>
     [
-        new("Crop", pInspectorCropBody, pInspectorPersistentBox),
-        new("Brightness", pInspectorBrightnessBody, pInspectorBrightnessPersistent),
-        new("Contrast", pInspectorContrastBody, pInspectorContrastPersistent),
-        new("Saturation", pInspectorSaturationBody, pInspectorSaturationPersistent),
+        new("Crop", pInspectorCrop.PInspectorCropBody, pInspectorCrop.PInspectorPersistentBox),
+        new("Brightness", pTone.PInspectorBrightnessBody, pTone.PInspectorBrightnessPersistent),
+        new("Contrast", pTone.PInspectorContrastBody, pTone.PInspectorContrastPersistent),
+        new("Saturation", pTone.PInspectorSaturationBody, pTone.PInspectorSaturationPersistent),
         new("Gamma", pGamma.QGammaBody, pGamma.QGammaPersistent),
         new("Exposure", pExposure.QExposureBody, pExposure.QExposurePersistent),
-        new("Curve", pCurveBody, pCurvePersistent),
-        new("Whitebalance", pWhitebalanceBody, pWhitebalancePersistent),
+        new("Curve", pInspectorCurve.PCurveBody, pInspectorCurve.PCurvePersistent),
+        new("Whitebalance", pInspectorWhitebalance.PWhitebalanceBody, pInspectorWhitebalance.PWhitebalancePersistent),
         new("Volume", pVolume.QVolumeBody, pVolume.QVolumePersistent),
-        new("Normalize", pLoudnessBody, pLoudnessPersistent),
-        new("Noise Reduction", pNoiseBody, pNoisePersistent),
+        new("Normalize", pInspectorLoudness.PLoudnessBody, pInspectorLoudness.PLoudnessPersistent),
+        new("Noise Reduction", pInspectorNoise.PNoiseBody, pInspectorNoise.PNoisePersistent),
         new("High Pass", pInspectorHighPass.PInspectorPassBody, pInspectorHighPass.PInspectorPassPersistent),
         new("Low Pass", pInspectorLowPass.PInspectorPassBody, pInspectorLowPass.PInspectorPassPersistent),
-        new("Equalizer", pEqualizerBody, pEqualizerPersistent),
-        new("No Processing", pSkipBody, pSkipPersistentBox)
+        new("Equalizer", pInspectorEqualizer.PEqualizerBody, pInspectorEqualizer.PEqualizerPersistent),
+        new("No Processing", pInspectorSkip.PSkipBody, pInspectorSkip.PSkipPersistentBox)
     ];
 
     private UIElement PInspectorPersistentBuild()
@@ -279,7 +290,7 @@ public sealed partial class PInspector : PPanel
 
     private UIElement PInspectorStripBuild()
     {
-        Button pMaximizeButton = PInspectorButtonBuild(
+        Button pMaximizeButton = PInspectorButton.PInspectorButtonBuild(
             "/PAsset/PPanel/PListMaximize.svg",
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Panel.ShowTooltip"),
             () => QInspector.QInspectorMinimizedSet(false));
@@ -290,70 +301,6 @@ public sealed partial class PInspector : PPanel
         pStrip.Children.Add(pMaximizeButton);
         return pStrip;
     }
-
-    private static Button PInspectorButtonBuild(string pIconPath, string pTooltip, Action pClick)
-    {
-        Button pButton = PInspectorGlyphBuild(pIconPath, pTooltip);
-        PInspectorClickAttach(pButton, pClick);
-        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookPanel);
-        return pButton;
-    }
-
-    private static Button PInspectorGlyphBuild(string pIconPath, string pTooltip) => new()
-    {
-        Content = new Image
-        {
-            Width = 20,
-            Height = 20,
-            Source = QIcon.QIconRead(pIconPath, pInspectorIconBrush),
-            Stretch = Stretch.Uniform
-        },
-        ToolTip = pTooltip,
-        Width = 28,
-        Height = 26
-    };
-
-    private static void PInspectorClickAttach(Button pButton, Action pClick) =>
-        pButton.Click += (_, _) => pClick();
-
-    private static UIElement PInspectorFieldBuild(string pFieldLabel, UIElement pFieldContent)
-    {
-        var pFieldPanel = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Height = PInspectorRowHeight,
-            Margin = new Thickness(0, 0, 0, 8)
-        };
-        pFieldPanel.Children.Add(PInspectorLabelBuild(pFieldLabel));
-        pFieldPanel.Children.Add(pFieldContent);
-        return pFieldPanel;
-    }
-
-    private static UIElement PInspectorFieldBuild(
-        string pFieldLabel, FrameworkElement pFieldContent, bool pFieldCenter)
-    {
-        var pFieldGrid = new Grid
-        {
-            Height = PInspectorRowHeight,
-            Margin = new Thickness(0, 0, 0, 8)
-        };
-        TextBlock pFieldTag = PInspectorLabelBuild(pFieldLabel);
-        pFieldTag.HorizontalAlignment = HorizontalAlignment.Left;
-        pFieldContent.HorizontalAlignment = pInspectorFieldAligns[pFieldCenter];
-        pFieldGrid.Children.Add(pFieldTag);
-        pFieldGrid.Children.Add(pFieldContent);
-        return pFieldGrid;
-    }
-
-    private static TextBlock PInspectorLabelBuild(string pFieldLabel) => new()
-    {
-        Text = pFieldLabel,
-        Width = PInspectorLabelWidth,
-        FontSize = 12,
-        FontFamily = pInspectorFontFamily,
-        Foreground = QPanel.QPanelTextRead(),
-        VerticalAlignment = VerticalAlignment.Center
-    };
 }
 
 internal sealed record PInspectorSection(

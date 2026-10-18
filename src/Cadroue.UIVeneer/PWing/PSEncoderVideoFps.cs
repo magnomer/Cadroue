@@ -2,16 +2,25 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
-using Cadroue.Core;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
-internal sealed partial class PSEncoder
+internal sealed class PSEncoderVideoFps
 {
     private readonly record struct PSVideoScale(double PSVideoScaleRate, string PSVideoScaleValue);
 
     private static readonly PSVideoScale[] psVideoFpsScale = PSVideoScaleCreate();
+
+    private readonly TextBox psVideoFpsCustom;
+    private UIElement? psVideoFpsNotice;
+
+    internal PSEncoderVideoFps(string pFps)
+    {
+        psVideoFpsCustom = PSEntry.PSEntryBuild(PSVideoFpsFormat(pFps), 120);
+    }
+
+    private static string PSVideoFpsFormat(string pFps) => PSVideoSourceCheck(pFps) ? string.Empty : pFps.Trim();
 
     private static PSVideoScale[] PSVideoScaleCreate()
     {
@@ -66,7 +75,7 @@ internal sealed partial class PSEncoder
         return pBest;
     }
 
-    private void PSVideoFpsBuild(Panel pHost)
+    internal void PSVideoFpsBuild(Panel pHost)
     {
         psVideoFpsNotice = PSNotice.PSNoticeBuild(
             QLocalizationCatalog.QLocalizationTextRead("Encoder.Video.Notice.FpsSource"));
@@ -77,7 +86,7 @@ internal sealed partial class PSEncoder
         }
         else
         {
-            PSVideoHintSet(psVideoFpsNotice,false);
+            PSEncoderSource.PSVideoHintSet(psVideoFpsNotice,false);
         }
 
         Slider pSlider = PSFader.PSFaderCreate(0, psVideoFpsScale.Length - 1, PSVideoFpsResolve(psVideoFpsCustom.Text));
@@ -110,8 +119,8 @@ internal sealed partial class PSEncoder
         else
         {
             PSVideoScaleSet(pAt);
-            PSVideoInkApply(psVideoFpsCustom, false);
-            PSVideoHintSet(psVideoFpsNotice,false);
+            PSEncoderSource.PSVideoInkApply(psVideoFpsCustom, false);
+            PSEncoderSource.PSVideoHintSet(psVideoFpsNotice,false);
         }
 
         PSVideoCaretSet();
@@ -128,8 +137,8 @@ internal sealed partial class PSEncoder
         bool pSource = PSVideoSourceCheck(psVideoFpsCustom.Text);
         pSync.Value = true;
         PSVideoFpsSelect(pSlider);
-        PSVideoInkApply(psVideoFpsCustom, pSource);
-        PSVideoHintSet(psVideoFpsNotice,pSource);
+        PSEncoderSource.PSVideoInkApply(psVideoFpsCustom, pSource);
+        PSEncoderSource.PSVideoHintSet(psVideoFpsNotice,pSource);
         pSync.Value = false;
     }
 
@@ -142,28 +151,17 @@ internal sealed partial class PSEncoder
 
     private void PSVideoFpsSelect(Slider pSlider) => pSlider.Value = PSVideoFpsResolve(psVideoFpsCustom.Text);
 
-    private static void PSVideoHintSet(UIElement? pNotice, bool pShown)
-    {
-        if (pNotice is not null)
-        {
-            pNotice.Visibility = pShown ? Visibility.Visible : Visibility.Collapsed;
-        }
-    }
-
-    private static void PSVideoInkApply(Control pBox, bool pMuted) =>
-        pBox.Foreground = pMuted ? PSField.PSFieldMuted : PSField.PSFieldText;
-
     private void PSVideoFpsApply()
     {
         PSVideoFpsSet();
-        PSVideoInkApply(psVideoFpsCustom, true);
-        PSVideoHintSet(psVideoFpsNotice,true);
+        PSEncoderSource.PSVideoInkApply(psVideoFpsCustom, true);
+        PSEncoderSource.PSVideoHintSet(psVideoFpsNotice,true);
     }
 
     private void PSVideoFpsSet() =>
         psVideoFpsCustom.Text = QLocalizationCatalog.QLocalizationTextRead("Encoder.Sample.Source");
 
-    private string PSVideoFpsRead()
+    internal string PSVideoFpsRead()
     {
         string pValue = psVideoFpsCustom.Text.Trim();
         return PSVideoSourceCheck(pValue) ? "Same as source" : pValue;

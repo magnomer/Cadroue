@@ -48,6 +48,31 @@ public sealed class PClinic : UserControl
 
     private void PClinicFrameBuild()
     {
+        Border pHeader = PClinicHeaderBuild();
+        ScrollViewer pScroll = PClinicBodyBuild();
+        Border pPersistentRow = PClinicFooterBuild();
+
+        var pRoot = new DockPanel { LastChildFill = true };
+        DockPanel.SetDock(pHeader, Dock.Top);
+        pRoot.Children.Add(pHeader);
+        DockPanel.SetDock(pPersistentRow, Dock.Bottom);
+        pRoot.Children.Add(pPersistentRow);
+        pRoot.Children.Add(pScroll);
+
+        pClinicFullBody = pRoot;
+        pClinicStripBody = PClinicStripBuild();
+        pClinicStripBody.Visibility = Visibility.Collapsed;
+
+        var pBodyHost = new Grid();
+        pBodyHost.Children.Add(pClinicFullBody);
+        pBodyHost.Children.Add(pClinicStripBody);
+
+        FocusVisualStyle = null;
+        Content = QPanel.QPanelBuild(pBodyHost);
+    }
+
+    private Border PClinicHeaderBuild()
+    {
         pClinicTitleLabel = new TextBlock
         {
             Text = QLocalizationCatalog.QLocalizationTextRead("Clinic.Header.Title"),
@@ -71,7 +96,7 @@ public sealed class PClinic : UserControl
         pHeaderGrid.Children.Add(pClinicTitleLabel);
         pHeaderGrid.Children.Add(pMinimizeButton);
 
-        var pHeader = new Border
+        return new Border
         {
             Padding = new Thickness(12, 5, 6, 5),
             BorderBrush = QPanel.QPanelLineRead(),
@@ -79,7 +104,10 @@ public sealed class PClinic : UserControl
             Background = Brushes.White,
             Child = pHeaderGrid
         };
+    }
 
+    private ScrollViewer PClinicBodyBuild()
+    {
         pClinicApplyBox = PClinicSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Clinic.Apply"),
             QLocalizationCatalog.QLocalizationTextRead("Clinic.Apply.Tooltip"));
@@ -106,6 +134,27 @@ public sealed class PClinic : UserControl
             Margin = new Thickness(16, 24, 16, 16)
         };
 
+        pClinicItemBody = PClinicItemBuild();
+        pClinicResultBody = PClinicResultBuild();
+
+        var pBody = new StackPanel { Margin = new Thickness(12, 10, 12, 10) };
+        pBody.Children.Add(pClinicToggleRow);
+        pBody.Children.Add(PClinicSeparatorBuild());
+        pBody.Children.Add(pClinicEmptyNotice);
+        pBody.Children.Add(pClinicItemBody);
+        pBody.Children.Add(pClinicResultBody);
+        pBody.Children.Add(pClinicSalvage);
+
+        return new ScrollViewer
+        {
+            Content = pBody,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
+        };
+    }
+
+    private UIElement PClinicItemBuild()
+    {
         pClinicItemSimple = new TextBlock
         {
             FontSize = 12,
@@ -125,9 +174,12 @@ public sealed class PClinic : UserControl
         var pItemStack = new StackPanel();
         pItemStack.Children.Add(pClinicItemSimple);
         pItemStack.Children.Add(pClinicItemTechnical);
-        pClinicItemBody = pItemStack;
-        pClinicItemBody.Visibility = Visibility.Collapsed;
+        pItemStack.Visibility = Visibility.Collapsed;
+        return pItemStack;
+    }
 
+    private UIElement PClinicResultBuild()
+    {
         var pResultHeader = new TextBlock
         {
             Text = QLocalizationCatalog.QLocalizationTextRead("Clinic.Result.Header"),
@@ -145,30 +197,18 @@ public sealed class PClinic : UserControl
             Foreground = pClinicMutedBrush,
             TextWrapping = TextWrapping.Wrap
         };
-        pClinicDiagnosisProgress = PInspector.PSensorProgressBuild();
 
         var pResultStack = new StackPanel();
         pResultStack.Children.Add(PClinicSeparatorBuild());
         pResultStack.Children.Add(pResultHeader);
         pResultStack.Children.Add(pClinicResultText);
-        pClinicResultBody = pResultStack;
-        pClinicResultBody.Visibility = Visibility.Collapsed;
+        pResultStack.Visibility = Visibility.Collapsed;
+        return pResultStack;
+    }
 
-        var pBody = new StackPanel { Margin = new Thickness(12, 10, 12, 10) };
-        pBody.Children.Add(pClinicToggleRow);
-        pBody.Children.Add(PClinicSeparatorBuild());
-        pBody.Children.Add(pClinicEmptyNotice);
-        pBody.Children.Add(pClinicItemBody);
-        pBody.Children.Add(pClinicResultBody);
-        pBody.Children.Add(pClinicSalvage);
-
-        var pScroll = new ScrollViewer
-        {
-            Content = pBody,
-            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
-        };
-
+    private Border PClinicFooterBuild()
+    {
+        pClinicDiagnosisProgress = PSensorSweep.PSensorProgressBuild();
         pClinicPersistentBox = PClinicSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Clinic.Persistent"),
             QLocalizationCatalog.QLocalizationTextRead("Clinic.Persistent.Tooltip"));
@@ -202,7 +242,7 @@ public sealed class PClinic : UserControl
         pRunStack.Children.Add(pClinicDiagnosisProgress);
         pRunStack.Children.Add(pRunGrid);
 
-        var pPersistentRow = new Border
+        return new Border
         {
             Padding = new Thickness(12, 6, 12, 8),
             BorderBrush = QPanel.QPanelLineRead(),
@@ -210,24 +250,6 @@ public sealed class PClinic : UserControl
             Background = Brushes.White,
             Child = pRunStack
         };
-
-        var pRoot = new DockPanel { LastChildFill = true };
-        DockPanel.SetDock(pHeader, Dock.Top);
-        pRoot.Children.Add(pHeader);
-        DockPanel.SetDock(pPersistentRow, Dock.Bottom);
-        pRoot.Children.Add(pPersistentRow);
-        pRoot.Children.Add(pScroll);
-
-        pClinicFullBody = pRoot;
-        pClinicStripBody = PClinicStripBuild();
-        pClinicStripBody.Visibility = Visibility.Collapsed;
-
-        var pBodyHost = new Grid();
-        pBodyHost.Children.Add(pClinicFullBody);
-        pBodyHost.Children.Add(pClinicStripBody);
-
-        FocusVisualStyle = null;
-        Content = QPanel.QPanelBuild(pBodyHost);
     }
 
     private void PClinicAttach()

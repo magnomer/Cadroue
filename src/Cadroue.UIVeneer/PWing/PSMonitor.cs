@@ -1,16 +1,14 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PBench;
-using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
-internal sealed partial class PSMonitor : Window
+internal sealed class PSMonitor : Window
 {
     private const string PSMonitorPlacementKey = "NormalizePreview";
     private const double PSMonitorWidthDefault = 660;
@@ -23,25 +21,16 @@ internal sealed partial class PSMonitor : Window
 
     private static readonly Brush psMonitorBeforeFill = new SolidColorBrush(Color.FromRgb(0xB4, 0xC2, 0xD6));
     private static readonly Brush psMonitorAfterFill = new SolidColorBrush(Color.FromRgb(0x3B, 0x82, 0xF6));
-    private static readonly Brush psMonitorGridFill = new SolidColorBrush(Color.FromRgb(0xE4, 0xE9, 0xF0));
-    private static readonly Brush psMonitorAxisFill = new SolidColorBrush(Color.FromRgb(0x8A, 0x95, 0xA6));
 
     private readonly PSGrabber psMonitorGrabber;
     private readonly QSMonitor psMonitorSource;
     private readonly PFlow psMonitorFlow;
     private readonly PViewer psMonitorViewer;
     private readonly DispatcherTimer psMonitorTimer;
+    private readonly PSMonitorTransport psMonitorTransport;
 
-    private Canvas psMonitorBeforeCanvas = null!;
-    private Canvas psMonitorAfterCanvas = null!;
-    private TextBlock psMonitorBeforeStatus = null!;
-    private TextBlock psMonitorAfterStatus = null!;
-    private RadioButton psMonitorBeforeRadio = null!;
-    private RadioButton psMonitorAfterRadio = null!;
-    private Border psMonitorBeforeHead = null!;
-    private Border psMonitorAfterHead = null!;
-    private Image psMonitorPlayImage = null!;
-    private Button psMonitorPlayButton = null!;
+    private PSMonitorRail psMonitorBeforeRail = null!;
+    private PSMonitorRail psMonitorAfterRail = null!;
     private ScrollBar psMonitorScrollbar = null!;
 
     internal static PSMonitor PSMonitorShow(Window? pOwner, QSMonitor pSource, PFlow pFlow, PViewer pViewer)
@@ -60,6 +49,7 @@ internal sealed partial class PSMonitor : Window
         PSMonitorChromePrepare(pOwner);
         QScrollbar.QScrollbarAttach(this);
         psMonitorTimer = PSMonitorTimerCreate();
+        psMonitorTransport = new PSMonitorTransport(pSource);
         Content = PSMonitorBuild();
         PSGrabber.PSGrabberPlacementRestore(this, PSMonitorPlacementKey);
         psMonitorGrabber = new PSGrabber(this);
@@ -91,7 +81,7 @@ internal sealed partial class PSMonitor : Window
         psMonitorTimer.Tick += PSMonitorTickHandle;
         psMonitorSource.QSMonitorWaveform.QSMonitorReady += PSMonitorReadyHandle;
         psMonitorSource.QSMonitorCursorChanged += PSMonitorCursorApply;
-        psMonitorSource.QSMonitorPlayingChanged += PSMonitorPlayingApply;
+        psMonitorSource.QSMonitorPlayingChanged += psMonitorTransport.PSMonitorPlayingApply;
         psMonitorSource.QSMonitorViewport.QSMonitorZoomChanged += PSMonitorZoomApply;
         psMonitorSource.QSMonitorBypassChanged += PSMonitorBypassApply;
         psMonitorSource.QSMonitorSeekApplied += psMonitorFlow.QFlow.QFlowCursorSeek;
@@ -128,10 +118,10 @@ internal sealed partial class PSMonitor : Window
         psMonitor.Children.Add(psFooter);
 
         var psContent = new DockPanel { Margin = new Thickness(PSMonitorInset, 14, PSMonitorInset, 8) };
-        UIElement psZoomBar = PSMonitorZoomBuild();
+        UIElement psZoomBar = psMonitorTransport.PSMonitorZoomBuild();
         DockPanel.SetDock(psZoomBar, Dock.Top);
         psContent.Children.Add(psZoomBar);
-        UIElement psTransport = PSMonitorTransportBuild();
+        UIElement psTransport = psMonitorTransport.PSMonitorTransportBuild();
         DockPanel.SetDock(psTransport, Dock.Bottom);
         psContent.Children.Add(psTransport);
         psContent.Children.Add(PSMonitorContentBuild());
@@ -166,14 +156,15 @@ internal sealed partial class PSMonitor : Window
         });
         psMonitor.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-        psMonitorBeforeRadio = PSMonitorRadioBuild("NormalizePreview.Before", "NormalizePreview.BeforeSelect", true);
-        psMonitorAfterRadio = PSMonitorRadioBuild("NormalizePreview.After", "NormalizePreview.AfterSelect", false);
-
-        Grid psBefore = PSMonitorRailBuild(
-            psMonitorBeforeRadio,
-            out psMonitorBeforeCanvas,
-            out psMonitorBeforeStatus,
-            out psMonitorBeforeHead);
+        psMonitorBeforeRail = new PSMonitorRail(
+            psMonitorSource,
+            psMonitorViewer.QViewer,
+            psMonitorBeforeFill,
+            false,
+            "NormalizePreview.Before",
+            "NormalizePreview.BeforeSelect",
+            PSMonitorUpdate);
+        Grid psBefore = psMonitorBeforeRail.PSMonitorRailGrid;
         Grid.SetRow(psBefore, 0);
         psMonitor.Children.Add(psBefore);
 
@@ -186,11 +177,15 @@ internal sealed partial class PSMonitor : Window
         Grid.SetRow(psDivider, 1);
         psMonitor.Children.Add(psDivider);
 
-        Grid psAfter = PSMonitorRailBuild(
-            psMonitorAfterRadio,
-            out psMonitorAfterCanvas,
-            out psMonitorAfterStatus,
-            out psMonitorAfterHead);
+        psMonitorAfterRail = new PSMonitorRail(
+            psMonitorSource,
+            psMonitorViewer.QViewer,
+            psMonitorAfterFill,
+            true,
+            "NormalizePreview.After",
+            "NormalizePreview.AfterSelect",
+            PSMonitorUpdate);
+        Grid psAfter = psMonitorAfterRail.PSMonitorRailGrid;
         Grid.SetRow(psAfter, 2);
         psMonitor.Children.Add(psAfter);
 
@@ -213,68 +208,10 @@ internal sealed partial class PSMonitor : Window
         return psMonitor;
     }
 
-    private Grid PSMonitorRailBuild(RadioButton pRadio, out Canvas pCanvas, out TextBlock pStatus, out Border pHead)
-    {
-        Grid psRail = PSMonitorLaneBuild(pRadio, out pCanvas, out pStatus, out pHead);
-        PSMonitorCanvasAttach(pCanvas);
-        return psRail;
-    }
-
-    private void PSMonitorCanvasAttach(Canvas psCanvas)
-    {
-        psCanvas.SizeChanged += (_, _) => PSMonitorUpdate();
-        psCanvas.MouseLeftButtonDown += PSMonitorSeekStart;
-        psCanvas.MouseMove += PSMonitorSeekHandle;
-        psCanvas.MouseLeftButtonUp += (_, _) => psCanvas.ReleaseMouseCapture();
-    }
-
-    private static Grid PSMonitorLaneBuild(
-        RadioButton pRadio,
-        out Canvas pCanvas,
-        out TextBlock pStatus,
-        out Border pHead)
-    {
-        var psRail = new Grid
-        {
-            Background = new SolidColorBrush(Color.FromRgb(0xF8, 0xFA, 0xFC)),
-            ClipToBounds = true
-        };
-
-        var psCanvas = new Canvas { Background = Brushes.Transparent };
-        psRail.Children.Add(psCanvas);
-        pCanvas = psCanvas;
-
-        var psHead = new Border
-        {
-            Width = 1.5,
-            Background = new SolidColorBrush(Color.FromRgb(0x1F, 0x27, 0x33)),
-            HorizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment = VerticalAlignment.Stretch,
-            IsHitTestVisible = false,
-            Visibility = Visibility.Collapsed
-        };
-        psRail.Children.Add(psHead);
-        pHead = psHead;
-
-        var psStatus = new TextBlock
-        {
-            FontSize = 12,
-            Foreground = PSField.PSFieldMuted,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            IsHitTestVisible = false
-        };
-        psRail.Children.Add(psStatus);
-        pStatus = psStatus;
-
-        psRail.Children.Add(pRadio);
-        return psRail;
-    }
-
     private void PSMonitorUpdate()
     {
-        PSMonitorRailDraw(psMonitorBeforeCanvas, psMonitorBeforeStatus, psMonitorBeforeFill, false);
-        PSMonitorRailDraw(psMonitorAfterCanvas, psMonitorAfterStatus, psMonitorAfterFill, true);
+        psMonitorBeforeRail.PSMonitorRailDraw();
+        psMonitorAfterRail.PSMonitorRailDraw();
         PSMonitorHeadPlace();
     }
 
@@ -292,53 +229,37 @@ internal sealed partial class PSMonitor : Window
         PSMonitorUpdate();
     }
 
-    private void PSMonitorRailDraw(Canvas pCanvas, TextBlock pStatus, Brush pFill, bool pAfter)
+    private void PSMonitorZoomApply()
     {
-        PSMonitorStatusSet(pStatus, pAfter);
-        pCanvas.Children.Clear();
-        QSMonitorFrame lFrame = psMonitorSource.QSMonitorFrameResolve(
-            pAfter, pCanvas.ActualWidth, pCanvas.ActualHeight);
-        PSMonitorFrameDraw(pCanvas, pFill, lFrame);
+        QSMonitorScrollbar lScroll = psMonitorSource.QSMonitorViewport.QSMonitorScrollRead();
+        PSMonitorScrollSet(lScroll);
+        PSMonitorUpdate();
     }
 
-    private void PSMonitorStatusSet(TextBlock pStatus, bool pAfter) =>
-        pStatus.Text = psMonitorSource.QSMonitorWaveform.QSMonitorStatusRead(pAfter);
-
-    private static void PSMonitorFrameDraw(Canvas pCanvas, Brush pFill, QSMonitorFrame lFrame)
+    private void PSMonitorScrollSet(QSMonitorScrollbar lScroll)
     {
-        lFrame.QSMonitorFrameLines.ToList().ForEach(pY => PSMonitorLineDraw(pCanvas, pY));
-        lFrame.QSMonitorFrameLabels.ToList().ForEach(lLabel => PSMonitorLabelDraw(pCanvas, lLabel));
-        pCanvas.Children.Add(new System.Windows.Shapes.Path
-        {
-            Data = PFlow.PFlowWaveformBuild(lFrame.QSMonitorFrameOutline),
-            Fill = pFill
-        });
+        psMonitorScrollbar.ViewportSize = lScroll.QSMonitorScrollViewport;
+        psMonitorScrollbar.Maximum = lScroll.QSMonitorScrollMaximum;
+        psMonitorScrollbar.Value = lScroll.QSMonitorScrollValue;
+        psMonitorScrollbar.IsEnabled = lScroll.QSMonitorScrollEnabled;
+        psMonitorScrollbar.Opacity = lScroll.QSMonitorScrollOpacity;
     }
 
-    private static void PSMonitorLineDraw(Canvas pCanvas, double pY) => pCanvas.Children.Add(
-        new System.Windows.Shapes.Line
-        {
-            X1 = PSMonitorGutter,
-            X2 = pCanvas.ActualWidth,
-            Y1 = pY,
-            Y2 = pY,
-            Stroke = psMonitorGridFill,
-            StrokeThickness = 1,
-            IsHitTestVisible = false
-        });
+    private void PSMonitorCursorHandle(TimeSpan pCursor) =>
+        Dispatcher.BeginInvoke(() => psMonitorSource.QSMonitorCursorSet(pCursor));
 
-    private static void PSMonitorLabelDraw(Canvas pCanvas, QSMonitorLabel lLabel)
+    private void PSMonitorCursorApply(TimeSpan pCursor) => PSMonitorHeadPlace();
+
+    private void PSMonitorBypassApply()
     {
-        var pText = new TextBlock
-        {
-            Text = lLabel.QSMonitorLabelText,
-            FontSize = 10,
-            Foreground = psMonitorAxisFill,
-            IsHitTestVisible = false
-        };
-        Canvas.SetLeft(pText, 4);
-        Canvas.SetTop(pText, lLabel.QSMonitorLabelTop);
-        pCanvas.Children.Add(pText);
+        psMonitorBeforeRail.PSMonitorRadioApply();
+        psMonitorAfterRail.PSMonitorRadioApply();
+    }
+
+    private void PSMonitorHeadPlace()
+    {
+        psMonitorBeforeRail.PSMonitorHeadApply();
+        psMonitorAfterRail.PSMonitorHeadApply();
     }
 
     private void PSMonitorCloseHandle(object? pSender, EventArgs pEvent)
@@ -354,7 +275,7 @@ internal sealed partial class PSMonitor : Window
     {
         psMonitorSource.QSMonitorWaveform.QSMonitorReady -= PSMonitorReadyHandle;
         psMonitorSource.QSMonitorCursorChanged -= PSMonitorCursorApply;
-        psMonitorSource.QSMonitorPlayingChanged -= PSMonitorPlayingApply;
+        psMonitorSource.QSMonitorPlayingChanged -= psMonitorTransport.PSMonitorPlayingApply;
         psMonitorSource.QSMonitorViewport.QSMonitorZoomChanged -= PSMonitorZoomApply;
         psMonitorSource.QSMonitorBypassChanged -= PSMonitorBypassApply;
         psMonitorSource.QSMonitorSeekApplied -= psMonitorFlow.QFlow.QFlowCursorSeek;

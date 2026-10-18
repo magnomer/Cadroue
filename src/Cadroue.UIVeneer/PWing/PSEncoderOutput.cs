@@ -1,28 +1,85 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using Cadroue.UIVeneer.PHouse;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
-internal sealed partial class PSEncoder
+internal sealed class PSEncoderOutput
 {
-    private UIElement PSOutputPlateBuild()
+    private readonly LPreset lsEncoderDraft;
+    private readonly QSEncoderSuffix lsEncoderSuffix;
+    private readonly System.Action psOutputContainerHandler;
+    private readonly PSEncoderName psEncoderName;
+    private readonly PSEncoderLocation psEncoderLocation;
+    private readonly ListBox psOutputContainerCombo;
+    private readonly ComboBox psOutputExtensionCombo;
+    private readonly ComboBox psOutputCollisionCombo;
+    private readonly TextBox psOutputSuffixBox;
+    private UIElement? psOutputSuffixRow;
+    private TextBlock? psOutputSuffixLabel;
+
+    internal PSEncoderOutput(
+        LPreset lsDraft,
+        QSEncoderSuffix lsSuffix,
+        QSEncoderLocation lsLocation,
+        QToken pToken,
+        Window pWindow,
+        System.Action pContainerHandler)
+    {
+        lsEncoderDraft = lsDraft;
+        lsEncoderSuffix = lsSuffix;
+        psOutputContainerHandler = pContainerHandler;
+        psEncoderName = new PSEncoderName(pToken, lsDraft.LPresetDisplay, pWindow);
+        psOutputContainerCombo = PSField.PSListBuild(lsDraft.LPresetContainer,
+            new LLocalizationChoice("Same as source", "Encoder.Location.Source"),
+            new LLocalizationChoice("MP4", "Encoder.Container.MP4"),
+            new LLocalizationChoice("Matroska", "Encoder.Container.Matroska"),
+            new LLocalizationChoice("MOV", "Encoder.Container.MOV"),
+            new LLocalizationChoice("WebM", "Encoder.Container.WebM"),
+            new LLocalizationChoice("AVI", "Encoder.Container.AVI"),
+            new LLocalizationChoice("MPEG-TS", "Encoder.Container.TS"),
+            new LLocalizationChoice("FLV", "Encoder.Container.FLV"),
+            new LLocalizationChoice("Ogg", "Encoder.Container.Ogg"));
+        psOutputExtensionCombo = PSCombo.PSComboBuild(
+            lsDraft.LPresetExtension,
+            PSOutputExtensionRead(lsDraft.LPresetContainer));
+        psOutputCollisionCombo = PSCombo.PSComboBuild(lsDraft.LPresetCollision,
+            new LLocalizationChoice("Overwrite", "Encoder.Collision.Overwrite"),
+            new LLocalizationChoice("Rename output", "Encoder.Collision.RenameOutput"),
+            new LLocalizationChoice("Rename existing", "Encoder.Collision.RenameExisting"));
+        psOutputSuffixBox = PSEntry.PSEntryBuild(
+            lsDraft.LPresetSuffixRead(lsDraft.LPresetCollision),
+            220);
+        psEncoderLocation = new PSEncoderLocation(lsLocation, lsDraft);
+    }
+
+    internal string PSOutputContainerRead() => PSCombo.PSComboTextRead(psOutputContainerCombo);
+
+    internal void PSOutputDraftSet()
+    {
+        lsEncoderDraft.LPresetDisplay = psEncoderName.PSNameRead();
+        lsEncoderDraft.LPresetContainer = PSCombo.PSComboTextRead(psOutputContainerCombo);
+        lsEncoderDraft.LPresetExtension = PSCombo.PSComboTextRead(psOutputExtensionCombo);
+        lsEncoderDraft.LPresetCollision = PSCombo.PSComboTextRead(psOutputCollisionCombo);
+        lsEncoderDraft.LPresetSuffixSet(
+            lsEncoderDraft.LPresetCollision, PSEncoderValue.PSEncoderTrimRead(psOutputSuffixBox));
+        lsEncoderDraft.LPresetLocation = psEncoderLocation.PSLocationModeRead();
+        lsEncoderDraft.LPresetLocationSet(lsEncoderDraft.LPresetLocation, psEncoderLocation.PSLocationFolderRead());
+    }
+
+    internal UIElement PSOutputPlateBuild()
     {
         StackPanel pPanel = PSOutputPanelBuild();
         PSOutputPlateAttach();
         PSOutputSuffixUpdate();
-        PSLocationModeUpdate();
+        psEncoderLocation.PSLocationModeUpdate();
         return PSPlate.PSPlateBuild(pPanel);
     }
 
     private void PSOutputPlateAttach()
     {
-        psLocationBrowse!.Click += (_, _) => PSLocationCustomRead();
+        psEncoderLocation.PSLocationAttach();
         psOutputContainerCombo.SelectionChanged += (_, _) => PSOutputContainerHandle();
         psOutputSuffixBox.LostFocus += (_, _) => PSOutputSuffixNormalize();
         psOutputCollisionCombo.SelectionChanged += (_, _) => PSOutputSuffixUpdate();
@@ -31,25 +88,9 @@ internal sealed partial class PSEncoder
     private StackPanel PSOutputPanelBuild()
     {
         var pPanel = new StackPanel();
-        psLocationStatus = new TextBlock
-        {
-            Foreground = PSEncoderMutedBrush,
-            Margin = new Thickness(12, 0, 0, 0),
-            VerticalAlignment = VerticalAlignment.Center,
-            TextTrimming = TextTrimming.CharacterEllipsis
-        };
-        PSNameBoxPrepare();
-        psLocationFolderLabel = PSField.PSFieldLabelBuild(string.Empty);
-        psLocationBrowse = PSInline.PSInlineIconBuild(
-            PSLocationBrowseIcon,
-            QLocalizationCatalog.QLocalizationTextRead("Encoder.Location.Browse"),
-            new Thickness(8, 0, 0, 0));
-        psLocationFolderRow = PSFieldLabelledBuild(psLocationFolderLabel, psLocationFolderBox, psLocationBrowse);
-        pPanel.Children.Add(
-            PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Encoder.Field.Output.Name"), psNameBox));
-        pPanel.Children.Add(PSNameRowBuild());
-        pPanel.Children.Add(PSLocationFieldBuild(psLocationStatus));
-        pPanel.Children.Add(psLocationFolderRow);
+        pPanel.Children.Add(psEncoderName.PSNameFieldBuild());
+        pPanel.Children.Add(psEncoderName.PSNameRowBuild());
+        psEncoderLocation.PSLocationBuild(pPanel);
         pPanel.Children.Add(
             PSField.PSFieldBuild(
                 QLocalizationCatalog.QLocalizationTextRead("Encoder.Field.Output.Container"),
@@ -82,14 +123,14 @@ internal sealed partial class PSEncoder
     }
 
     private void PSOutputSuffixNormalize() =>
-        psOutputSuffixBox.Text = lsEncoder.QSEncoderSuffix.QSEncoderSuffixNormalize(
+        psOutputSuffixBox.Text = lsEncoderSuffix.QSEncoderSuffixNormalize(
             PSCombo.PSComboTextRead(psOutputCollisionCombo),
             psOutputSuffixBox.Text);
 
     private void PSOutputSuffixUpdate()
     {
         string pMode = PSCombo.PSComboTextRead(psOutputCollisionCombo);
-        string pSuffix = lsEncoder.QSEncoderSuffix.QSEncoderSuffixSelect(pMode, psOutputSuffixBox.Text);
+        string pSuffix = lsEncoderSuffix.QSEncoderSuffixSelect(pMode, psOutputSuffixBox.Text);
         bool pShown = QSEncoderSuffix.QSEncoderSuffixCheck(pMode);
         if (pShown)
         {
@@ -146,7 +187,6 @@ internal sealed partial class PSEncoder
     private void PSOutputContainerHandle()
     {
         PSOutputExtensionUpdate();
-        PSCodecContainerHandle();
-        PSAudioContainerHandle();
+        psOutputContainerHandler();
     }
 }

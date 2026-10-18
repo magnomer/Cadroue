@@ -6,7 +6,7 @@ using System.Windows.Media;
 
 namespace Cadroue.UIVeneer.PWing;
 
-internal sealed partial class PSEncoder
+internal static class PSEncoderChip
 {
     private const string PSEncoderChipSeparator = " / ";
 
@@ -15,6 +15,12 @@ internal sealed partial class PSEncoder
 
     private static readonly PSEncoderChipConverter psEncoderChipConverter = new();
     private static readonly DataTemplate psEncoderChipTemplate = PSEncoderChipBuild();
+
+    internal static void PSEncoderChipApply(ComboBox pCombo)
+    {
+        pCombo.ItemTemplate = psEncoderChipTemplate;
+        pCombo.HorizontalContentAlignment = HorizontalAlignment.Stretch;
+    }
 
     private static Brush PSEncoderChipCreate(byte pRed, byte pGreen, byte pBlue)
     {

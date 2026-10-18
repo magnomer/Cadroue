@@ -3,68 +3,55 @@ using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed partial class PInspector
+internal sealed class PInspectorTone
 {
-    private CheckBox pToneBrightnessBox = null!;
-    private CheckBox pInspectorBrightnessPersistent = null!;
-    private StackPanel pInspectorBrightnessStack = null!;
-    private StackPanel pInspectorBrightnessBody = null!;
-
-    private CheckBox pToneContrastBox = null!;
-    private CheckBox pInspectorContrastPersistent = null!;
-    private StackPanel pInspectorContrastStack = null!;
-    private StackPanel pInspectorContrastBody = null!;
-
-    private CheckBox pToneSaturationBox = null!;
-    private CheckBox pInspectorSaturationPersistent = null!;
-    private StackPanel pInspectorSaturationStack = null!;
-    private StackPanel pInspectorSaturationBody = null!;
-
-    private StackPanel PInspectorBrightnessBuild()
+    // The tone driver takes every tone section's parts in slot order: brightness, contrast, saturation.
+    internal PInspectorTone(QInspector lInspector)
     {
-        pToneBrightnessBox = PInspectorSwitchBuild(
+        CheckBox pToneBrightnessBox = PInspectorSwitch.PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.ApplyBrightness"));
-        pInspectorBrightnessPersistent = PInspectorSwitchBuild(
+        PInspectorBrightnessPersistent = PInspectorSwitch.PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.PersistBrightness"));
-        pInspectorBrightnessStack = new StackPanel();
-        pInspectorBrightnessBody = PToneBodyBuild(pToneBrightnessBox, pInspectorBrightnessStack);
-        return pInspectorBrightnessBody;
-    }
+        var pInspectorBrightnessStack = new StackPanel();
+        PInspectorBrightnessBody = PInspectorField.PToneBodyBuild(pToneBrightnessBox, pInspectorBrightnessStack);
 
-    private StackPanel PInspectorContrastBuild()
-    {
-        pToneContrastBox = PInspectorSwitchBuild(
+        CheckBox pToneContrastBox = PInspectorSwitch.PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.ApplyContrast"));
-        pInspectorContrastPersistent = PInspectorSwitchBuild(
+        PInspectorContrastPersistent = PInspectorSwitch.PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.PersistContrast"));
-        pInspectorContrastStack = new StackPanel();
-        pInspectorContrastBody = PToneBodyBuild(pToneContrastBox, pInspectorContrastStack);
-        return pInspectorContrastBody;
-    }
+        var pInspectorContrastStack = new StackPanel();
+        PInspectorContrastBody = PInspectorField.PToneBodyBuild(pToneContrastBox, pInspectorContrastStack);
 
-    private StackPanel PInspectorSaturationBuild()
-    {
-        pToneSaturationBox = PInspectorSwitchBuild(
+        CheckBox pToneSaturationBox = PInspectorSwitch.PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.ApplySaturation"));
-        pInspectorSaturationPersistent = PInspectorSwitchBuild(
+        PInspectorSaturationPersistent = PInspectorSwitch.PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.PersistSaturation"));
-        pInspectorSaturationStack = new StackPanel();
-        pInspectorSaturationBody = PToneBodyBuild(pToneSaturationBox, pInspectorSaturationStack);
-        return pInspectorSaturationBody;
+        var pInspectorSaturationStack = new StackPanel();
+        PInspectorSaturationBody = PInspectorField.PToneBodyBuild(pToneSaturationBox, pInspectorSaturationStack);
+
+        _ = new QTone(
+            lInspector,
+            [pToneBrightnessBox, pToneContrastBox, pToneSaturationBox],
+            [PInspectorBrightnessPersistent, PInspectorContrastPersistent, PInspectorSaturationPersistent],
+            [pInspectorBrightnessStack, pInspectorContrastStack, pInspectorSaturationStack],
+            [PInspectorBrightnessBody, PInspectorContrastBody, PInspectorSaturationBody]);
     }
 
-    // The tone driver takes every tone section's parts in slot order: brightness, contrast, saturation.
-    private void PToneBuild() =>
-        _ = new QTone(
-            QInspector,
-            [pToneBrightnessBox, pToneContrastBox, pToneSaturationBox],
-            [pInspectorBrightnessPersistent, pInspectorContrastPersistent, pInspectorSaturationPersistent],
-            [pInspectorBrightnessStack, pInspectorContrastStack, pInspectorSaturationStack],
-            [pInspectorBrightnessBody, pInspectorContrastBody, pInspectorSaturationBody]);
+    internal CheckBox PInspectorBrightnessPersistent { get; }
+
+    internal StackPanel PInspectorBrightnessBody { get; }
+
+    internal CheckBox PInspectorContrastPersistent { get; }
+
+    internal StackPanel PInspectorContrastBody { get; }
+
+    internal CheckBox PInspectorSaturationPersistent { get; }
+
+    internal StackPanel PInspectorSaturationBody { get; }
 }

@@ -2,28 +2,18 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed partial class PExport
+internal static class PExportPresetAction
 {
-    public static void PExportIncompatibleShow() => PSAnnouncement.PSAnnouncementShow(
-        null,
-        QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Incompatible.Title"),
-        QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Incompatible.Body"));
+    private const string PExportPlusIcon = "/PAsset/PPanel/PExportPlus.svg";
+    private const string PExportMinusIcon = "/PAsset/PPanel/PExportMinus.svg";
+    private const string PExportSettingIcon = "/PAsset/PPanel/PExportSetting.svg";
+    private const string PExportImportIcon = "/PAsset/PPanel/PExportImport.svg";
+    private const string PExportExportIcon = "/PAsset/PPanel/PExportExport.svg";
 
-    internal static string PExportMarkRead(string lPresetText, bool lPresetUnsupported) =>
-        lPresetUnsupported
-            ? $"{lPresetText} {QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Incompatible")}"
-            : lPresetText;
-
-    public static void PExportMissingShow() => PSAnnouncement.PSAnnouncementShow(
-        null,
-        QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Missing.Title"),
-        QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Missing.Body"));
-
-    private UIElement PExportActionBuild()
+    internal static UIElement PExportActionBuild(PExportPresetCommand pExportCommand, PExportPresetFile pExportFile)
     {
         var pGrid = new Grid { Margin = new Thickness(10, 4, 10, 0) };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -34,11 +24,11 @@ public sealed partial class PExport
         pLeftPanel.Children.Add(PExportButtonBuild(
             PExportPlusIcon,
             QLocalizationCatalog.QLocalizationTextRead("ExportPreset.AddTooltip"),
-            PExportPresetAdd));
+            pExportCommand.PExportPresetAdd));
         pLeftPanel.Children.Add(PExportButtonBuild(
             PExportMinusIcon,
             QLocalizationCatalog.QLocalizationTextRead("ExportPreset.DeleteTooltip"),
-            PExportPresetDelete));
+            pExportCommand.PExportPresetDelete));
         Grid.SetColumn(pLeftPanel, 0);
         pGrid.Children.Add(pLeftPanel);
 
@@ -50,28 +40,28 @@ public sealed partial class PExport
         pRightPanel.Children.Add(PExportButtonBuild(
             PExportSettingIcon,
             QLocalizationCatalog.QLocalizationTextRead("ExportPreset.SettingsTooltip"),
-            PExportDialogShow));
+            pExportCommand.PExportDialogShow));
         pRightPanel.Children.Add(PExportButtonBuild(
             PExportExportIcon,
             QLocalizationCatalog.QLocalizationTextRead("ExportPreset.ExportTooltip"),
-            PExportPresetSave));
+            pExportFile.PExportPresetSave));
         pRightPanel.Children.Add(PExportButtonBuild(
             PExportImportIcon,
             QLocalizationCatalog.QLocalizationTextRead("ExportPreset.ImportTooltip"),
-            PExportPresetLoad));
+            pExportFile.PExportPresetLoad));
         Grid.SetColumn(pRightPanel, 2);
         pGrid.Children.Add(pRightPanel);
         return pGrid;
     }
 
-    private Button PExportButtonBuild(string pIconPath, string pTooltip, RoutedEventHandler? pClick)
+    private static Button PExportButtonBuild(string pIconPath, string pTooltip, RoutedEventHandler pClick)
     {
-        Button pButton = PExportIconBuild(pIconPath, pTooltip, pClick is not null);
-        PExportClickAttach(pButton, pClick);
+        Button pButton = PExportIconBuild(pIconPath, pTooltip);
+        pButton.Click += pClick;
         return pButton;
     }
 
-    private static Button PExportIconBuild(string pIconPath, string pTooltip, bool pEnabled)
+    private static Button PExportIconBuild(string pIconPath, string pTooltip)
     {
         var pButton = new Button
         {
@@ -79,26 +69,16 @@ public sealed partial class PExport
             {
                 Width = 20,
                 Height = 20,
-                Source = QIcon.QIconRead(pIconPath, PExportBrushRead(pEnabled)),
+                Source = QIcon.QIconRead(pIconPath, PExportTheme.PExportTextBrush),
                 Stretch = Stretch.Uniform
             },
             ToolTip = pTooltip,
             Width = 28,
             Height = 26,
             Margin = new Thickness(0, 0, 2, 0),
-            IsEnabled = pEnabled
+            IsEnabled = true
         };
         QButton.QButtonAttach(pButton, QButtonLook.QButtonLookPanel);
         return pButton;
-    }
-
-    private static Brush PExportBrushRead(bool pEnabled) => pEnabled ? PExportTextBrush : PExportMutedBrush;
-
-    private static void PExportClickAttach(Button pButton, RoutedEventHandler? pClick)
-    {
-        if (pClick is not null)
-        {
-            pButton.Click += pClick;
-        }
     }
 }

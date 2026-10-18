@@ -1,18 +1,39 @@
 using System.Windows;
 using System.Windows.Controls;
+using Cadroue.Application;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
-internal sealed partial class PSEncoder
+internal sealed class PSEncoderAudioRate
 {
-    private void PSAudioRowsRebuild()
+    private readonly QSEncoderAudio lsEncoderAudio;
+    private readonly LPreset lsEncoderDraft;
+    private readonly Dictionary<string, ComboBox> psAudioExtraCombos = new(StringComparer.Ordinal);
+    private TextBox? psAudioQualityBox;
+    private ComboBox? psAudioSpeedCombo;
+
+    internal PSEncoderAudioRate(QSEncoderAudio lsAudio, LPreset lsDraft)
+    {
+        lsEncoderAudio = lsAudio;
+        lsEncoderDraft = lsDraft;
+    }
+
+    internal StackPanel PSAudioRowsPanel { get; } = new();
+
+    internal string PSAudioQualityRead() => PSEncoderValue.PSEncoderTrimRead(psAudioQualityBox);
+
+    internal string PSAudioSpeedRead() =>
+        psAudioSpeedCombo is null ? string.Empty : PSCombo.PSComboTextRead(psAudioSpeedCombo);
+
+    internal Dictionary<string, string> PSAudioExtrasRead() => PSEncoderValue.PSEncoderExtrasRead(psAudioExtraCombos);
+
+    internal void PSAudioRowsRebuild()
     {
         PSAudioRowsClear();
-        LCapabilityCodec pCodec = lsEncoder.QSEncoderAudio.QSEncoderAudioCodec;
-        LCapabilityMode pMode = pCodec.LCapabilityModeFind(lsEncoder.QSEncoderAudio.QSEncoderAudioRate);
+        LCapabilityCodec pCodec = lsEncoderAudio.QSEncoderAudioCodec;
+        LCapabilityMode pMode = pCodec.LCapabilityModeFind(lsEncoderAudio.QSEncoderAudioRate);
         bool pModeStored = PSAudioModeCheck(pMode);
 
         PSAudioQualityBuild(pMode, pModeStored);
@@ -27,7 +48,7 @@ internal sealed partial class PSEncoder
 
     private void PSAudioRowsClear()
     {
-        psAudioRowsPanel.Children.Clear();
+        PSAudioRowsPanel.Children.Clear();
         psAudioQualityBox = null;
         psAudioSpeedCombo = null;
         psAudioExtraCombos.Clear();
@@ -35,10 +56,10 @@ internal sealed partial class PSEncoder
 
     private bool PSAudioModeCheck(LCapabilityMode pMode) => string.Equals(
         pMode.LCapabilityModeLabel,
-        lsExportSpecificEdit.LPresetAudio.LPresetRateControl,
+        lsEncoderDraft.LPresetAudio.LPresetRateControl,
         StringComparison.Ordinal);
 
-    private void PSAudioRowAdd(UIElement pRow) => psAudioRowsPanel.Children.Add(pRow);
+    private void PSAudioRowAdd(UIElement pRow) => PSAudioRowsPanel.Children.Add(pRow);
 
     private static string PSAudioStoredResolve(bool pModeStored, string pStored, string pDefault) =>
         pModeStored && !string.IsNullOrWhiteSpace(pStored) ? pStored : pDefault;
@@ -51,7 +72,7 @@ internal sealed partial class PSEncoder
         }
 
         string pText = PSAudioStoredResolve(
-            pModeStored, lsExportSpecificEdit.LPresetAudio.LPresetQuality, pQuality.LCapabilityQualityDefault);
+            pModeStored, lsEncoderDraft.LPresetAudio.LPresetQuality, pQuality.LCapabilityQualityDefault);
         TextBox pBox = PSAudioEntryBuild(pText);
         if (pQuality.LCapabilityQualityMinimum is double pMinimum
             && pQuality.LCapabilityQualityMaximum is double pMaximum)
@@ -105,14 +126,14 @@ internal sealed partial class PSEncoder
         }
 
         string pSelected = PSAudioStoredResolve(
-            pModeStored, lsExportSpecificEdit.LPresetAudio.LPresetSpeed, pSpeed.LCapabilitySpeedDefault);
+            pModeStored, lsEncoderDraft.LPresetAudio.LPresetSpeed, pSpeed.LCapabilitySpeedDefault);
         ComboBox pCombo = PSAudioPickerBuild(pSelected, pSpeed.LCapabilitySpeedValues);
         PSAudioRowAdd(PSField.PSFieldBuild(pSpeed.LCapabilitySpeedLabel, pCombo));
     }
 
     private ComboBox PSAudioPickerBuild(string pSelected, IReadOnlyList<LCapabilityChoice> pValues)
     {
-        ComboBox pCombo = PSCombo.PSComboBuild(pSelected, PSEncoderChoicesRead(pValues));
+        ComboBox pCombo = PSCombo.PSComboBuild(pSelected, PSEncoderValue.PSEncoderChoicesRead(pValues));
         psAudioSpeedCombo = pCombo;
         return pCombo;
     }
@@ -128,7 +149,7 @@ internal sealed partial class PSEncoder
     }
 
     private string PSAudioExtraResolve(LCapabilityExtra pExtra) =>
-        lsExportSpecificEdit.LPresetAudio.LPresetExtras.TryGetValue(
+        lsEncoderDraft.LPresetAudio.LPresetExtras.TryGetValue(
                 pExtra.LCapabilityExtraOption,
                 out string? pStored)
             && pExtra.LCapabilityExtraValues.Any(pChoice => string.Equals(
@@ -140,7 +161,8 @@ internal sealed partial class PSEncoder
 
     private ComboBox PSAudioChoiceBuild(LCapabilityExtra pExtra, string pSelected)
     {
-        ComboBox pCombo = PSCombo.PSComboBuild(pSelected, PSEncoderChoicesRead(pExtra.LCapabilityExtraValues));
+        ComboBox pCombo = PSCombo.PSComboBuild(
+            pSelected, PSEncoderValue.PSEncoderChoicesRead(pExtra.LCapabilityExtraValues));
         psAudioExtraCombos[pExtra.LCapabilityExtraOption] = pCombo;
         return pCombo;
     }

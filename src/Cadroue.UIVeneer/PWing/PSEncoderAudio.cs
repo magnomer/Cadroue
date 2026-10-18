@@ -1,14 +1,65 @@
 using System.Windows;
 using System.Windows.Controls;
-using Cadroue.Core;
-using Cadroue.Infrastructure;
+using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
-internal sealed partial class PSEncoder
+internal sealed class PSEncoderAudio
 {
+    private readonly QSEncoderAudio lsEncoderAudio;
+    private readonly LPreset lsEncoderDraft;
+    private readonly Window psEncoderWindow;
+    private readonly PSEncoderAudioRate psEncoderAudioRate;
+    private readonly PSEncoderAudioSample psEncoderAudioSample;
+    private readonly PSEncoderAudioChannel psEncoderAudioChannel;
+    private readonly ComboBox psAudioStreamCombo;
+    private readonly Border psAudioMode;
+    private readonly ComboBox psAudioEncoderCombo;
+    private readonly ComboBox psAudioRateCombo;
+    private readonly StackPanel psAudioEncodePanel = new();
+    private readonly TextBlock psAudioNotice;
+    private readonly TextBlock psAudioEncoderNotice;
+
+    internal PSEncoderAudio(QSEncoderAudio lsAudio, LPreset lsDraft, Window pWindow)
+    {
+        lsEncoderAudio = lsAudio;
+        lsEncoderDraft = lsDraft;
+        psEncoderWindow = pWindow;
+        psAudioStreamCombo = PSCombo.PSComboBuild(lsDraft.LPresetAudio.LPresetStream,
+            new LLocalizationChoice("Include first audio track", "Encoder.Stream.FirstAudio"),
+            new LLocalizationChoice("Include all audio tracks", "Encoder.Stream.AllAudio"),
+            new LLocalizationChoice("Exclude", "Encoder.Stream.Exclude"));
+        psAudioMode = PSField.PSModeBuild(lsDraft.LPresetAudio.LPresetMode, PSAudioScopeUpdate,
+            new LLocalizationChoice("Copy", "Encoder.Codec.Copy"),
+            new LLocalizationChoice("Encode", "Encoder.Codec.Encode"),
+            new LLocalizationChoice("Exclude", "Encoder.Stream.Exclude"));
+        psAudioNotice = PSEncoderNotice.PSEncoderNoticeBuild();
+        psAudioEncoderNotice = PSEncoderNotice.PSEncoderErrorBuild();
+        psAudioEncoderCombo = PSCombo.PSComboBuild(
+            lsAudio.QSEncoderAudioEncoder,
+            QSEncoderAudio.QSEncoderAudioRead(lsDraft.LPresetContainer, lsAudio.QSEncoderAudioEncoder));
+        PSEncoderChip.PSEncoderChipApply(psAudioEncoderCombo);
+        psAudioRateCombo = PSCombo.PSComboBuild(
+            lsAudio.QSEncoderAudioRate,
+            lsAudio.QSEncoderAudioCodec.LCapabilityModeLabels);
+        psEncoderAudioRate = new PSEncoderAudioRate(lsAudio, lsDraft);
+        psEncoderAudioSample = new PSEncoderAudioSample(lsAudio, lsDraft);
+        psEncoderAudioChannel = new PSEncoderAudioChannel(lsAudio, lsDraft);
+    }
+
+    internal void PSAudioDraftSet()
+    {
+        lsEncoderDraft.LPresetAudio.LPresetStream = PSCombo.PSComboTextRead(psAudioStreamCombo);
+        lsEncoderDraft.LPresetAudio.LPresetMode = PSField.PSModeTextRead(psAudioMode);
+        lsEncoderDraft.LPresetAudio.LPresetQuality = psEncoderAudioRate.PSAudioQualityRead();
+        lsEncoderDraft.LPresetAudio.LPresetSpeed = psEncoderAudioRate.PSAudioSpeedRead();
+        lsEncoderDraft.LPresetAudio.LPresetExtras = psEncoderAudioRate.PSAudioExtrasRead();
+        lsEncoderDraft.LPresetAudio.LPresetSampleRate = psEncoderAudioSample.PSAudioSampleRead();
+        lsEncoderDraft.LPresetAudio.LPresetChannels = psEncoderAudioChannel.PSAudioChannelRead();
+    }
+
     private void PSAudioEncoderUpdate()
     {
         bool pAvailable = QSEncoderAudio.QSEncoderAudioCheck(PSCombo.PSComboTextRead(psAudioEncoderCombo));
@@ -25,27 +76,18 @@ internal sealed partial class PSEncoder
     private void PSAudioWarningSet() =>
         psAudioEncoderNotice.Text = QLocalizationCatalog.QLocalizationTextRead("Encoder.Audio.Notice.Unavailable");
 
-    private void PSAudioContainerHandle()
+    internal void PSAudioContainerHandle(string pContainer)
     {
-        string pContainer = PSCombo.PSComboTextRead(psOutputContainerCombo);
         string pCurrent = PSAudioSelectedRead();
         string[] pItems = QSEncoderAudio.QSEncoderAudioRead(pContainer, pCurrent);
-        PSEncoderComboApply(psAudioEncoderCombo, pItems, PSEncoderChoiceResolve(pItems, pCurrent));
+        PSEncoderVerification.PSEncoderComboApply(
+            psAudioEncoderCombo, pItems, PSEncoderVerification.PSEncoderChoiceResolve(pItems, pCurrent));
         PSAudioEncoderUpdate();
     }
 
     private string PSAudioSelectedRead() => psAudioEncoderCombo.SelectedItem as string ?? string.Empty;
 
-    private static string? PSEncoderChoiceResolve(IReadOnlyList<string> pItems, string pCurrent) =>
-        pItems.Contains(pCurrent) ? pCurrent : pItems.FirstOrDefault();
-
-    private static void PSEncoderComboApply(ComboBox pCombo, IReadOnlyList<string> pItems, string? pSelected)
-    {
-        pCombo.ItemsSource = pItems;
-        pCombo.SelectedItem = pSelected;
-    }
-
-    private UIElement PSAudioPlateBuild()
+    internal UIElement PSAudioPlateBuild()
     {
         Button pVerify = PSInline.PSInlineButtonBuild(
             QLocalizationCatalog.QLocalizationTextRead("Encoder.Button.Verify"),
@@ -59,11 +101,11 @@ internal sealed partial class PSEncoder
         ProgressBar pProgress = PSField.PSFieldProgressBuild();
         PSAudioPlateAttach(pVerify, pLog, pProgress);
         PSAudioEncodeBuild(pVerify, pLog, pProgress);
-        PSAudioSampleRebuild();
-        PSAudioChannelRebuild();
+        psEncoderAudioSample.PSAudioSampleRebuild();
+        psEncoderAudioChannel.PSAudioChannelRebuild();
         StackPanel pPanel = PSAudioPanelBuild();
         PSAudioStreamAttach();
-        PSAudioRowsRebuild();
+        psEncoderAudioRate.PSAudioRowsRebuild();
         PSAudioScopeUpdate();
         PSAudioEncoderUpdate();
         return PSPlate.PSPlateBuild(pPanel);
@@ -73,37 +115,49 @@ internal sealed partial class PSEncoder
     {
         var pFeed = new Progress<double>(pValue => pProgress.Value = pValue);
         pVerify.Click += async (_, _) => await PSAudioCheckHandle(pVerify, pLog, pProgress, pFeed);
-        pLog.Click += (_, _) => PSVerdict.PSVerdictShow(this, lsEncoder.QSEncoderAudio.QSEncoderVerdictCreate());
+        pLog.Click += (_, _) => PSVerdict.PSVerdictShow(psEncoderWindow, lsEncoderAudio.QSEncoderVerdictCreate());
         psAudioEncoderCombo.SelectionChanged += (_, _) => PSAudioSet();
         psAudioRateCombo.SelectionChanged += (_, _) => PSAudioSet();
     }
 
     private async Task PSAudioCheckHandle(Button pVerify, Button pLog, ProgressBar pProgress, IProgress<double> pFeed)
     {
-        PSAudioProgressStart(pProgress);
+        PSEncoderVerification.PSEncoderProgressStart(pProgress);
         try
         {
             await PSAudioVerifyHandle(psAudioEncoderCombo, pVerify, pFeed);
         }
         finally
         {
-            PSAudioProgressStop(pProgress);
+            PSEncoderVerification.PSEncoderProgressStop(pProgress);
         }
 
         PSAudioResultApply(pLog);
     }
 
-    private static void PSAudioProgressStart(ProgressBar pProgress)
+    private async Task PSAudioVerifyHandle(ComboBox pCombo, Button pButton, IProgress<double> pFeed)
     {
-        pProgress.Value = 0;
-        pProgress.Visibility = Visibility.Visible;
-    }
+        PSEncoderVerification.PSEncoderBusyApply(pButton);
+        IReadOnlyList<string> pAvailable;
+        try
+        {
+            pAvailable = await lsEncoderAudio.QSEncoderAudioScan(pFeed);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
 
-    private static void PSAudioProgressStop(ProgressBar pProgress) => pProgress.Visibility = Visibility.Collapsed;
+        string pSelected = lsEncoderAudio.QSEncoderAudioEncoder;
+        PSEncoderVerification.PSEncoderComboApply(
+            pCombo, pAvailable, PSEncoderVerification.PSEncoderChoiceResolve(pAvailable, pSelected));
+        PSAudioEncoderUpdate();
+        PSEncoderVerification.PSEncoderIdleApply(pButton);
+    }
 
     private void PSAudioResultApply(Button pLog) => pLog.IsEnabled = PSAudioResultCheck();
 
-    private bool PSAudioResultCheck() => lsEncoder.QSEncoderAudio.QSEncoderAudioResults.Count > 0;
+    private bool PSAudioResultCheck() => lsEncoderAudio.QSEncoderAudioResults.Count > 0;
 
     private void PSAudioEncodeBuild(Button pVerify, Button pLog, ProgressBar pProgress)
     {
@@ -119,9 +173,9 @@ internal sealed partial class PSEncoder
             PSField.PSFieldBuild(
                 QLocalizationCatalog.QLocalizationTextRead("Encoder.Audio.Field.RateControl"),
                 psAudioRateCombo));
-        psAudioEncodePanel.Children.Add(psAudioRowsPanel);
-        psAudioEncodePanel.Children.Add(psAudioSamplePanel);
-        psAudioEncodePanel.Children.Add(psAudioChannelPanel);
+        psAudioEncodePanel.Children.Add(psEncoderAudioRate.PSAudioRowsPanel);
+        psAudioEncodePanel.Children.Add(psEncoderAudioSample.PSAudioSamplePanel);
+        psAudioEncodePanel.Children.Add(psEncoderAudioChannel.PSAudioChannelPanel);
     }
 
     private StackPanel PSAudioPanelBuild()
@@ -146,22 +200,22 @@ internal sealed partial class PSEncoder
         string pRate = PSCombo.PSComboTextRead(psAudioRateCombo);
         if (pEncoder.Length > 0 && pRate.Length > 0)
         {
-            lsEncoder.QSEncoderAudio.QSEncoderAudioSet(pEncoder, pRate);
+            lsEncoderAudio.QSEncoderAudioSet(pEncoder, pRate);
         }
     }
 
-    private void PSAudioRowsApply()
+    internal void PSAudioRowsApply()
     {
-        string[] pModeLabels = lsEncoder.QSEncoderAudio.QSEncoderAudioCodec.LCapabilityModeLabels;
+        string[] pModeLabels = lsEncoderAudio.QSEncoderAudioCodec.LCapabilityModeLabels;
         if (!PSEncoderLabelsCheck(psAudioRateCombo, pModeLabels))
         {
             PSAudioLabelsApply(pModeLabels);
         }
 
         PSAudioRateApply();
-        PSAudioRowsRebuild();
-        PSAudioSampleRebuild();
-        PSAudioChannelRebuild();
+        psEncoderAudioRate.PSAudioRowsRebuild();
+        psEncoderAudioSample.PSAudioSampleRebuild();
+        psEncoderAudioChannel.PSAudioChannelRebuild();
         PSAudioEncoderUpdate();
     }
 
@@ -170,7 +224,7 @@ internal sealed partial class PSEncoder
 
     private void PSAudioLabelsApply(string[] pModeLabels) => psAudioRateCombo.ItemsSource = pModeLabels;
 
-    private void PSAudioRateApply() => psAudioRateCombo.SelectedItem = lsEncoder.QSEncoderAudio.QSEncoderAudioRate;
+    private void PSAudioRateApply() => psAudioRateCombo.SelectedItem = lsEncoderAudio.QSEncoderAudioRate;
 
     private void PSAudioScopeUpdate()
     {
@@ -197,12 +251,4 @@ internal sealed partial class PSEncoder
         psAudioNotice.Visibility = PLook.PLookVisible[!pEncoded];
         psAudioNotice.Text = pNotice;
     }
-
-    private static TextBlock PSAudioNoticeBuild() => new()
-    {
-        Foreground = PSEncoderMutedBrush,
-        TextWrapping = TextWrapping.Wrap,
-        Margin = PSNotice.PSNoticeMargin,
-        Visibility = Visibility.Collapsed
-    };
 }

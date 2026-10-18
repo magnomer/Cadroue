@@ -5,9 +5,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
-using FlyleafLib;
-using FlyleafLib.Controls.WPF;
-using FlyleafLib.MediaFramework.MediaRenderer;
 
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
@@ -16,29 +13,18 @@ namespace Cadroue.UIVeneer.PWing;
 
 public sealed class PViewer : UserControl
 {
-    private static readonly IReadOnlyDictionary<bool, Action<Config>> pViewerProcessors =
-        new Dictionary<bool, Action<Config>>
-        {
-            [true] = pConfig =>
-            {
-                pConfig.Video.VideoProcessor = VideoProcessors.Flyleaf;
-                pConfig.Video.SyncVPFilters = false;
-            },
-            [false] = _ => { },
-        };
-
     private static readonly IReadOnlyDictionary<bool, Action<PViewer>> pViewerOverlayMoves =
         new Dictionary<bool, Action<PViewer>>
         {
             [true] = pViewer =>
             {
-                pViewer.pViewerFlyleafHost.Content = null;
+                pViewer.pViewerFlyleaf.PViewerFlyleafHost.Content = null;
                 pViewer.pViewerMpvOverlay.PViewerChildSet(pViewer.pViewerOverlayHost);
             },
             [false] = pViewer =>
             {
                 pViewer.pViewerMpvOverlay.PViewerChildSet(null);
-                pViewer.pViewerFlyleafHost.Content = pViewer.pViewerOverlayHost;
+                pViewer.pViewerFlyleaf.PViewerFlyleafHost.Content = pViewer.pViewerOverlayHost;
             },
         };
 
@@ -46,7 +32,7 @@ public sealed class PViewer : UserControl
         new Dictionary<bool, Action<PViewer>>
         {
             [true] = pViewer => pViewer.PViewerMpvCreate(),
-            [false] = pViewer => pViewer.PViewerFlyleafCreate(),
+            [false] = pViewer => pViewer.pViewerFlyleaf.PViewerFlyleafCreate(),
         };
 
     private static readonly IReadOnlyDictionary<bool, Action<PViewer>> pViewerLoupeShows =
@@ -64,7 +50,7 @@ public sealed class PViewer : UserControl
     private readonly Border pViewerEngineSurface;
     private readonly Border pViewerEngineOverlay;
     private readonly Grid pViewerOverlayHost;
-    private readonly FlyleafHost pViewerFlyleafHost;
+    private readonly PViewerFlyleaf pViewerFlyleaf;
     private readonly PViewerMpvHost pViewerMpvHost;
     private readonly PViewerOverlay pViewerMpvOverlay;
     private readonly IReadOnlyDictionary<bool, FrameworkElement> pViewerHosts;
@@ -91,7 +77,7 @@ public sealed class PViewer : UserControl
         pViewerEngineSurface = PViewerControl.PViewerSlotBuild();
         pViewerEngineOverlay = PViewerControl.PViewerSlotBuild();
         pViewerOverlayHost = PViewerLayerBuild();
-        pViewerFlyleafHost = PViewerFlyleafBuild(pViewerOverlayHost);
+        pViewerFlyleaf = new PViewerFlyleaf(QViewer, pViewerOverlayHost);
         pViewerMpvHost = PViewerMpvBuild();
         pViewerMpvOverlay = new PViewerOverlay(pViewerMpvHost, QViewer.QViewerRenderer);
         pViewerHosts = PViewerHostsCreate();
@@ -143,27 +129,18 @@ public sealed class PViewer : UserControl
         return pLayer;
     }
 
-    private static FlyleafHost PViewerFlyleafBuild(Grid pOverlayHost) => new()
-    {
-        Content = pOverlayHost,
-        VideoBackground = Brushes.White,
-        ToggleFullScreenOnDoubleClick = AvailableWindows.None,
-        AttachedDragMove = AttachedDragMoveOptions.None,
-        Visibility = Visibility.Collapsed
-    };
-
     private static PViewerMpvHost PViewerMpvBuild() => new() { Visibility = Visibility.Collapsed };
 
     private Dictionary<bool, FrameworkElement> PViewerHostsCreate() => new()
     {
         [true] = pViewerMpvHost,
-        [false] = pViewerFlyleafHost,
+        [false] = pViewerFlyleaf.PViewerFlyleafHost,
     };
 
     private void PViewerFrameBuild()
     {
         var pViewerFrame = new Grid();
-        pViewerFrame.Children.Add(pViewerFlyleafHost);
+        pViewerFrame.Children.Add(pViewerFlyleaf.PViewerFlyleafHost);
         pViewerFrame.Children.Add(pViewerMpvHost);
         pViewerFrame.Children.Add(pViewerEngineSurface);
         Content = new Border
@@ -193,7 +170,7 @@ public sealed class PViewer : UserControl
         QViewer.QViewerMedia.QViewerPlayerCreated += PViewerPlayerCreate;
         QViewer.QViewerSource.QViewerSidecar.QViewerSourceAsk += PViewerAskHandle;
         QViewer.QViewerSource.QViewerSidecar.QViewerSourceLocate += PViewerAsk.PViewerAskOpen;
-        QViewer.QViewerHost.QViewerFactsAttach(PViewerFactsRead);
+        QViewer.QViewerHost.QViewerFactsAttach(() => pViewerFlyleaf.PViewerFactsRead(IsVisible));
         Cadroue.Infrastructure.LRenderer.LRendererEngineChanged += PViewerEngineShow;
         Cadroue.Infrastructure.LRenderer.LRendererEngineChanged += PViewerEngineHandle;
     }
@@ -209,11 +186,7 @@ public sealed class PViewer : UserControl
     {
         Loaded += (_, _) => QViewer.QViewerHost.QViewerHostRecord("panel loaded");
         IsVisibleChanged += (_, pEvent) => QViewer.QViewerHost.QViewerHostRecord($"panel visible {pEvent.NewValue}");
-        pViewerFlyleafHost.Loaded += (_, _) => QViewer.QViewerHost.QViewerHostRecord("host loaded");
-        pViewerFlyleafHost.IsVisibleChanged += (_, pEvent) =>
-            QViewer.QViewerHost.QViewerHostRecord($"host visible {pEvent.NewValue}");
-        pViewerFlyleafHost.SizeChanged += (_, pEvent) =>
-            QViewer.QViewerHost.QViewerHostRecord($"host sized {pEvent.NewSize.Width:0}x{pEvent.NewSize.Height:0}");
+        pViewerFlyleaf.PViewerTraceAttach();
     }
 
     private void PViewerCloseHandle(object pSender, RoutedEventArgs pEvent) =>
@@ -252,8 +225,7 @@ public sealed class PViewer : UserControl
         pViewerOverlayMoves[QViewer.QViewerMpvActive](this);
         PViewerShownApply();
         PViewerAudioUpdate();
-        PViewerOverlay.PViewerInertApply(PPlayerFlyleaf.PPlayerHandleRead(pViewerFlyleafHost.Surface));
-        PViewerOverlay.PViewerInertApply(PPlayerFlyleaf.PPlayerHandleRead(pViewerFlyleafHost.Overlay));
+        pViewerFlyleaf.PFlyleafInertApply();
         pViewerMpvOverlay.PViewerOverlayPlace();
     }
 
@@ -268,52 +240,8 @@ public sealed class PViewer : UserControl
 
     private void PViewerPlayerCreate() => pViewerEngineCreates[QViewer.QViewerMpvActive](this);
 
-    private void PViewerFlyleafCreate()
-    {
-        Config pConfig = PViewerConfigCreate();
-        QPlayer.QPlayerEngineSet(new PPlayerFlyleaf(pViewerFlyleafHost, QPlayer, pConfig).PPlayerSeamRead());
-    }
-
-    private Config PViewerConfigCreate()
-    {
-        var pConfig = new Config();
-        pConfig.Player.KeyBindings.Keys.Clear();
-        pViewerProcessors[QViewer.QViewerProcessorForced](pConfig);
-        pConfig.Video.BackColor = Colors.White;
-        pConfig.Video.ClearScreen = false;
-        return pConfig;
-    }
-
     private void PViewerMpvCreate() =>
         QPlayer.QPlayerMpvCreate(pViewerMpvHost.PViewerHandleRead());
-
-    private QViewerHostFacts PViewerFactsRead()
-    {
-        Window? pSurface = null;
-        nint pHandle = nint.Zero;
-        bool pDisposed = false;
-        Window? pOverlay = null;
-        try
-        {
-            pDisposed = pViewerFlyleafHost.Disposed;
-            pSurface = pViewerFlyleafHost.Surface;
-            pHandle = pViewerFlyleafHost.SurfaceHandle;
-            pOverlay = pViewerFlyleafHost.Overlay;
-        }
-        catch
-        {
-        }
-
-        return new QViewerHostFacts(
-            IsVisible,
-            pViewerFlyleafHost.IsVisible,
-            pSurface?.Visibility.ToString(),
-            pSurface?.Width,
-            pSurface?.Height,
-            pHandle,
-            pDisposed,
-            pOverlay?.AllowsTransparency);
-    }
 
     private void PViewerAskHandle(QViewerAsk lAsk, Action<bool> lAnswer) =>
         PViewerAsk.PViewerAskShow(this, lAsk, lAnswer);
@@ -334,20 +262,7 @@ public sealed class PViewer : UserControl
         pEvent.Handled = true;
     }
 
-    internal bool PViewerSurfaceMatch(nint pForeground)
-    {
-        try
-        {
-            return QViewer.QViewerSurfaceMatch(
-                pForeground,
-                PPlayerFlyleaf.PPlayerHandleRead(pViewerFlyleafHost.Surface),
-                PPlayerFlyleaf.PPlayerHandleRead(pViewerFlyleafHost.Overlay));
-        }
-        catch
-        {
-            return false;
-        }
-    }
+    internal bool PViewerSurfaceMatch(nint pForeground) => pViewerFlyleaf.PViewerSurfaceMatch(pForeground);
 
     public void PViewerClose()
     {
@@ -355,15 +270,8 @@ public sealed class PViewer : UserControl
         PViewerHandlerDetach();
         pViewerOverlay.PCropClose();
         PViewerCropDetach();
-        QViewer.QViewerMedia.QViewerTeardown.QViewerStageRun("flyleaf host", PViewerFlyleafDispose);
+        QViewer.QViewerMedia.QViewerTeardown.QViewerStageRun("flyleaf host", pViewerFlyleaf.PViewerFlyleafDispose);
         QViewer.QViewerMedia.QViewerTeardown.QViewerStageRun("mpv host", PViewerMpvDispose);
-    }
-
-    private void PViewerFlyleafDispose()
-    {
-        pViewerFlyleafHost.Player = null;
-        pViewerFlyleafHost.Content = null;
-        ((IDisposable)pViewerFlyleafHost).Dispose();
     }
 
     private void PViewerMpvDispose()

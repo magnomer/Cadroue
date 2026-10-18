@@ -1,26 +1,24 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
-using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PHouse;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed partial class PExport
+internal static class PExportPresetName
 {
-    private void PExportEditCommit()
-    {
-        if (QExport.QExportEditing is not string lEditingName || pExportBoxCurrent is not { } pEditingBox)
-        {
-            return;
-        }
+    private const string PExportCheckIcon = "/PAsset/PPanel/PExportCheck.svg";
+    private const string PExportCancelIcon = "/PAsset/PPanel/PExportCancel.svg";
+    private static readonly Brush PExportApplyBrush = new SolidColorBrush(Color.FromRgb(0x2E, 0xA3, 0x66));
+    private static readonly Brush PExportCancelBrush = new SolidColorBrush(Color.FromRgb(0xD1, 0x43, 0x43));
 
-        PExportNameCommit(lEditingName, pEditingBox.Text);
-    }
-
-    private UIElement PExportDisplayBuild(string lPresetName, bool pPresetModified, bool pPresetUnsupported)
+    internal static UIElement PExportDisplayBuild(
+        string lPresetName,
+        bool pPresetModified,
+        bool pPresetUnsupported,
+        RoutedEventHandler pApply,
+        RoutedEventHandler pRestore)
     {
         UIElement pNameText = PExportNameBuild(lPresetName, pPresetModified, pPresetUnsupported);
         if (!pPresetModified)
@@ -39,22 +37,22 @@ public sealed partial class PExport
             Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Right
         };
-        pButtonPanel.Children.Add(PExportInlineBuild(
+        pButtonPanel.Children.Add(PExportPresetInline.PExportInlineBuild(
             PExportCheckIcon,
             PExportApplyBrush,
             QLocalizationCatalog.QLocalizationTextRead("ExportPreset.ApplyTooltip"),
-            PExportModificationApply));
-        pButtonPanel.Children.Add(PExportInlineBuild(
+            pApply));
+        pButtonPanel.Children.Add(PExportPresetInline.PExportInlineBuild(
             PExportCancelIcon,
             PExportCancelBrush,
             QLocalizationCatalog.QLocalizationTextRead("ExportPreset.DiscardTooltip"),
-            PExportModificationRestore));
+            pRestore));
         Grid.SetColumn(pButtonPanel, 1);
         pGrid.Children.Add(pButtonPanel);
         return pGrid;
     }
 
-    private UIElement PExportNameBuild(string lPresetName, bool pPresetModified, bool pPresetUnsupported)
+    private static UIElement PExportNameBuild(string lPresetName, bool pPresetModified, bool pPresetUnsupported)
     {
         TextBlock pNameText = PExportTextBuild(lPresetName, pPresetModified, pPresetUnsupported);
         if (!LPresetTable.LPresetNativeCheck(lPresetName))
@@ -89,6 +87,11 @@ public sealed partial class PExport
                 : LPresetNaming.LPresetDisplayRead(lPresetName),
             pPresetUnsupported);
 
+    private static string PExportMarkRead(string lPresetText, bool lPresetUnsupported) =>
+        lPresetUnsupported
+            ? $"{lPresetText} {QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Incompatible")}"
+            : lPresetText;
+
     private static FontStyle PExportStyleResolve(bool pPresetModified) =>
         pPresetModified ? FontStyles.Italic : FontStyles.Normal;
 
@@ -97,7 +100,7 @@ public sealed partial class PExport
         Text = pTitle,
         FontSize = 12,
         FontStyle = pStyle,
-        Foreground = PExportTextBrush,
+        Foreground = PExportTheme.PExportTextBrush,
         Padding = new Thickness(2, 0, 2, 1),
         VerticalAlignment = VerticalAlignment.Center
     };
@@ -121,105 +124,4 @@ public sealed partial class PExport
             VerticalAlignment = VerticalAlignment.Center
         }
     };
-
-    private TextBox PExportBoxBuild(string lPresetName)
-    {
-        TextBox pNameBox = PExportFieldBuild(lPresetName);
-        PExportBoxSet(pNameBox);
-        PExportBoxAttach(pNameBox, lPresetName);
-        return pNameBox;
-    }
-
-    private static TextBox PExportFieldBuild(string lPresetName) => new()
-    {
-        Text = lPresetName,
-        FontSize = 12,
-        Foreground = PExportTextBrush,
-        Background = Brushes.Transparent,
-        BorderThickness = new Thickness(0, 0, 0, 1),
-        BorderBrush = new SolidColorBrush(Color.FromRgb(0x4A, 0x90, 0xD9)),
-        Padding = new Thickness(2, 0, 2, 1),
-        HorizontalAlignment = HorizontalAlignment.Stretch,
-        VerticalAlignment = VerticalAlignment.Center,
-        FocusVisualStyle = null
-    };
-
-    private void PExportBoxSet(TextBox? pNameBox) => pExportBoxCurrent = pNameBox;
-
-    private void PExportBoxAttach(TextBox pNameBox, string lPresetName)
-    {
-        Window? pEditWindow = null;
-        MouseButtonEventHandler pOutsideHandle = (_, pDownEvent) =>
-            PExportOutsideHandle(pNameBox, lPresetName, pDownEvent);
-        pNameBox.Loaded += (_, _) => pEditWindow = PExportOpenHandle(pNameBox, pOutsideHandle);
-        pNameBox.Unloaded += (_, _) => PExportWindowDetach(pEditWindow, pOutsideHandle);
-        pNameBox.LostKeyboardFocus += (_, _) => PExportFocusHandle(pNameBox, lPresetName);
-        pNameBox.KeyDown += (_, pEvent) =>
-            pEvent.Handled = PExportKeyHandle(pNameBox, lPresetName, pEvent.Key) || pEvent.Handled;
-    }
-
-    private void PExportOutsideHandle(TextBox pNameBox, string lPresetName, MouseButtonEventArgs pDownEvent)
-    {
-        if (!ReferenceEquals(pExportBoxCurrent, pNameBox)
-            || PExportInsideCheck(pDownEvent.OriginalSource as DependencyObject, pNameBox))
-        {
-            return;
-        }
-
-        PExportNameCommit(lPresetName, pNameBox.Text);
-    }
-
-    private static Window? PExportOpenHandle(TextBox pNameBox, MouseButtonEventHandler pOutsideHandle)
-    {
-        pNameBox.Focus();
-        pNameBox.SelectAll();
-        return PExportWindowAttach(pNameBox, pOutsideHandle);
-    }
-
-    private static Window? PExportWindowAttach(TextBox pNameBox, MouseButtonEventHandler pOutsideHandle)
-    {
-        Window? pEditWindow = Window.GetWindow(pNameBox);
-        if (pEditWindow is not null)
-        {
-            pEditWindow.PreviewMouseDown += pOutsideHandle;
-        }
-
-        return pEditWindow;
-    }
-
-    private static void PExportWindowDetach(Window? pEditWindow, MouseButtonEventHandler pOutsideHandle)
-    {
-        if (pEditWindow is not null)
-        {
-            pEditWindow.PreviewMouseDown -= pOutsideHandle;
-        }
-    }
-
-    private void PExportFocusHandle(TextBox pNameBox, string lPresetName)
-    {
-        if (!ReferenceEquals(pExportBoxCurrent, pNameBox))
-        {
-            return;
-        }
-
-        PExportNameCommit(lPresetName, pNameBox.Text);
-    }
-
-    private bool PExportKeyHandle(TextBox pNameBox, string lPresetName, Key pKey)
-    {
-        if (pKey == Key.Return)
-        {
-            PExportNameCommit(lPresetName, pNameBox.Text);
-            return true;
-        }
-
-        if (pKey == Key.Escape)
-        {
-            PExportBoxSet(null);
-            QExport.QExportEditCancel();
-            return true;
-        }
-
-        return false;
-    }
 }

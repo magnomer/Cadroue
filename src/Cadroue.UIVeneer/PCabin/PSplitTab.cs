@@ -30,7 +30,7 @@ public sealed class PSplitTab : PTabSurface
         QSplitTab.QSplitRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
         PSplitStepsAttach();
 
-        pInspector.PSensorRunShow();
+        pInspector.PInspectorSweep.PSensorRunShow();
         PSplitEventsAttach();
 
         var pExport = new PExport(lWorkspace.QWorkspaceExport, lWorkspace.QWorkspacePresetOwner);
@@ -68,16 +68,16 @@ public sealed class PSplitTab : PTabSurface
 
     private void PSplitEventsAttach()
     {
-        QSplitTab.QSplitWork.QSplitPresetMissing += PExport.PExportMissingShow;
+        QSplitTab.QSplitWork.QSplitPresetMissing += PExportNotice.PExportMissingShow;
         QSplitTab.QSplitSweep.QSplitBusyApplied += PSplitBusyApply;
-        QSplitTab.QSplitSweep.QSplitProgressApplied += pInspector.PSensorProgressApply;
+        QSplitTab.QSplitSweep.QSplitProgressApplied += pInspector.PInspectorSweep.PSensorProgressApply;
         QSplitTab.QSplitSweep.QSplitFailRaised += PSplitFailShow;
     }
 
     private void PSplitBusyApply(bool pBusy)
     {
         pInspector.PSensorLockSet(pBusy);
-        pInspector.PSensorProgressSet(pBusy);
+        pInspector.PInspectorSweep.PSensorProgressSet(pBusy);
         pProcessing.IsEnabled = !pBusy;
     }
 

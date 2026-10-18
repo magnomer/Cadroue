@@ -3,15 +3,20 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
-internal sealed partial class PSMonitor
+// The monitor's command buttons: play and pause, and the zoom pair, each wired to the monitor driver.
+internal sealed class PSMonitorTransport
 {
-    private const double PSMonitorRadioLeft = PSMonitorGutter + 8;
+    private readonly QSMonitor psMonitorSource;
 
-    private UIElement PSMonitorTransportBuild()
+    private Image psMonitorPlayImage = null!;
+    private Button psMonitorPlayButton = null!;
+
+    internal PSMonitorTransport(QSMonitor pSource) => psMonitorSource = pSource;
+
+    internal UIElement PSMonitorTransportBuild()
     {
         var psTransport = new StackPanel
         {
@@ -43,14 +48,14 @@ internal sealed partial class PSMonitor
             Height = 34,
             Margin = new Thickness(0, 0, 8, 0),
             Background = Brushes.White,
-            BorderBrush = psMonitorGridFill,
+            BorderBrush = PSMonitorRail.PSMonitorGridFill,
             BorderThickness = new Thickness(1),
             Cursor = Cursors.Hand,
             Content = psMonitorPlayImage
         };
     }
 
-    private void PSMonitorPlayingApply(bool pPlaying) => PSMonitorFaceApply();
+    internal void PSMonitorPlayingApply(bool pPlaying) => PSMonitorFaceApply();
 
     private void PSMonitorFaceApply()
     {
@@ -62,11 +67,11 @@ internal sealed partial class PSMonitor
 
     private void PSMonitorFaceSet(string pIconPath, string pTip)
     {
-        psMonitorPlayImage.Source = QIcon.QIconRead(pIconPath, psMonitorAxisFill);
+        psMonitorPlayImage.Source = QIcon.QIconRead(pIconPath, PSMonitorRail.PSMonitorAxisFill);
         psMonitorPlayButton.ToolTip = pTip;
     }
 
-    private UIElement PSMonitorZoomBuild()
+    internal UIElement PSMonitorZoomBuild()
     {
         var psZoom = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 12) };
         psZoom.Children.Add(
@@ -99,7 +104,7 @@ internal sealed partial class PSMonitor
             Height = 34,
             Margin = new Thickness(0, 0, 8, 0),
             Background = Brushes.White,
-            BorderBrush = psMonitorGridFill,
+            BorderBrush = PSMonitorRail.PSMonitorGridFill,
             BorderThickness = new Thickness(1),
             Cursor = Cursors.Hand,
             ToolTip = QLocalizationCatalog.QLocalizationTextRead(pTooltipKey),
@@ -108,93 +113,8 @@ internal sealed partial class PSMonitor
                 Width = 18,
                 Height = 18,
                 Stretch = Stretch.Uniform,
-                Source = QIcon.QIconRead(pIconPath, psMonitorAxisFill)
+                Source = QIcon.QIconRead(pIconPath, PSMonitorRail.PSMonitorAxisFill)
             }
         };
-    }
-
-    private void PSMonitorZoomApply()
-    {
-        QSMonitorScrollbar lScroll = psMonitorSource.QSMonitorViewport.QSMonitorScrollRead();
-        PSMonitorScrollSet(lScroll);
-        PSMonitorUpdate();
-    }
-
-    private void PSMonitorScrollSet(QSMonitorScrollbar lScroll)
-    {
-        psMonitorScrollbar.ViewportSize = lScroll.QSMonitorScrollViewport;
-        psMonitorScrollbar.Maximum = lScroll.QSMonitorScrollMaximum;
-        psMonitorScrollbar.Value = lScroll.QSMonitorScrollValue;
-        psMonitorScrollbar.IsEnabled = lScroll.QSMonitorScrollEnabled;
-        psMonitorScrollbar.Opacity = lScroll.QSMonitorScrollOpacity;
-    }
-
-    private RadioButton PSMonitorRadioBuild(string pLabelKey, string pTooltipKey, bool pBypass)
-    {
-        RadioButton psRadio = PSMonitorOptionBuild(pLabelKey, pTooltipKey);
-        PSMonitorRadioAttach(psRadio, pBypass);
-        return psRadio;
-    }
-
-    private void PSMonitorRadioAttach(RadioButton psRadio, bool pBypass) =>
-        psRadio.Checked += (_, _) => psMonitorSource.QSMonitorRadioHandle(pBypass);
-
-    private static RadioButton PSMonitorOptionBuild(string pLabelKey, string pTooltipKey)
-    {
-        return new RadioButton
-        {
-            Content = QLocalizationCatalog.QLocalizationTextRead(pLabelKey),
-            GroupName = "PSMonitorAudio",
-            FontSize = 12,
-            FontWeight = FontWeights.SemiBold,
-            Foreground = PSField.PSFieldMuted,
-            Cursor = Cursors.Hand,
-            VerticalContentAlignment = VerticalAlignment.Center,
-            ToolTip = QLocalizationCatalog.QLocalizationTextRead(pTooltipKey),
-            Margin = new Thickness(PSMonitorRadioLeft, 8, 12, 0),
-            HorizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment = VerticalAlignment.Top
-        };
-    }
-
-    private void PSMonitorSeekStart(object pSender, MouseButtonEventArgs pEvent)
-    {
-        ((Canvas)pSender).CaptureMouse();
-        PSMonitorSeekHandle(pSender, pEvent);
-    }
-
-    private void PSMonitorSeekHandle(object pSender, MouseEventArgs pEvent)
-    {
-        var pCanvas = (Canvas)pSender;
-        psMonitorSource.QSMonitorSeekHandle(
-            pCanvas.IsMouseCaptured,
-            pEvent.GetPosition(pCanvas).X,
-            pCanvas.ActualWidth,
-            psMonitorViewer.QViewer.QViewerDuration);
-    }
-
-    private void PSMonitorCursorHandle(TimeSpan pCursor) =>
-        Dispatcher.BeginInvoke(() => psMonitorSource.QSMonitorCursorSet(pCursor));
-
-    private void PSMonitorCursorApply(TimeSpan pCursor) => PSMonitorHeadPlace();
-
-    private void PSMonitorBypassApply()
-    {
-        psMonitorBeforeRadio.IsChecked = PLook.PLookChecked[psMonitorSource.QSMonitorBypass];
-        psMonitorAfterRadio.IsChecked = PLook.PLookChecked[!psMonitorSource.QSMonitorBypass];
-    }
-
-    private void PSMonitorHeadPlace()
-    {
-        PSMonitorHeadApply(psMonitorBeforeCanvas, psMonitorBeforeHead);
-        PSMonitorHeadApply(psMonitorAfterCanvas, psMonitorAfterHead);
-    }
-
-    private void PSMonitorHeadApply(Canvas pCanvas, Border pHead)
-    {
-        QSMonitorHead lHead = psMonitorSource.QSMonitorHeadResolve(
-            pCanvas.ActualWidth, psMonitorViewer.QViewer.QViewerDuration);
-        pHead.Visibility = PLook.PLookVisible[lHead.QSMonitorHeadShown];
-        pHead.Margin = new Thickness(lHead.QSMonitorHeadLeft, 0, 0, 0);
     }
 }

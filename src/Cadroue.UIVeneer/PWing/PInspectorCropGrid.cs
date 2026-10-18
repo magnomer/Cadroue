@@ -2,12 +2,62 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed partial class PInspector
+internal sealed class PInspectorCropGrid
 {
+    private readonly TextBox pInspectorInsetLeft;
+    private readonly TextBox pInspectorInsetRight;
+    private readonly TextBox pInspectorInsetTop;
+    private readonly TextBox pInspectorInsetBottom;
+    private readonly TextBlock pInspectorResolution;
+
+    internal PInspectorCropGrid(QInspectorCrop lCrop)
+    {
+        QInspectorCrop = lCrop;
+        pInspectorInsetLeft = PInspectorInsetBuild(0);
+        pInspectorInsetRight = PInspectorInsetBuild(2);
+        pInspectorInsetTop = PInspectorInsetBuild(1);
+        pInspectorInsetBottom = PInspectorInsetBuild(3);
+        pInspectorResolution = new TextBlock
+        {
+            Text = "—",
+            FontSize = 11,
+            FontFamily = PInspectorLook.PInspectorFontFamily,
+            Foreground = PInspectorLook.PInspectorMutedBrush,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        PInspectorGridBody = PInspectorEdgeBuild();
+    }
+
+    private QInspectorCrop QInspectorCrop { get; }
+
+    internal UIElement PInspectorGridBody { get; }
+
+    internal void PInspectorGridApply()
+    {
+        pInspectorInsetLeft.Text = QInspectorCrop.QInspectorEdgeFormat(0, pInspectorInsetLeft.Text);
+        pInspectorInsetTop.Text = QInspectorCrop.QInspectorEdgeFormat(1, pInspectorInsetTop.Text);
+        pInspectorInsetRight.Text = QInspectorCrop.QInspectorEdgeFormat(2, pInspectorInsetRight.Text);
+        pInspectorInsetBottom.Text = QInspectorCrop.QInspectorEdgeFormat(3, pInspectorInsetBottom.Text);
+    }
+
+    internal void PInspectorResolutionApply() =>
+        pInspectorResolution.Text = QInspectorCrop.QInspectorResolutionRead();
+
+    private TextBox PInspectorInsetBuild(int pEdge)
+    {
+        TextBox pInsetBox = PInspectorNumber.PInspectorNumberBuild();
+        PInspectorInsetAttach(pInsetBox, pEdge);
+        return pInsetBox;
+    }
+
+    private void PInspectorInsetAttach(TextBox pInsetBox, int pEdge) =>
+        pInsetBox.TextChanged += (_, _) =>
+            QInspectorCrop.QInspectorEdgeCommit(pEdge, pInsetBox.Text, pInsetBox.IsKeyboardFocusWithin);
+
     private UIElement PInspectorEdgeBuild()
     {
         var pCropGrid = new Grid { Margin = new Thickness(0, 14, 0, 4) };
@@ -52,7 +102,7 @@ public sealed partial class PInspector
     private UIElement PInspectorResolutionBuild() => new Border
     {
         MinWidth = 84,
-        Height = PInspectorFieldHeight,
+        Height = PInspectorLook.PInspectorFieldHeight,
         Padding = new Thickness(7, 0, 7, 0),
         Background = new SolidColorBrush(Color.FromRgb(0xF7, 0xF9, 0xFC)),
         BorderBrush = QPanel.QPanelLineRead(),
@@ -68,7 +118,7 @@ public sealed partial class PInspector
     private UIElement PInspectorResetBuild()
     {
         Button pResetButton = PCropCaptionBuild();
-        PInspectorClickAttach(pResetButton, () => QInspectorCrop.QInspectorEdgeReset());
+        PInspectorButton.PInspectorClickAttach(pResetButton, () => QInspectorCrop.QInspectorEdgeReset());
         QButton.QButtonAttach(pResetButton, QButtonLook.QButtonLookPanel);
         return pResetButton;
     }
@@ -77,11 +127,11 @@ public sealed partial class PInspector
     {
         Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.Reset"),
         ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.ResetTooltip"),
-        Height = PInspectorFieldHeight,
+        Height = PInspectorLook.PInspectorFieldHeight,
         MinWidth = 64,
         Padding = new Thickness(8, 0, 8, 0),
         FontSize = 11,
-        FontFamily = pInspectorFontFamily,
+        FontFamily = PInspectorLook.PInspectorFontFamily,
         HorizontalAlignment = HorizontalAlignment.Center,
         VerticalAlignment = VerticalAlignment.Bottom,
         Margin = new Thickness(3)
@@ -105,8 +155,8 @@ public sealed partial class PInspector
         {
             Text = pCellLabel,
             FontSize = 11,
-            FontFamily = pInspectorFontFamily,
-            Foreground = pInspectorMutedBrush,
+            FontFamily = PInspectorLook.PInspectorFontFamily,
+            Foreground = PInspectorLook.PInspectorMutedBrush,
             HorizontalAlignment = HorizontalAlignment.Center,
             Margin = new Thickness(0, 0, 0, 3)
         });

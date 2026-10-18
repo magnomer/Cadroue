@@ -1,16 +1,16 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PHouse;
-using Cadroue.Application;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed partial class PExport
+internal static class PExportPresetGroup
 {
-    private Border PExportGroupBuild(string pLabel, bool pCollapsed, Action pToggle)
+    private const string PExportCollapseIcon = "/PAsset/PPanel/PExportCollapse.svg";
+    private const string PExportExpandIcon = "/PAsset/PPanel/PExportExpand.svg";
+
+    internal static Border PExportGroupBuild(string pLabel, bool pCollapsed, Action pToggle)
     {
         (string pIconPath, string pTipKey) = PExportFoldResolve(pCollapsed);
         Button pToggleButton = PExportFoldBuild(pIconPath, pTipKey);
@@ -31,7 +31,7 @@ public sealed partial class PExport
             {
                 Width = 16,
                 Height = 16,
-                Source = QIcon.QIconRead(pIconPath, PExportMutedBrush),
+                Source = QIcon.QIconRead(pIconPath, PExportTheme.PExportMutedBrush),
                 Stretch = Stretch.Uniform
             },
             ToolTip = QLocalizationCatalog.QLocalizationTextRead(pTipKey),
@@ -56,7 +56,7 @@ public sealed partial class PExport
             Text = pLabel,
             FontSize = 11,
             FontWeight = FontWeights.SemiBold,
-            Foreground = PExportMutedBrush,
+            Foreground = PExportTheme.PExportMutedBrush,
             VerticalAlignment = VerticalAlignment.Center
         });
 
@@ -68,26 +68,9 @@ public sealed partial class PExport
             Tag = "Header",
             Padding = new Thickness(12, 5, 8, 5),
             Background = Brushes.White,
-            BorderBrush = PLineBrush,
+            BorderBrush = PExportTheme.PLineBrush,
             BorderThickness = new Thickness(0, 0, 0, 1),
             Child = pGrid
         };
     }
-
-    private void PExportGroupToggle(string pGroupName)
-    {
-        bool pCollapsed = LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(pGroupName);
-        LPreference.LPreferenceFoldSet(pGroupName, !pCollapsed);
-        PExportPresetRebuild();
-    }
-
-    private void PExportUserToggle()
-    {
-        bool pCollapsed = LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(
-            PExportUserGroup,
-            false);
-        LPreference.LPreferenceFoldSet(PExportUserGroup, !pCollapsed, false);
-        PExportPresetRebuild();
-    }
-
 }

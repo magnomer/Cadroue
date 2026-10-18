@@ -1,19 +1,61 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
-internal sealed partial class PSEncoder
+internal sealed class PSEncoderVideoResolution
 {
-    private void PSVideoResolutionBuild(Panel pHost)
+    private readonly QSEncoderSize lsEncoderSize;
+    private readonly CheckBox psVideoReactiveBox;
+    private Slider? psVideoResolutionSlider;
+    private TextBlock? psVideoResolutionValue;
+    private TextBox? psVideoWidthBox;
+    private TextBox? psVideoHeightBox;
+    private Slider? psVideoWidthSlider;
+    private Slider? psVideoHeightSlider;
+    private TextBlock? psVideoWidthLabel;
+    private TextBlock? psVideoHeightLabel;
+    private UIElement? psVideoSizeNotice;
+
+    internal PSEncoderVideoResolution(QSEncoderSize lsSize, bool pReactive)
+    {
+        lsEncoderSize = lsSize;
+        psVideoReactiveBox = PSVideoReactiveBuild(pReactive);
+    }
+
+    internal bool PSVideoReactiveRead() => psVideoReactiveBox.IsChecked == true;
+
+    internal void PSVideoReactiveAttach()
+    {
+        psVideoReactiveBox.Checked += (_, _) => PSVideoReactiveApply();
+        psVideoReactiveBox.Unchecked += (_, _) => PSVideoReactiveApply();
+    }
+
+    private static CheckBox PSVideoReactiveBuild(bool pReactive)
+    {
+        var pReactiveBox = new CheckBox
+        {
+            Content = QLocalizationCatalog.QLocalizationTextRead("Encoder.Video.Orientation"),
+            IsChecked = pReactive,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        QInteractionClick.QInteractionClickAttach(pReactiveBox);
+        QCheckbox.QCheckboxAttach(pReactiveBox);
+        return pReactiveBox;
+    }
+
+    internal void PSVideoResolutionBuild(Panel pHost)
     {
         PSVideoSizeBuild(pHost);
         PSVideoSizeAttach();
         PSVideoSizeApply();
         PSVideoReactiveApply();
+        pHost.Children.Add(
+            PSField.PSFieldBuild(
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Video.Field.Reactive"),
+                psVideoReactiveBox));
     }
 
     private void PSVideoSizeBuild(Panel pHost)
@@ -50,7 +92,7 @@ internal sealed partial class PSEncoder
     private void PSVideoSizeAttach()
     {
         psVideoResolutionSlider!.ValueChanged += (_, _) =>
-            lsEncoder.QSEncoderSize.QSEncoderTierSelect((int)Math.Round(psVideoResolutionSlider.Value));
+            lsEncoderSize.QSEncoderTierSelect((int)Math.Round(psVideoResolutionSlider.Value));
         psVideoResolutionSlider.Loaded += (_, _) => PSVideoKnobApply();
         psVideoWidthSlider!.Loaded += (_, _) => PSVideoKnobApply();
         psVideoHeightSlider!.Loaded += (_, _) => PSVideoKnobApply();
@@ -103,7 +145,7 @@ internal sealed partial class PSEncoder
             return;
         }
 
-        lsEncoder.QSEncoderSize.QSEncoderSizeSet(
+        lsEncoderSize.QSEncoderSizeSet(
             PSVideoDimensionRead(psVideoWidthBox),
             PSVideoDimensionRead(psVideoHeightBox));
     }
@@ -116,15 +158,15 @@ internal sealed partial class PSEncoder
             ? QLocalizationCatalog.QLocalizationTextRead("Encoder.Sample.Source")
             : pValue > 0 ? pValue.ToString(CultureInfo.InvariantCulture) : string.Empty;
 
-    private void PSVideoSizeApply()
+    internal void PSVideoSizeApply()
     {
-        int pTier = lsEncoder.QSEncoderSize.QSEncoderSizeTier;
+        int pTier = lsEncoderSize.QSEncoderSizeTier;
         bool pSource = PSVideoNativeCheck(pTier);
         bool pCustom = PSVideoCustomCheck(pTier);
-        PSVideoDimensionApply(psVideoWidthBox, () => lsEncoder.QSEncoderSize.QSEncoderWidth, pSource);
-        PSVideoDimensionApply(psVideoHeightBox, () => lsEncoder.QSEncoderSize.QSEncoderHeight, pSource);
+        PSVideoDimensionApply(psVideoWidthBox, () => lsEncoderSize.QSEncoderWidth, pSource);
+        PSVideoDimensionApply(psVideoHeightBox, () => lsEncoderSize.QSEncoderHeight, pSource);
         PSVideoTierSet(pTier, pSource, pCustom);
-        PSVideoHintSet(psVideoSizeNotice, pSource);
+        PSEncoderSource.PSVideoHintSet(psVideoSizeNotice, pSource);
         PSVideoSlidersSet(pTier);
         PSVideoKnobApply();
     }
@@ -141,7 +183,7 @@ internal sealed partial class PSEncoder
         }
 
         PSVideoBoxSet(pBox, PSVideoDimensionFormat(pValue(), pSource));
-        PSVideoInkApply(pBox, pSource);
+        PSEncoderSource.PSVideoInkApply(pBox, pSource);
     }
 
     private static string PSVideoTierFormat(int pTier, bool pSource, bool pCustom) =>
@@ -168,12 +210,12 @@ internal sealed partial class PSEncoder
 
         if (psVideoWidthSlider is not null)
         {
-            psVideoWidthSlider.Value = PSVideoKnobClamp(lsEncoder.QSEncoderSize.QSEncoderWidth);
+            psVideoWidthSlider.Value = PSVideoKnobClamp(lsEncoderSize.QSEncoderWidth);
         }
 
         if (psVideoHeightSlider is not null)
         {
-            psVideoHeightSlider.Value = PSVideoKnobClamp(lsEncoder.QSEncoderSize.QSEncoderHeight);
+            psVideoHeightSlider.Value = PSVideoKnobClamp(lsEncoderSize.QSEncoderHeight);
         }
     }
 
@@ -181,8 +223,8 @@ internal sealed partial class PSEncoder
 
     private void PSVideoKnobApply()
     {
-        PSVideoThumbApply(psVideoResolutionSlider, !PSVideoCustomCheck(lsEncoder.QSEncoderSize.QSEncoderSizeTier));
-        bool pDimension = !PSVideoNativeCheck(lsEncoder.QSEncoderSize.QSEncoderSizeTier);
+        PSVideoThumbApply(psVideoResolutionSlider, !PSVideoCustomCheck(lsEncoderSize.QSEncoderSizeTier));
+        bool pDimension = !PSVideoNativeCheck(lsEncoderSize.QSEncoderSizeTier);
         PSVideoThumbApply(psVideoWidthSlider, pDimension);
         PSVideoThumbApply(psVideoHeightSlider, pDimension);
     }

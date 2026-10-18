@@ -5,16 +5,16 @@ using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed partial class PInspector
+internal static class PInspectorSwitch
 {
-    private static CheckBox PInspectorSwitchBuild(string pSwitchLabel, string pSwitchTip)
+    internal static CheckBox PInspectorSwitchBuild(string pSwitchLabel, string pSwitchTip)
     {
         var pSwitch = new CheckBox
         {
             Content = pSwitchLabel,
             ToolTip = pSwitchTip,
             FontSize = 12,
-            FontFamily = pInspectorFontFamily,
+            FontFamily = PInspectorLook.PInspectorFontFamily,
             Foreground = QPanel.QPanelTextRead(),
             VerticalContentAlignment = VerticalAlignment.Center
         };
@@ -23,10 +23,12 @@ public sealed partial class PInspector
         return pSwitch;
     }
 
-    private static UIElement PInspectorSeparatorBuild() => new Border
+    internal static void PInspectorSwitchAttach(CheckBox pBox, Action<bool> pSet)
     {
-        Height = 1,
-        Background = QPanel.QPanelLineRead(),
-        Margin = new Thickness(0, 12, 0, 12)
-    };
+        pBox.Checked += (_, _) => pSet(true);
+        pBox.Unchecked += (_, _) => pSet(false);
+    }
+
+    internal static void PInspectorSwitchUpdate(CheckBox pBox, bool pChecked) =>
+        pBox.IsChecked = PLook.PLookChecked[pChecked];
 }

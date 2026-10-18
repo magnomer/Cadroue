@@ -76,8 +76,8 @@ public sealed class PEditTab : PTabSurface
         pProcessing.PProcessingStepOpened += _ => pInspector.PInspectorMinimizeSet(false);
         pViewer.QViewer.QViewerPlayback.QViewerClockTicked += PEditHistogramDefer;
 
-        QEditTab.QEditPresetMissing += PExport.PExportMissingShow;
-        QEditTab.QEditPresetIncompatible += PExport.PExportIncompatibleShow;
+        QEditTab.QEditPresetMissing += PExportNotice.PExportMissingShow;
+        QEditTab.QEditPresetIncompatible += PExportNotice.PExportIncompatibleShow;
         QEditTab.QEditHistogramDeferred += PEditHistogramDefer;
         QEditTab.QEditColorDeferred += PEditColorDefer;
         pEditColorTimer.Tick += PEditColorTick;

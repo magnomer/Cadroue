@@ -55,5 +55,5 @@ public sealed class PMergeTab : PTabSurface
 
     public override LSceneTabEntry PTabLayoutRead() => QMergeTab.QMergeLayoutRead(PTabLayoutCreate());
 
-    private void PMergeEventsAttach() => QMergeTab.QMergePresetMissing += PExport.PExportMissingShow;
+    private void PMergeEventsAttach() => QMergeTab.QMergePresetMissing += PExportNotice.PExportMissingShow;
 }

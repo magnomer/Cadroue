@@ -1,29 +1,36 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
+using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
-using Cadroue.Application;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed partial class PExport
+internal sealed class PExportPreset
 {
-    private const string PExportPlusIcon = "/PAsset/PPanel/PExportPlus.svg";
-    private const string PExportMinusIcon = "/PAsset/PPanel/PExportMinus.svg";
-    private const string PExportSettingIcon = "/PAsset/PPanel/PExportSetting.svg";
-    private const string PExportImportIcon = "/PAsset/PPanel/PExportImport.svg";
-    private const string PExportExportIcon = "/PAsset/PPanel/PExportExport.svg";
     private const string PExportUserGroup = "$User";
-    private const string PExportCheckIcon = "/PAsset/PPanel/PExportCheck.svg";
-    private const string PExportCancelIcon = "/PAsset/PPanel/PExportCancel.svg";
-    private const string PExportCollapseIcon = "/PAsset/PPanel/PExportCollapse.svg";
-    private const string PExportExpandIcon = "/PAsset/PPanel/PExportExpand.svg";
-    private static readonly Brush PExportApplyBrush = new SolidColorBrush(Color.FromRgb(0x2E, 0xA3, 0x66));
-    private static readonly Brush PExportCancelBrush = new SolidColorBrush(Color.FromRgb(0xD1, 0x43, 0x43));
 
-    private UIElement PExportPresetBuild()
+    private readonly QExport lExport;
+    private readonly PExportPresetCommand pExportCommand;
+    private readonly StackPanel pPresetRowPanel = new();
+    private readonly PExportPresetBox pExportBox;
+    private readonly PExportPresetDrag pExportDrag;
+    private readonly PExportPresetRow pExportRow;
+
+    public PExportPreset(QExport lExport, PExportPresetCommand pExportCommand)
+    {
+        this.lExport = lExport;
+        this.pExportCommand = pExportCommand;
+        pExportBox = new PExportPresetBox(lExport);
+        pExportDrag = new PExportPresetDrag(lExport, pPresetRowPanel, pExportBox, PExportPresetSelect);
+        pExportRow = new PExportPresetRow(
+            lExport, pPresetRowPanel, pExportBox, pExportDrag, pExportCommand, PExportPresetSelect);
+    }
+
+    internal void PExportPresetAttach() => pExportDrag.PExportDragAttach();
+
+    internal UIElement PExportPresetBuild()
     {
         var pScroll = new ScrollViewer
         {
@@ -38,10 +45,10 @@ public sealed partial class PExport
         return pScroll;
     }
 
-    private void PExportPresetRebuild()
+    internal void PExportPresetRebuild()
     {
-        LPreset lWorking = PExportWorkingRead();
-        PExportBoxSet(null);
+        LPreset lWorking = pExportCommand.PExportWorkingRead();
+        pExportBox.PExportBoxSet(null);
         PExportListBuild(lWorking, PExportOrderResolve());
     }
 
@@ -82,7 +89,7 @@ public sealed partial class PExport
         {
             if (pGroupHeader is not null)
             {
-                pPresetRowPanel.Children.Add(PExportGroupBuild(
+                pPresetRowPanel.Children.Add(PExportPresetGroup.PExportGroupBuild(
                     pGroupHeader,
                     pCollapsed,
                     () => PExportGroupToggle(pGroupHeader)));
@@ -90,15 +97,62 @@ public sealed partial class PExport
 
             if (pUserHeader)
             {
-                pPresetRowPanel.Children.Add(PExportGroupBuild(
+                pPresetRowPanel.Children.Add(PExportPresetGroup.PExportGroupBuild(
                     QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Group.User"),
                     pCollapsed,
                     PExportUserToggle));
             }
 
-            Border pRow = PExportRowBuild(lPresetName, lWorking);
+            Border pRow = pExportRow.PExportRowBuild(lPresetName, lWorking);
             pRow.Visibility = PLook.PLookVisible[!pCollapsed];
             pPresetRowPanel.Children.Add(pRow);
         }
+    }
+
+    private void PExportGroupToggle(string pGroupName)
+    {
+        bool pCollapsed = LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(pGroupName);
+        LPreference.LPreferenceFoldSet(pGroupName, !pCollapsed);
+        PExportPresetRebuild();
+    }
+
+    private void PExportUserToggle()
+    {
+        bool pCollapsed = LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(
+            PExportUserGroup,
+            false);
+        LPreference.LPreferenceFoldSet(PExportUserGroup, !pCollapsed, false);
+        PExportPresetRebuild();
+    }
+
+    private void PExportPresetSelect(string lPresetName)
+    {
+        PExportGroupShow(lPresetName);
+        lExport.QExportSelect(lPresetName);
+    }
+
+    private void PExportGroupShow(string lPresetName)
+    {
+        if (LPresetTable.LPresetNativeCheck(lPresetName))
+        {
+            if (LPresetTable.LPresetGroupRead(lPresetName) is not string pGroupName
+                || !LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(pGroupName))
+            {
+                return;
+            }
+
+            LPreference.LPreferenceFoldSet(pGroupName, false);
+        }
+        else
+        {
+            if (!LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(PExportUserGroup, false))
+            {
+                return;
+            }
+
+            LPreference.LPreferenceFoldSet(PExportUserGroup, false, false);
+        }
+
+        PExportPresetRebuild();
     }
 }

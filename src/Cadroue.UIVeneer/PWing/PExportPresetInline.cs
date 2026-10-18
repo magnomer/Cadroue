@@ -1,19 +1,17 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PHouse;
-using Cadroue.Application;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed partial class PExport
+internal static class PExportPresetInline
 {
-    private Button PExportInlineBuild(string pIconPath, Brush pIconBrush, string pTooltip, RoutedEventHandler pClick)
+    internal static Button PExportInlineBuild(
+        string pIconPath, Brush pIconBrush, string pTooltip, RoutedEventHandler pClick)
     {
         Button pButton = PExportGlyphBuild(pIconPath, pIconBrush, pTooltip);
-        PExportClickAttach(pButton, pClick);
+        pButton.Click += pClick;
         return pButton;
     }
 
@@ -36,5 +34,4 @@ public sealed partial class PExport
         QButton.QButtonAttach(pButton, QButtonLook.QButtonLookPanel);
         return pButton;
     }
-
 }

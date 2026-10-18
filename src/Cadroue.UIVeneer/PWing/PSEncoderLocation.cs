@@ -1,16 +1,60 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using Cadroue.UIVeneer.PHouse;
-using Cadroue.Infrastructure;
+using Cadroue.Application;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
-internal sealed partial class PSEncoder
+internal sealed class PSEncoderLocation
 {
+    private const string PSLocationBrowseIcon = "/PAsset/PPanel/POpen.svg";
+
+    private readonly QSEncoderLocation lsEncoderLocation;
+    private readonly Border psLocationMode;
+    private readonly TextBox psLocationFolderBox;
+    private UIElement? psLocationFolderRow;
+    private TextBlock? psLocationFolderLabel;
+    private Button? psLocationBrowse;
+    private TextBlock? psLocationStatus;
+
+    internal PSEncoderLocation(QSEncoderLocation lsLocation, LPreset lsDraft)
+    {
+        lsEncoderLocation = lsLocation;
+        psLocationMode = PSField.PSModeBuild(lsDraft.LPresetLocation, PSLocationModeUpdate,
+            new LLocalizationChoice("Same as source", "Encoder.Location.SourceFolder"),
+            new LLocalizationChoice("Subfolder", "Encoder.Location.Subfolder"),
+            new LLocalizationChoice("Sibling", "Encoder.Location.Sibling"),
+            new LLocalizationChoice("Custom location", "Encoder.Location.Custom"));
+        psLocationFolderBox = PSEntry.PSEntryBuild(
+            lsDraft.LPresetLocationRead(lsDraft.LPresetLocation),
+            220);
+    }
+
+    internal string PSLocationModeRead() => PSField.PSModeTextRead(psLocationMode);
+
+    internal string PSLocationFolderRead() => PSEncoderValue.PSEncoderTrimRead(psLocationFolderBox);
+
+    internal void PSLocationBuild(Panel pHost)
+    {
+        psLocationStatus = new TextBlock
+        {
+            Foreground = PSField.PSFieldMuted,
+            Margin = new Thickness(12, 0, 0, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+            TextTrimming = TextTrimming.CharacterEllipsis
+        };
+        psLocationFolderLabel = PSField.PSFieldLabelBuild(string.Empty);
+        psLocationBrowse = PSInline.PSInlineIconBuild(
+            PSLocationBrowseIcon,
+            QLocalizationCatalog.QLocalizationTextRead("Encoder.Location.Browse"),
+            new Thickness(8, 0, 0, 0));
+        psLocationFolderRow = PSFieldLabelledBuild(psLocationFolderLabel, psLocationFolderBox, psLocationBrowse);
+        pHost.Children.Add(PSLocationFieldBuild(psLocationStatus));
+        pHost.Children.Add(psLocationFolderRow);
+    }
+
+    internal void PSLocationAttach() => psLocationBrowse!.Click += (_, _) => PSLocationCustomRead();
+
     private UIElement PSLocationFieldBuild(TextBlock psLocationStatus)
     {
         var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9) };
@@ -32,8 +76,6 @@ internal sealed partial class PSEncoder
         pGrid.Children.Add(pValueGrid);
         return pGrid;
     }
-
-    private const string PSLocationBrowseIcon = "/PAsset/PPanel/POpen.svg";
 
     private static UIElement PSFieldLabelledBuild(TextBlock pLabel, TextBox pBox, Button pBrowse)
     {
@@ -69,21 +111,21 @@ internal sealed partial class PSEncoder
         var pDialog = new Microsoft.Win32.OpenFolderDialog
         {
             Title = QLocalizationCatalog.QLocalizationTextRead("Encoder.Location.Choose"),
-            InitialDirectory = lsEncoder.QSEncoderLocation.QSEncoderInitialResolve(pCurrent)
+            InitialDirectory = lsEncoderLocation.QSEncoderInitialResolve(pCurrent)
         };
         return pDialog.ShowDialog() == true ? pDialog.FolderName : null;
     }
 
     private void PSLocationFolderSet(string pFolder) => psLocationFolderBox.Text = pFolder;
 
-    private void PSLocationModeUpdate()
+    internal void PSLocationModeUpdate()
     {
         string pMode = PSField.PSModeTextRead(psLocationMode);
 
         if (psLocationFolderBox is not null)
         {
             psLocationFolderBox.Text =
-                lsEncoder.QSEncoderLocation.QSEncoderLocationSelect(pMode, psLocationFolderBox.Text);
+                lsEncoderLocation.QSEncoderLocationSelect(pMode, psLocationFolderBox.Text);
         }
 
         bool pFolder = QSEncoderLocation.QSEncoderFolderCheck(pMode);

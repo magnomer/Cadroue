@@ -66,7 +66,7 @@ public sealed class PFixTab : PTabSurface
         pClinic.PClinicDiagnosisExecuted += QFixTab.QFixDiagnosisRun;
         QFixTab.QFixCheckup.LCheckupReady += PFixCheckupHandle;
         QFixTab.QFixCheckup.LCheckupProgress += PFixProgressHandle;
-        QFixTab.QFixPresetMissing += PExport.PExportMissingShow;
+        QFixTab.QFixPresetMissing += PExportNotice.PExportMissingShow;
     }
 
     private void PFixEventsDetach()

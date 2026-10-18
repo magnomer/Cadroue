@@ -3,38 +3,31 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed partial class PInspector
+internal sealed class PInspectorCurve
 {
-    private CheckBox pCurveBox = null!;
-    private CheckBox pCurvePersistent = null!;
-    private ComboBox pCurveChannel = null!;
-    private Border pCurveCanvasHost = null!;
-    private TextBox pCurveInputValue = null!;
-    private TextBox pCurveOutputValue = null!;
-    private StackPanel pCurveStack = null!;
-    private StackPanel pCurveBody = null!;
+    private readonly PInspectorCurveCanvas pCurveCanvas;
+    private readonly CheckBox pCurveBox;
+    private readonly ComboBox pCurveChannel;
+    private readonly Border pCurveCanvasHost;
+    private readonly TextBox pCurveInputValue;
+    private readonly TextBox pCurveOutputValue;
+    private readonly StackPanel pCurveStack;
 
-    private StackPanel PCurveBuild()
+    internal PInspectorCurve(QCurve lCurve)
     {
-        StackPanel pBody = PCurvePanelBuild();
-        PCurveAttach();
-        return pBody;
-    }
-
-    private StackPanel PCurvePanelBuild()
-    {
-        pCurveBox = PInspectorSwitchBuild(
+        QCurve = lCurve;
+        pCurveCanvas = new PInspectorCurveCanvas(lCurve);
+        pCurveBox = PInspectorSwitch.PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.ApplyCurve"));
-        pCurvePersistent = PInspectorSwitchBuild(
+        PCurvePersistent = PInspectorSwitch.PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.PersistCurve"));
 
-        pCurveChannel = PInspectorComboBuild();
+        pCurveChannel = PInspectorChoice.PInspectorComboBuild();
         pCurveChannel.Items.Add(new LLocalizationChoice(
             "Master", "Inspector.Video.CurveChannelMaster"));
         pCurveChannel.Items.Add(new LLocalizationChoice(
@@ -52,11 +45,11 @@ public sealed partial class PInspector
             BorderBrush = QPanel.QPanelLineRead(),
             BorderThickness = new Thickness(1),
             Background = new SolidColorBrush(Color.FromRgb(0xF6, 0xF8, 0xFA)),
-            Child = PCurveCanvasBuild()
+            Child = pCurveCanvas.PCurveCanvas
         };
 
-        pCurveInputValue = PInspectorDecimalBuild();
-        pCurveOutputValue = PInspectorDecimalBuild();
+        pCurveInputValue = PInspectorNumber.PInspectorDecimalBuild();
+        pCurveOutputValue = PInspectorNumber.PInspectorDecimalBuild();
 
         var pCurveDeletePoint = PCurveActionBuild(
             "Inspector.Video.CurveDeletePoint", QCurve.QCurvePointDelete);
@@ -77,32 +70,40 @@ public sealed partial class PInspector
         pCurveButtons.Children.Add(pCurveResetAll);
 
         pCurveStack = new StackPanel();
-        pCurveStack.Children.Add(PInspectorFieldBuild(
+        pCurveStack.Children.Add(PInspectorField.PInspectorFieldBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.CurveChannel"), pCurveChannel));
         pCurveStack.Children.Add(pCurveCanvasHost);
-        pCurveStack.Children.Add(PInspectorFieldBuild(
+        pCurveStack.Children.Add(PInspectorField.PInspectorFieldBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.CurveInput"), pCurveInputValue));
-        pCurveStack.Children.Add(PInspectorFieldBuild(
+        pCurveStack.Children.Add(PInspectorField.PInspectorFieldBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.CurveOutput"), pCurveOutputValue));
         pCurveStack.Children.Add(pCurveButtons);
 
-        pCurveBody = PToneBodyBuild(pCurveBox, pCurveStack);
-        return pCurveBody;
+        PCurveBody = PInspectorField.PToneBodyBuild(pCurveBox, pCurveStack);
+        PCurveAttach();
     }
+
+    private QCurve QCurve { get; }
+
+    internal CheckBox PCurvePersistent { get; }
+
+    internal StackPanel PCurveBody { get; }
 
     private void PCurveAttach()
     {
-        PInspectorSwitchAttach(pCurveBox, QCurve.QCurveActiveSet);
-        PInspectorSwitchAttach(pCurvePersistent, QCurve.QCurvePersistentSet);
+        PInspectorSwitch.PInspectorSwitchAttach(pCurveBox, QCurve.QCurveActiveSet);
+        PInspectorSwitch.PInspectorSwitchAttach(PCurvePersistent, QCurve.QCurvePersistentSet);
         pCurveChannel.SelectionChanged += (_, _) => QCurve.QCurveChannelSelect(pCurveChannel.SelectedIndex);
         pCurveInputValue.TextChanged += (_, _) => PCurvePointCommit();
         pCurveOutputValue.TextChanged += (_, _) => PCurvePointCommit();
     }
 
+    internal void PCurveChangeAttach() => QCurve.QCurveChanged += PCurveUpdate;
+
     private static Button PCurveActionBuild(string pLabelKey, Action pClick)
     {
         Button pButton = PCurveCaptionBuild(pLabelKey);
-        PInspectorClickAttach(pButton, pClick);
+        PInspectorButton.PInspectorClickAttach(pButton, pClick);
         QButton.QButtonAttach(pButton, QButtonLook.QButtonLookPanel);
         return pButton;
     }
@@ -114,15 +115,16 @@ public sealed partial class PInspector
         MinWidth = 64,
         Padding = new Thickness(8, 0, 8, 0),
         FontSize = 11,
-        FontFamily = pInspectorFontFamily
+        FontFamily = PInspectorLook.PInspectorFontFamily
     };
 
     private void PCurvePointCommit() => QCurve.QCurvePointCommit(pCurveInputValue.Text, pCurveOutputValue.Text);
 
-    private void PCurveUpdate()
+    internal void PCurveUpdate()
     {
         PCurveStateApply();
-        PInspectorSectionApply(pCurveBox, pCurvePersistent, pCurveStack, pCurveBody, QInspectorTip.QInspectorTipResolve(
+        PInspectorState.PInspectorSectionApply(
+            pCurveBox, PCurvePersistent, pCurveStack, PCurveBody, QInspectorTip.QInspectorTipResolve(
             QCurve.QCurveActive,
             QCurve.QCurveCapable,
             QCurve.QCurvePreview,
@@ -130,15 +132,15 @@ public sealed partial class PInspector
             "Inspector.Video.CurvePreviewMpv",
             "Inspector.Video.ApplyCurve",
             "Inspector.Video.PersistCurve"));
-        PCurveRebuild();
+        pCurveCanvas.PCurveRebuild();
     }
 
     private void PCurveStateApply()
     {
-        PInspectorSwitchUpdate(pCurveBox, QCurve.QCurveActive);
-        PInspectorSwitchUpdate(pCurvePersistent, QCurve.QCurvePersistent);
+        PInspectorSwitch.PInspectorSwitchUpdate(pCurveBox, QCurve.QCurveActive);
+        PInspectorSwitch.PInspectorSwitchUpdate(PCurvePersistent, QCurve.QCurvePersistent);
         pCurveChannel.SelectedIndex = QCurve.QCurveChannel;
-        PInspectorTextSet(pCurveInputValue, QCurve.QCurveInputPercent, "0.#");
-        PInspectorTextSet(pCurveOutputValue, QCurve.QCurveOutputPercent, "0.#");
+        PInspectorNumber.PInspectorTextSet(pCurveInputValue, QCurve.QCurveInputPercent, "0.#");
+        PInspectorNumber.PInspectorTextSet(pCurveOutputValue, QCurve.QCurveOutputPercent, "0.#");
     }
 }

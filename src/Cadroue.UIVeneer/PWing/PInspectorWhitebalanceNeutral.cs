@@ -9,27 +9,25 @@ using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed partial class PInspector
+internal sealed class PInspectorWhitebalanceNeutral
 {
-    private const string PPickerIcon = "/PAsset/PPanel/PProcessingPicker.svg";
+    internal const string PPickerIcon = "/PAsset/PPanel/PProcessingPicker.svg";
 
-    private ToggleButton pInspectorNeutralTool = null!;
-    private ToggleButton pInspectorWhiteTool = null!;
-    private Image pInspectorNeutralIcon = null!;
-    private Image pInspectorWhiteIcon = null!;
-    private StackPanel pInspectorNeutralGroup = null!;
-    private Rectangle pInspectorNeutralSwatch = null!;
-    private TextBlock pInspectorNeutralReadout = null!;
-    private TextBlock pInspectorNeutralStatus = null!;
+    private readonly Image pInspectorNeutralIcon;
+    private readonly Image pInspectorWhiteIcon;
+    private readonly StackPanel pInspectorNeutralGroup;
+    private readonly Rectangle pInspectorNeutralSwatch;
+    private readonly TextBlock pInspectorNeutralReadout;
+    private readonly TextBlock pInspectorNeutralStatus;
 
-    private UIElement PToneNeutralBuild()
+    internal PInspectorWhitebalanceNeutral()
     {
         pInspectorNeutralIcon = PWhitebalanceIconBuild();
         pInspectorWhiteIcon = PWhitebalanceIconBuild();
-        pInspectorNeutralTool = PWhitebalanceToggleBuild(
+        PInspectorNeutralTool = PWhitebalanceToggleBuild(
             pInspectorNeutralIcon,
             "Inspector.Video.WhitebalancePickTooltip");
-        pInspectorWhiteTool = PWhitebalanceToggleBuild(
+        PInspectorWhiteTool = PWhitebalanceToggleBuild(
             pInspectorWhiteIcon,
             "Inspector.Video.WhitebalancePickWhiteTooltip");
 
@@ -38,9 +36,9 @@ public sealed partial class PInspector
             Orientation = Orientation.Horizontal,
             VerticalAlignment = VerticalAlignment.Center
         };
-        pInspectorNeutralTools.Children.Add(pInspectorNeutralTool);
-        pInspectorWhiteTool.Margin = new Thickness(6, 0, 0, 0);
-        pInspectorNeutralTools.Children.Add(pInspectorWhiteTool);
+        pInspectorNeutralTools.Children.Add(PInspectorNeutralTool);
+        PInspectorWhiteTool.Margin = new Thickness(6, 0, 0, 0);
+        pInspectorNeutralTools.Children.Add(PInspectorWhiteTool);
 
         pInspectorNeutralSwatch = new Rectangle
         {
@@ -57,7 +55,7 @@ public sealed partial class PInspector
         pInspectorNeutralReadout = new TextBlock
         {
             FontSize = 11,
-            FontFamily = pInspectorFontFamily,
+            FontFamily = PInspectorLook.PInspectorFontFamily,
             Foreground = new SolidColorBrush(Color.FromRgb(0x64, 0x70, 0x82)),
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -65,14 +63,14 @@ public sealed partial class PInspector
         pInspectorNeutralStatus = new TextBlock
         {
             FontSize = 11,
-            FontFamily = pInspectorFontFamily,
+            FontFamily = PInspectorLook.PInspectorFontFamily,
             Foreground = new SolidColorBrush(Color.FromRgb(0x64, 0x70, 0x82)),
             TextWrapping = TextWrapping.Wrap,
             Visibility = Visibility.Collapsed,
             Margin = new Thickness(0, 0, 0, 4)
         };
 
-        UIElement pInspectorNeutralField = PInspectorFieldBuild(
+        UIElement pInspectorNeutralField = PInspectorField.PInspectorFieldBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalancePicker"),
             pInspectorNeutralTools,
             true);
@@ -85,19 +83,24 @@ public sealed partial class PInspector
         pInspectorNeutralRow.Children.Add(pInspectorNeutralSwatch);
         pInspectorNeutralRow.Children.Add(pInspectorNeutralReadout);
 
-        var pInspectorNeutralColumn = new StackPanel { Margin = new Thickness(0, 0, 0, 8) };
-        pInspectorNeutralColumn.Children.Add(pInspectorNeutralField);
-        pInspectorNeutralColumn.Children.Add(pInspectorNeutralRow);
-        pInspectorNeutralColumn.Children.Add(pInspectorNeutralStatus);
+        PInspectorNeutralColumn = new StackPanel { Margin = new Thickness(0, 0, 0, 8) };
+        PInspectorNeutralColumn.Children.Add(pInspectorNeutralField);
+        PInspectorNeutralColumn.Children.Add(pInspectorNeutralRow);
+        PInspectorNeutralColumn.Children.Add(pInspectorNeutralStatus);
         pInspectorNeutralGroup = pInspectorNeutralRow;
-        return pInspectorNeutralColumn;
     }
+
+    internal ToggleButton PInspectorNeutralTool { get; }
+
+    internal ToggleButton PInspectorWhiteTool { get; }
+
+    internal StackPanel PInspectorNeutralColumn { get; }
 
     private static Image PWhitebalanceIconBuild() => new()
     {
         Width = 18,
         Height = 18,
-        Source = QIcon.QIconRead(PPickerIcon, pInspectorIconBrush),
+        Source = QIcon.QIconRead(PPickerIcon, PInspectorLook.PInspectorIconBrush),
         Stretch = Stretch.Uniform
     };
 
@@ -108,39 +111,49 @@ public sealed partial class PInspector
         Width = 32,
         Height = 32,
         VerticalAlignment = VerticalAlignment.Center,
-        Style = PInspectorToolCreate(typeof(ToggleButton))
+        Style = PInspectorTool.PInspectorToolCreate(typeof(ToggleButton))
     };
 
-    private void PWhitebalanceToolUpdate()
+    internal void PWhitebalancePickerApply(QWhitebalance lWhitebalance, QInspectorTip pTip)
     {
-        PWhitebalanceToolApply();
-        PWhitebalanceIconApply();
-        PWhitebalanceStatusApply();
+        PInspectorNeutralTool.IsEnabled = lWhitebalance.QWhitebalanceCapable;
+        PInspectorNeutralTool.ToolTip = pTip.QInspectorNoticeRead("Inspector.Video.WhitebalancePickTooltip");
+        PInspectorWhiteTool.IsEnabled = lWhitebalance.QWhitebalanceCapable;
+        PInspectorWhiteTool.ToolTip = pTip.QInspectorNoticeRead("Inspector.Video.WhitebalancePickWhiteTooltip");
+        ToolTipService.SetShowOnDisabled(PInspectorNeutralTool, true);
+        ToolTipService.SetShowOnDisabled(PInspectorWhiteTool, true);
     }
 
-    private void PWhitebalanceToolApply()
+    internal void PWhitebalanceToolUpdate(QWhitebalance lWhitebalance)
     {
-        pInspectorNeutralTool.IsChecked = PLook.PLookChecked[QWhitebalance.QWhitebalanceGreyArmed];
-        pInspectorWhiteTool.IsChecked = PLook.PLookChecked[QWhitebalance.QWhitebalanceWhiteArmed];
+        PWhitebalanceToolApply(lWhitebalance);
+        PWhitebalanceIconApply(lWhitebalance);
+        PWhitebalanceStatusApply(lWhitebalance);
     }
 
-    private void PWhitebalanceIconApply()
+    private void PWhitebalanceToolApply(QWhitebalance lWhitebalance)
+    {
+        PInspectorNeutralTool.IsChecked = PLook.PLookChecked[lWhitebalance.QWhitebalanceGreyArmed];
+        PInspectorWhiteTool.IsChecked = PLook.PLookChecked[lWhitebalance.QWhitebalanceWhiteArmed];
+    }
+
+    private void PWhitebalanceIconApply(QWhitebalance lWhitebalance)
     {
         pInspectorNeutralIcon.Source = QIcon.QIconRead(
-            PPickerIcon, PInspectorPickBrush[QWhitebalance.QWhitebalanceGreyArmed]);
+            PPickerIcon, PInspectorLook.PInspectorPickBrush[lWhitebalance.QWhitebalanceGreyArmed]);
         pInspectorWhiteIcon.Source = QIcon.QIconRead(
-            PPickerIcon, PInspectorPickBrush[QWhitebalance.QWhitebalanceWhiteArmed]);
+            PPickerIcon, PInspectorLook.PInspectorPickBrush[lWhitebalance.QWhitebalanceWhiteArmed]);
     }
 
-    private void PWhitebalanceStatusApply()
+    private void PWhitebalanceStatusApply(QWhitebalance lWhitebalance)
     {
-        pInspectorNeutralStatus.Text = QWhitebalance.QWhitebalanceGuideRead();
-        pInspectorNeutralStatus.Visibility = PLook.PLookVisible[QWhitebalance.QWhitebalanceGuideShown];
+        pInspectorNeutralStatus.Text = lWhitebalance.QWhitebalanceGuideRead();
+        pInspectorNeutralStatus.Visibility = PLook.PLookVisible[lWhitebalance.QWhitebalanceGuideShown];
     }
 
-    private void PWhitebalanceReadoutUpdate()
+    internal void PWhitebalanceReadoutUpdate(QWhitebalance lWhitebalance)
     {
-        QWhitebalanceReadout pReadout = QWhitebalance.QWhitebalanceReadoutRead();
+        QWhitebalanceReadout pReadout = lWhitebalance.QWhitebalanceReadoutRead();
         PWhitebalanceGroupApply(pReadout.QWhitebalanceReadoutSampled);
         PWhitebalanceSwatchApply(pReadout);
         PWhitebalanceReadoutApply(pReadout.QWhitebalanceReadoutText);

@@ -3,11 +3,10 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed partial class PInspector
+internal sealed class PInspectorEqualizer
 {
     private const string pEqualizerAddIcon = "/PAsset/PPanel/PFunnelAdd.svg";
     private const string pEqualizerRemoveIcon = "/PAsset/PPanel/PFunnelRemove.svg";
@@ -23,72 +22,77 @@ public sealed partial class PInspector
     private readonly List<PInspectorBand> pEqualizerRows = new();
 
     private CheckBox pEqualizerApplyBox = null!;
-    private CheckBox pEqualizerPersistent = null!;
     private ComboBox pEqualizerPreset = null!;
     private StackPanel pEqualizerStack = null!;
     private StackPanel pEqualizerRowPanel = null!;
-    private StackPanel pEqualizerBody = null!;
 
-    private StackPanel PEqualizerBodyBuild()
+    internal PInspectorEqualizer(QEqualizer lEqualizer)
     {
-        StackPanel pBody = PEqualizerPanelBuild();
+        QEqualizer = lEqualizer;
+        PEqualizerPanelBuild();
         PEqualizerAttach();
         PEqualizerRowsRebuild();
-        return pBody;
     }
 
-    private StackPanel PEqualizerPanelBuild()
+    private QEqualizer QEqualizer { get; }
+
+    internal CheckBox PEqualizerPersistent { get; private set; } = null!;
+
+    internal StackPanel PEqualizerBody { get; private set; } = null!;
+
+    private void PEqualizerPanelBuild()
     {
-        pEqualizerApplyBox = PInspectorSwitchBuild(
+        pEqualizerApplyBox = PInspectorSwitch.PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Equalizer.ApplyTooltip"));
 
-        pEqualizerPersistent = PInspectorSwitchBuild(
+        PEqualizerPersistent = PInspectorSwitch.PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Equalizer.PersistentTooltip"));
 
-        pEqualizerPreset = PInspectorChoiceBuild(
+        pEqualizerPreset = PInspectorChoice.PInspectorChoiceBuild(
             QEqualizer.QEqualizerChoiceRead().QInspectorChoiceNames, QEqualizer.QEqualizerChoiceSelect);
 
         pEqualizerRowPanel = new StackPanel();
 
-        Button pAddButton = PInspectorButtonBuild(
+        Button pAddButton = PInspectorButton.PInspectorButtonBuild(
             pEqualizerAddIcon,
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Equalizer.Add"),
             () => QEqualizer.QEqualizerBandAdd());
         pAddButton.HorizontalAlignment = HorizontalAlignment.Left;
 
         pEqualizerStack = new StackPanel();
-        pEqualizerStack.Children.Add(PInspectorFieldBuild(
+        pEqualizerStack.Children.Add(PInspectorField.PInspectorFieldBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Preset"), pEqualizerPreset));
         pEqualizerStack.Children.Add(pEqualizerRowPanel);
         pEqualizerStack.Children.Add(pAddButton);
 
-        pEqualizerBody = new StackPanel
+        PEqualizerBody = new StackPanel
         {
             Margin = new Thickness(12, 12, 12, 12),
             Visibility = Visibility.Collapsed
         };
-        pEqualizerBody.Children.Add(pEqualizerApplyBox);
-        pEqualizerBody.Children.Add(PInspectorSeparatorBuild());
-        pEqualizerBody.Children.Add(pEqualizerStack);
-        return pEqualizerBody;
+        PEqualizerBody.Children.Add(pEqualizerApplyBox);
+        PEqualizerBody.Children.Add(PInspectorField.PInspectorSeparatorBuild());
+        PEqualizerBody.Children.Add(pEqualizerStack);
     }
 
     private void PEqualizerAttach()
     {
-        PInspectorSwitchAttach(pEqualizerApplyBox, QEqualizer.QEqualizerActiveSet);
-        PInspectorSwitchAttach(pEqualizerPersistent, QEqualizer.QEqualizerPersistentSet);
+        PInspectorSwitch.PInspectorSwitchAttach(pEqualizerApplyBox, QEqualizer.QEqualizerActiveSet);
+        PInspectorSwitch.PInspectorSwitchAttach(PEqualizerPersistent, QEqualizer.QEqualizerPersistentSet);
         QEqualizer.QEqualizerRowsChanged += PEqualizerRowsRebuild;
     }
 
-    private void PEqualizerUpdate()
+    internal void PEqualizerChangeAttach() => QEqualizer.QEqualizerChanged += PEqualizerUpdate;
+
+    internal void PEqualizerUpdate()
     {
-        PInspectorSwitchUpdate(pEqualizerApplyBox, QEqualizer.QEqualizerActive);
-        PInspectorSwitchUpdate(pEqualizerPersistent, QEqualizer.QEqualizerPersistent);
+        PInspectorSwitch.PInspectorSwitchUpdate(pEqualizerApplyBox, QEqualizer.QEqualizerActive);
+        PInspectorSwitch.PInspectorSwitchUpdate(PEqualizerPersistent, QEqualizer.QEqualizerPersistent);
         pEqualizerRows.ForEach(PEqualizerRowUpdate);
-        PInspectorChoiceApply(pEqualizerPreset, QEqualizer.QEqualizerChoiceRead());
-        PInspectorSectionUpdate(pEqualizerStack, QEqualizer.QEqualizerActive);
+        PInspectorChoice.PInspectorChoiceApply(pEqualizerPreset, QEqualizer.QEqualizerChoiceRead());
+        PInspectorState.PInspectorSectionUpdate(pEqualizerStack, QEqualizer.QEqualizerActive);
     }
 
     private void PEqualizerRowsRebuild()
@@ -102,7 +106,7 @@ public sealed partial class PInspector
     private void PEqualizerRowUpdate(PInspectorBand pBand)
     {
         pBand.PInspectorBandFrequency.Text = QEqualizer.QEqualizerFrequencyRead(pBand.PInspectorBandIndex);
-        PInspectorValueUpdate(
+        PInspectorValue.PInspectorValueUpdate(
             pBand.PInspectorBandSlider,
             pBand.PInspectorBandValue,
             QEqualizer.QEqualizerGainRead(pBand.PInspectorBandIndex),
@@ -119,17 +123,17 @@ public sealed partial class PInspector
     private (PInspectorBand, Button) PEqualizerBandBuild(QEqualizerBand lBand)
     {
         int pIndex = lBand.QEqualizerBandIndex;
-        TextBox pFrequencyBox = PInspectorDecimalBuild();
+        TextBox pFrequencyBox = PInspectorNumber.PInspectorDecimalBuild();
         pFrequencyBox.Width = 56;
         pFrequencyBox.Text = lBand.QEqualizerBandFrequency;
 
-        Slider pSlider = PInspectorSliderBuild(
+        Slider pSlider = PInspectorValue.PInspectorSliderBuild(
             QEqualizer.QEqualizerGainLeast,
             QEqualizer.QEqualizerGainMost,
             lBand.QEqualizerBandGain,
             () => QEqualizer.QEqualizerGainOrigin);
 
-        TextBox pValueBox = PInspectorDecimalBuild();
+        TextBox pValueBox = PInspectorNumber.PInspectorDecimalBuild();
         pValueBox.Width = pEqualizerValueWidth;
 
         var pRemoveButton = new Button
@@ -138,11 +142,11 @@ public sealed partial class PInspector
             {
                 Width = 16,
                 Height = 16,
-                Source = QIcon.QIconRead(pEqualizerRemoveIcon, pInspectorIconBrush),
+                Source = QIcon.QIconRead(pEqualizerRemoveIcon, PInspectorLook.PInspectorIconBrush),
                 Stretch = Stretch.Uniform
             },
             Width = 26,
-            Height = PInspectorFieldHeight,
+            Height = PInspectorLook.PInspectorFieldHeight,
             Margin = new Thickness(6, 0, 0, 8),
             VerticalAlignment = VerticalAlignment.Center,
             ToolTip = QEqualizer.QEqualizerRemoveTip
@@ -151,7 +155,7 @@ public sealed partial class PInspector
 
         var pRow = new Grid
         {
-            Height = PInspectorRowHeight,
+            Height = PInspectorLook.PInspectorRowHeight,
             Margin = new Thickness(0, 0, 0, 8)
         };
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -189,7 +193,7 @@ public sealed partial class PInspector
     {
         int pIndex = pBand.PInspectorBandIndex;
         TextBox pFrequencyBox = pBand.PInspectorBandFrequency;
-        PInspectorValueAttach(
+        PInspectorValue.PInspectorValueAttach(
             pBand.PInspectorBandSlider,
             pBand.PInspectorBandValue,
             QEqualizer.QEqualizerGainLeast,
@@ -204,7 +208,7 @@ public sealed partial class PInspector
         pFrequencyBox.KeyDown += (_, pKeyEvent) =>
         {
             pFrequencyKeys.GetValueOrDefault(pKeyEvent.Key)?.Invoke();
-            pKeyEvent.Handled = pInspectorValueHandled.GetValueOrDefault(pKeyEvent.Key);
+            pKeyEvent.Handled = PInspectorValue.PInspectorValueHandled.GetValueOrDefault(pKeyEvent.Key);
         };
         pRemoveButton.Click += (_, _) => QEqualizer.QEqualizerBandRemove(pIndex);
     }
@@ -213,7 +217,7 @@ public sealed partial class PInspector
     {
         string pFrequency = QEqualizer.QEqualizerFrequencyCommit(pIndex, pFrequencyBox.Text);
         PEqualizerFrequencyApply(pFrequencyBox, pFrequency);
-        PInspectorCaretPlace(pFrequencyBox);
+        PInspectorNumber.PInspectorCaretPlace(pFrequencyBox);
     }
 
     private static void PEqualizerFrequencyApply(TextBox pFrequencyBox, string pFrequency) =>
@@ -223,8 +227,8 @@ public sealed partial class PInspector
     {
         Text = pUnit,
         FontSize = 11,
-        FontFamily = pInspectorFontFamily,
-        Foreground = pInspectorMutedBrush,
+        FontFamily = PInspectorLook.PInspectorFontFamily,
+        Foreground = PInspectorLook.PInspectorMutedBrush,
         VerticalAlignment = VerticalAlignment.Center,
         Margin = new Thickness(6, 0, 6, 0)
     };

@@ -1,16 +1,14 @@
 using System.Windows;
 using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
-internal sealed partial class PSEncoder
+internal static class PSEncoderNameDrag
 {
-    private void PSNameDragRun(FrameworkElement pChip, string pToken, Point pGrabOffset)
+    internal static void PSNameDragRun(UIElement? pRoot, FrameworkElement pChip, string pToken, Point pGrabOffset)
     {
-        var pRoot = Content as UIElement;
         AdornerLayer? pLayer = PSNameLayerRead(pRoot);
         PSNameDragAdorner? pDragAdorner = PSNameAdornerAdd(pRoot, pLayer, pChip, pGrabOffset);
         GiveFeedbackEventHandler pFeedback = PSNameFeedbackAttach(pChip, pRoot, pDragAdorner);

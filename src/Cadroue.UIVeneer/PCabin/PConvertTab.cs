@@ -43,5 +43,5 @@ public sealed class PConvertTab : PTabSurface
 
     public override LSceneTabEntry PTabLayoutRead() => PTabLayoutCreate();
 
-    private void PConvertEventsAttach() => QConvertTab.QConvertPresetMissing += PExport.PExportMissingShow;
+    private void PConvertEventsAttach() => QConvertTab.QConvertPresetMissing += PExportNotice.PExportMissingShow;
 }

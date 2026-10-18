@@ -2,50 +2,56 @@ using System.Windows;
 using System.Windows.Controls;
 
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed partial class PInspector
+internal sealed class PInspectorWhitebalance
 {
+    private readonly PInspectorWhitebalanceNeutral pWhitebalanceNeutral;
+    private readonly PInspectorWhitebalanceWheel pWhitebalanceWheel;
     private CheckBox pWhitebalanceBox = null!;
-    private CheckBox pWhitebalancePersistent = null!;
     private ComboBox pWhitebalanceMethod = null!;
     private StackPanel pWhitebalanceStack = null!;
-    private StackPanel pWhitebalanceBody = null!;
 
     // The panel's parts first; the driver then fills the method rows and the saturation field and takes the inputs,
     // and the wheel is drawn at its slider's brightness.
-    private StackPanel PWhitebalanceBuild()
+    internal PInspectorWhitebalance(QInspector lInspector)
     {
-        StackPanel pBody = PWhitebalancePanelBuild();
+        pWhitebalanceNeutral = new PInspectorWhitebalanceNeutral();
+        pWhitebalanceWheel = new PInspectorWhitebalanceWheel();
+        PWhitebalancePanelBuild();
         QWhitebalance = new QWhitebalance(
-            QInspector,
+            lInspector,
             pWhitebalanceBox,
-            pWhitebalancePersistent,
+            PWhitebalancePersistent,
             pWhitebalanceMethod,
             pWhitebalanceStack,
-            pWhitebalanceBody,
-            [pInspectorNeutralTool, pInspectorWhiteTool],
-            pWhitebalanceWheelDot,
-            PWhitebalanceWheelSize);
-        PWhitebalanceBrightnessHandle();
-        return pBody;
+            PWhitebalanceBody,
+            [pWhitebalanceNeutral.PInspectorNeutralTool, pWhitebalanceNeutral.PInspectorWhiteTool],
+            pWhitebalanceWheel.PWhitebalanceWheelDot,
+            PInspectorWhitebalanceWheel.PWhitebalanceWheelSize);
+        pWhitebalanceWheel.PWhitebalanceWheelAttach(QWhitebalance.QWhitebalanceWheel);
     }
 
-    private StackPanel PWhitebalancePanelBuild()
+    internal QWhitebalance QWhitebalance { get; }
+
+    internal CheckBox PWhitebalancePersistent { get; private set; } = null!;
+
+    internal StackPanel PWhitebalanceBody { get; private set; } = null!;
+
+    private void PWhitebalancePanelBuild()
     {
-        pWhitebalanceBox = PInspectorSwitchBuild(
+        pWhitebalanceBox = PInspectorSwitch.PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.ApplyWhitebalance"));
-        pWhitebalancePersistent = PInspectorSwitchBuild(
+        PWhitebalancePersistent = PInspectorSwitch.PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.PersistWhitebalance"));
-        pWhitebalanceMethod = PInspectorComboBuild();
+        pWhitebalanceMethod = PInspectorChoice.PInspectorComboBuild();
         pWhitebalanceStack = new StackPanel();
-        pWhitebalanceStack.Children.Add(PToneNeutralBuild());
-        pWhitebalanceStack.Children.Add(PWhitebalanceWheelBuild());
-        pWhitebalanceStack.Children.Add(PInspectorFieldBuild(
+        pWhitebalanceStack.Children.Add(pWhitebalanceNeutral.PInspectorNeutralColumn);
+        pWhitebalanceStack.Children.Add(pWhitebalanceWheel.PWhitebalancePalette);
+        pWhitebalanceStack.Children.Add(PInspectorField.PInspectorFieldBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceMethod"),
             pWhitebalanceMethod));
         pWhitebalanceStack.Children.Add(new TextBlock
@@ -57,14 +63,13 @@ public sealed partial class PInspector
             Margin = new Thickness(0, 2, 0, 8)
         });
         pWhitebalanceStack.Children.Add(PWhitebalanceResetBuild());
-        pWhitebalanceBody = PToneBodyBuild(pWhitebalanceBox, pWhitebalanceStack);
-        return pWhitebalanceBody;
+        PWhitebalanceBody = PInspectorField.PToneBodyBuild(pWhitebalanceBox, pWhitebalanceStack);
     }
 
     private Button PWhitebalanceResetBuild()
     {
         Button pWhitebalanceReset = PWhitebalanceCaptionBuild();
-        PInspectorClickAttach(pWhitebalanceReset, () => QWhitebalance.QWhitebalanceReset());
+        PInspectorButton.PInspectorClickAttach(pWhitebalanceReset, () => QWhitebalance.QWhitebalanceReset());
         QButton.QButtonAttach(pWhitebalanceReset, QButtonLook.QButtonLookPanel);
         return pWhitebalanceReset;
     }
@@ -77,25 +82,17 @@ public sealed partial class PInspector
         MinWidth = 64,
         Padding = new Thickness(8, 0, 8, 0),
         FontSize = 11,
-        FontFamily = pInspectorFontFamily,
+        FontFamily = PInspectorLook.PInspectorFontFamily,
         HorizontalAlignment = HorizontalAlignment.Right
     };
 
-    // The driver paints the section, the fields and the wheel dot; the picker row is painted here.
-    private void PWhitebalanceUpdate()
-    {
-        PWhitebalancePickerApply(QWhitebalance.QWhitebalanceTip);
-        PWhitebalanceToolUpdate();
-        PWhitebalanceReadoutUpdate();
-    }
+    internal void PWhitebalanceChangeAttach() => QWhitebalance.QWhitebalanceChanged += PWhitebalanceUpdate;
 
-    private void PWhitebalancePickerApply(QInspectorTip pTip)
+    // The driver paints the section, the fields and the wheel dot; the picker row is painted here.
+    internal void PWhitebalanceUpdate()
     {
-        pInspectorNeutralTool.IsEnabled = QWhitebalance.QWhitebalanceCapable;
-        pInspectorNeutralTool.ToolTip = pTip.QInspectorNoticeRead("Inspector.Video.WhitebalancePickTooltip");
-        pInspectorWhiteTool.IsEnabled = QWhitebalance.QWhitebalanceCapable;
-        pInspectorWhiteTool.ToolTip = pTip.QInspectorNoticeRead("Inspector.Video.WhitebalancePickWhiteTooltip");
-        ToolTipService.SetShowOnDisabled(pInspectorNeutralTool, true);
-        ToolTipService.SetShowOnDisabled(pInspectorWhiteTool, true);
+        pWhitebalanceNeutral.PWhitebalancePickerApply(QWhitebalance, QWhitebalance.QWhitebalanceTip);
+        pWhitebalanceNeutral.PWhitebalanceToolUpdate(QWhitebalance);
+        pWhitebalanceNeutral.PWhitebalanceReadoutUpdate(QWhitebalance);
     }
 }
