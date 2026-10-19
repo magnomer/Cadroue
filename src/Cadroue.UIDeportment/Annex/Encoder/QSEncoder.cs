@@ -4,28 +4,30 @@ using Cadroue.Infrastructure;
 
 namespace Cadroue.UIDeportment;
 
-// The encoder window's driver: it holds the draft preset, hands each row group its piece, and copies the draft back.
+// The encoder window's driver: it holds the draft and its gate, hands each row group its piece, and relays apply.
 public sealed class QSEncoder
 {
     public const string QSEncoderSourceMode = "Same as source";
 
-    private readonly LPreset qsEncoderSource;
-    private readonly LPreset qsEncoderDraft;
+    private readonly LSEncoderDraft qsEncoderPreset;
+    private readonly CSEncoderDraft qsEncoderGate;
     private Action? qsEncoderHelpHandler;
 
-    internal QSEncoder(CUsher lUsher, LPreset lSource, bool lSmart)
+    internal QSEncoder(CUsher lUsher, CSEncoder lEncoder, LPreset lSource, bool lSmart)
     {
-        qsEncoderSource = lSource;
-        qsEncoderDraft = lSource.LPresetClone();
-        QSEncoderVideo = new QSEncoderVideo(qsEncoderDraft, lSmart);
-        QSEncoderSize = new QSEncoderSize(qsEncoderDraft);
-        QSEncoderAudio = new QSEncoderAudio(qsEncoderDraft);
-        QSEncoderSuffix = new QSEncoderSuffix(qsEncoderDraft);
-        QSEncoderLocation = new QSEncoderLocation(lUsher, qsEncoderDraft);
+        qsEncoderPreset = new LSEncoderDraft(lSource);
+        qsEncoderGate = lEncoder.CSEncoderDraftCreate(
+            qsEncoderPreset.LSEncoderDraftRead, qsEncoderPreset.LSEncoderDraftSave, lSmart);
+        QSEncoderVideo = new QSEncoderVideo(
+            qsEncoderGate.CSEncoderDraftVideo, qsEncoderGate.CSEncoderDraftTrial, qsEncoderPreset.LSEncoderDraftPreset);
+        QSEncoderSize = new QSEncoderSize(qsEncoderPreset.LSEncoderDraftPreset);
+        QSEncoderAudio = new QSEncoderAudio(qsEncoderPreset.LSEncoderDraftPreset);
+        QSEncoderSuffix = new QSEncoderSuffix(qsEncoderPreset.LSEncoderDraftPreset);
+        QSEncoderLocation = new QSEncoderLocation(lUsher, qsEncoderPreset.LSEncoderDraftPreset);
         QSEncoderInventoryAttach();
     }
 
-    public LPreset QSEncoderDraft => qsEncoderDraft;
+    public LPreset QSEncoderDraft => qsEncoderPreset.LSEncoderDraftPreset;
 
     public QSEncoderVideo QSEncoderVideo { get; }
 
@@ -39,17 +41,10 @@ public sealed class QSEncoder
 
     public QToken QSEncoderTokenCreate() => new();
 
-    // The rate a codec keeps: the asked rate when the codec offers it, else the codec's first mode.
-    internal static string QSEncoderRateResolve(string[] lModes, string lRate) =>
-        lModes.Contains(lRate) ? lRate : lModes[0];
-
-    internal static double QSEncoderProgressResolve(int lDone, int lTotal) =>
-        lTotal == 0 ? 1 : (double)lDone / lTotal;
-
     public void QSEncoderClose()
     {
         QSEncoderHelpDetach();
-        QSEncoderVideo.QSEncoderVideoCancel();
+        qsEncoderGate.CSEncoderDraftClose();
         QSEncoderAudio.QSEncoderAudioCancel();
     }
 
@@ -65,24 +60,9 @@ public sealed class QSEncoder
         qsEncoderHelpHandler = null;
     }
 
-    public void QSEncoderApply()
-    {
-        string lDisplay = QSEncoderDisplayNormalize(qsEncoderDraft.LPresetDisplay);
-        QSEncoderDraftUpdate(lDisplay);
-        qsEncoderSource.LPresetCopy(qsEncoderDraft);
-    }
-
-    private static string QSEncoderDisplayNormalize(string lDisplay) =>
-        string.IsNullOrWhiteSpace(lDisplay) ? "{OriginalName}_export" : lDisplay.Trim();
-
-    private void QSEncoderDraftUpdate(string lDisplay)
-    {
-        qsEncoderDraft.LPresetDisplay = lDisplay;
-        qsEncoderDraft.LPresetVideo.LPresetStream = "Include";
-        qsEncoderDraft.LPresetVideo.LPresetEncoder = QSEncoderVideo.QSEncoderVideoEncoder;
-        qsEncoderDraft.LPresetVideo.LPresetRateControl = QSEncoderVideo.QSEncoderVideoRate;
-        qsEncoderDraft.LPresetVideo.LPresetSize = QSEncoderSize.QSEncoderSizeFormat();
-        qsEncoderDraft.LPresetAudio.LPresetEncoder = QSEncoderAudio.QSEncoderAudioEncoder;
-        qsEncoderDraft.LPresetAudio.LPresetRateControl = QSEncoderAudio.QSEncoderAudioRate;
-    }
+    public void QSEncoderApply() =>
+        qsEncoderGate.CSEncoderDraftApply(
+            QSEncoderSize.QSEncoderSizeFormat(),
+            QSEncoderAudio.QSEncoderAudioEncoder,
+            QSEncoderAudio.QSEncoderAudioRate);
 }

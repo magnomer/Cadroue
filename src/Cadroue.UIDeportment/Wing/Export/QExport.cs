@@ -6,6 +6,7 @@ namespace Cadroue.UIDeportment;
 public sealed class QExport
 {
     private readonly CUsher qExportUsher;
+    private readonly CSEncoder qExportEncoder;
     private readonly LPresetSelection qExportOwner;
     private readonly bool qExportSmartAllowed;
     private readonly string qExportNotice;
@@ -14,9 +15,11 @@ public sealed class QExport
 
     public event Action? QExportPresetsChanged;
 
-    public QExport(CUsher lUsher, LPresetSelection lExportSelection, QWorkspaceFacts qWorkspaceKey)
+    public QExport(
+        CUsher lUsher, CSEncoder lEncoder, LPresetSelection lExportSelection, QWorkspaceFacts qWorkspaceKey)
     {
         qExportUsher = lUsher;
+        qExportEncoder = lEncoder;
         qExportOwner = lExportSelection;
         qExportSmartAllowed = qWorkspaceKey.QWorkspaceSmart;
         qExportNotice = qWorkspaceKey.QWorkspaceNotice;
@@ -41,7 +44,8 @@ public sealed class QExport
     public bool QExportSupportCheck(string lPresetName, LPreset lWorking) =>
         qExportOwner.LPresetSupportCheck(lPresetName, lWorking, QExportSelectedCheck(lPresetName));
 
-    public QSEncoder QExportEncoderCreate(LPreset lSource) => new(qExportUsher, lSource, qExportSmartAllowed);
+    public QSEncoder QExportEncoderCreate(LPreset lSource) =>
+        new(qExportUsher, qExportEncoder, lSource, qExportSmartAllowed);
 
     public void QExportAttach()
     {

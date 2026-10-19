@@ -296,8 +296,11 @@ internal static partial class TInterface
         QGroupDrag.QGroupInsertResolve(y, tops, heights);
 
     internal static LPresetSelection TPresetSelectionCreate(string name) => new(name, string.Empty);
-    internal static QExport TExportCreate(LPresetSelection selection, string key) =>
-        new(TAtelierCreate().CAtelierUsher, selection, new QWorkspaceFacts(key));
+    internal static QExport TExportCreate(LPresetSelection selection, string key)
+    {
+        CAtelier atelier = TAtelierCreate();
+        return new(atelier.CAtelierUsher, atelier.CAtelierEncoder, selection, new QWorkspaceFacts(key));
+    }
     internal static void TExportAttach(QExport export, Action handler) => export.QExportPresetsChanged += handler;
     internal static void TExportOwnerAttach(QExport export) => export.QExportAttach();
     internal static void TExportSelect(QExport export, string name) => export.QExportSelect(name);

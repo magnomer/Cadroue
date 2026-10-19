@@ -32,11 +32,9 @@ internal sealed class PSEncoderVideo
             new LLocalizationChoice("Encode", "Encoder.Codec.Encode"));
         psVideoEncoderCombo = PSCombo.PSComboBuild(
             lsVideo.QSEncoderVideoEncoder,
-            QSEncoderVideo.QSEncoderVideoRead(lsDraft.LPresetContainer, lsVideo.QSEncoderVideoEncoder));
+            lsVideo.QSEncoderVideoRead(lsDraft.LPresetContainer, lsVideo.QSEncoderVideoEncoder));
         PSEncoderChip.PSEncoderChipApply(psVideoEncoderCombo);
-        psVideoRateCombo = PSCombo.PSComboBuild(
-            lsVideo.QSEncoderVideoRate,
-            lsVideo.QSEncoderVideoCodec.LCapabilityModeLabels);
+        psVideoRateCombo = PSCombo.PSComboBuild(lsVideo.QSEncoderVideoRate, lsVideo.QSEncoderVideoModes);
         psVideoNotice = PSEncoderNotice.PSEncoderNoticeBuild();
         psVideoEncoderNotice = PSEncoderNotice.PSEncoderErrorBuild();
         psEncoderVideoResolution = new PSEncoderVideoResolution(lsSize, lsDraft.LPresetVideo.LPresetSizeReactive);
@@ -49,7 +47,7 @@ internal sealed class PSEncoderVideo
             new LLocalizationChoice("yuv420p10le", "Encoder.Pixel.Yuv420Ten"),
             new LLocalizationChoice("yuv422p10le", "Encoder.Pixel.Yuv422Ten"),
             new LLocalizationChoice("yuv444p10le", "Encoder.Pixel.Yuv444Ten"));
-        psEncoderVideoRate = new PSEncoderVideoRate(lsVideo, lsDraft);
+        psEncoderVideoRate = new PSEncoderVideoRate(lsVideo);
     }
 
     internal void PSVideoDraftSet()
@@ -85,8 +83,7 @@ internal sealed class PSEncoderVideo
         return PSPlate.PSPlateBuild(pPanel);
     }
 
-    private void PSVideoLogApply(Button pLog) =>
-        pLog.IsEnabled = lsEncoderVideo.QSEncoderVideoResults.Count > 0;
+    private void PSVideoLogApply(Button pLog) => pLog.IsEnabled = lsEncoderVideo.QSEncoderVideoTried;
 
     private void PSVideoPlateAttach(Button pVerify, Button pLog, ProgressBar pProgress)
     {
@@ -156,26 +153,16 @@ internal sealed class PSEncoderVideo
     {
         psVideoEncodePanel.Visibility = pEncoded ? Visibility.Visible : Visibility.Collapsed;
         psVideoNotice.Visibility = pEncoded ? Visibility.Collapsed : Visibility.Visible;
-        psVideoNotice.Text = QLocalizationCatalog.QLocalizationTextRead(PSVideoNoticeRead(pMode));
+        psVideoNotice.Text = QLocalizationCatalog.QLocalizationTextRead(lsEncoderVideo.QSEncoderNoticeResolve(pMode));
     }
 
-    private string PSVideoNoticeRead(string pMode) => lsEncoderVideo.QSEncoderNoticeResolve(pMode);
-
-    private void PSVideoSet()
-    {
-        string pEncoder = PSCombo.PSComboTextRead(psVideoEncoderCombo);
-        string pRate = PSCombo.PSComboTextRead(psVideoRateCombo);
-        if (PSVideoChoiceCheck(pEncoder, pRate))
-        {
-            lsEncoderVideo.QSEncoderVideoSet(pEncoder, pRate);
-        }
-    }
-
-    private static bool PSVideoChoiceCheck(string pEncoder, string pRate) => pEncoder.Length > 0 && pRate.Length > 0;
+    private void PSVideoSet() =>
+        lsEncoderVideo.QSEncoderVideoSet(
+            PSCombo.PSComboTextRead(psVideoEncoderCombo), PSCombo.PSComboTextRead(psVideoRateCombo));
 
     internal void PSVideoRowsApply()
     {
-        string[] pModeLabels = lsEncoderVideo.QSEncoderVideoCodec.LCapabilityModeLabels;
+        string[] pModeLabels = lsEncoderVideo.QSEncoderVideoModes;
         if (PSVideoLabelsCheck(pModeLabels))
         {
             PSVideoLabelsSet(pModeLabels);
@@ -195,7 +182,7 @@ internal sealed class PSEncoderVideo
 
     private void PSVideoEncoderUpdate()
     {
-        bool pAvailable = QSEncoderVideo.QSEncoderVideoCheck(PSCombo.PSComboTextRead(psVideoEncoderCombo));
+        bool pAvailable = lsEncoderVideo.QSEncoderVideoCheck(PSCombo.PSComboTextRead(psVideoEncoderCombo));
         PSVideoNoticeApply(pAvailable);
         if (!pAvailable)
         {
@@ -212,7 +199,7 @@ internal sealed class PSEncoderVideo
     internal void PSCodecContainerHandle(string pContainer)
     {
         string pCurrent = PSCodecCurrentRead();
-        string[] pItems = QSEncoderVideo.QSEncoderVideoRead(pContainer, pCurrent);
+        string[] pItems = lsEncoderVideo.QSEncoderVideoRead(pContainer, pCurrent);
         PSEncoderVerification.PSEncoderComboApply(
             psVideoEncoderCombo, pItems, PSEncoderVerification.PSEncoderChoiceResolve(pItems, pCurrent));
         PSVideoEncoderUpdate();

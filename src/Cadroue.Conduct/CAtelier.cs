@@ -58,6 +58,8 @@ public sealed class CAtelier
         ArgumentNullException.ThrowIfNull(port.LAtelierScene);
         ArgumentNullException.ThrowIfNull(port.LAtelierList);
         ArgumentNullException.ThrowIfNull(port.LAtelierRelay);
+        ArgumentNullException.ThrowIfNull(port.LAtelierTrial);
+        ArgumentNullException.ThrowIfNull(port.LAtelierRepertoire);
 
         CAtelierUsher = new CUsher(port.LAtelierUsher);
         CAtelierLineage = new CLineage(port.LAtelierLineage);
@@ -88,6 +90,7 @@ public sealed class CAtelier
         _cAtelierScenePort = port.LAtelierScene;
         _cAtelierListPort = port.LAtelierList;
         CAtelierRelay = new CRelay(port.LAtelierRelay, CAtelierUsher);
+        CAtelierEncoder = new CSEncoder(port.LAtelierTrial, port.LAtelierRepertoire);
     }
 
     public CUsher CAtelierUsher { get; }
@@ -108,6 +111,9 @@ public sealed class CAtelier
 
     // The one relay across every tab of the window, keyed by tab id.
     public CRelay CAtelierRelay { get; }
+
+    // The encoder subwindow's shared gate: every encoder window opens its own gates through it.
+    public CSEncoder CAtelierEncoder { get; }
 
     // A viewer's workspace with the viewer's own trace gate and the flow beside it: each holds state for one viewer.
     public CWorkspace CAtelierWorkspaceCreate() =>

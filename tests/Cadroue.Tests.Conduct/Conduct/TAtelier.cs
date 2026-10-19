@@ -40,6 +40,8 @@ internal static class TAtelier
             LAtelierScene = new TConsoleScenePort(),
             LAtelierList = new TListPort().TListCreate,
             LAtelierRelay = new TRelayPort(),
+            LAtelierTrial = new TTrialPort(),
+            LAtelierRepertoire = new TRepertoirePort(),
         };
         return new CAtelier(port is null ? ports : port(ports));
     }

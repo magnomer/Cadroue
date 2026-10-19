@@ -1,164 +1,168 @@
 using Cadroue.Application;
-using Cadroue.Core;
-using Cadroue.Infrastructure;
+using Cadroue.Conduct;
 
 namespace Cadroue.UIDeportment;
 
-// The encoder window's video codec: the chosen encoder and rate, the encoders a container offers, and their trial.
+// The kept mode's quality row: its label, the text it starts with, its range and step, whether higher is better,
+// whether it is a bitrate, and the option line under it.
+public sealed record QSEncoderQuality(
+    string QSEncoderQualityLabel,
+    string QSEncoderQualityText,
+    double? QSEncoderQualityMinimum,
+    double? QSEncoderQualityMaximum,
+    double QSEncoderQualityStep,
+    bool QSEncoderQualityAscending,
+    bool QSEncoderQualityBitrate,
+    string QSEncoderQualityRange);
+
+// The codec's speed row: its label, the place it starts at, and the label and value of each place.
+public sealed record QSEncoderSpeed(
+    string QSEncoderSpeedLabel,
+    int QSEncoderSpeedIndex,
+    IReadOnlyList<string> QSEncoderSpeedLabels,
+    IReadOnlyList<string> QSEncoderSpeedValues);
+
+// One extra option row: its label and option, the value it starts with, and the values it offers.
+public sealed record QSEncoderExtra(
+    string QSEncoderExtraLabel,
+    string QSEncoderExtraOption,
+    string QSEncoderExtraSelected,
+    LLocalizationChoice[] QSEncoderExtraChoices);
+
+// The encoder window's video driver: it answers the video sheet from the video and trial gates, hands the sheet's
+// choice and trial to them, and decides what each rate row starts with from the codec and the stored draft.
 public sealed class QSEncoderVideo
 {
-    private readonly bool qsEncoderSmart;
-    private string qsEncoderVideoEncoder;
-    private string qsEncoderVideoRate;
-    private IReadOnlyList<QSVerdictRow> qsEncoderVideoResults = [];
-    private CancellationTokenSource? qsEncoderVideoTrial;
+    private readonly CSEncoderVideo qsEncoderVideoGate;
+    private readonly CSEncoderTrial qsEncoderVideoTrial;
+    private readonly LPreset qsEncoderVideoDraft;
 
-    internal QSEncoderVideo(LPreset lDraft, bool lSmart)
+    internal QSEncoderVideo(CSEncoderVideo lVideo, CSEncoderTrial lTrial, LPreset lPreset)
     {
-        qsEncoderSmart = lSmart;
-        qsEncoderVideoEncoder = lDraft.LPresetVideo.LPresetEncoder;
-        qsEncoderVideoRate = QSEncoder.QSEncoderRateResolve(
-            QSEncoderVideoCodec.LCapabilityModeLabels, lDraft.LPresetVideo.LPresetRateControl);
+        qsEncoderVideoGate = lVideo;
+        qsEncoderVideoTrial = lTrial;
+        qsEncoderVideoDraft = lPreset;
+        lVideo.CSEncoderVideoChanged += _ => QSEncoderVideoChanged?.Invoke();
     }
 
+    // Raised once per kept change of encoder or rate.
     public event Action? QSEncoderVideoChanged;
 
-    public string QSEncoderVideoEncoder => qsEncoderVideoEncoder;
+    public string QSEncoderVideoEncoder => qsEncoderVideoGate.CSEncoderVideoState.CSEncoderStateEncoder;
 
-    public string QSEncoderVideoRate => qsEncoderVideoRate;
+    public string QSEncoderVideoRate => qsEncoderVideoGate.CSEncoderVideoState.CSEncoderStateRate;
 
-    public LCapabilityCodec QSEncoderVideoCodec =>
-        LCapability.LCapabilityRead(LRepertoireVideo.LRepertoireTokenResolve(qsEncoderVideoEncoder) ?? string.Empty);
+    public string[] QSEncoderVideoModes =>
+        qsEncoderVideoGate.CSEncoderVideoState.CSEncoderStateCodec.CSEncoderCodecModes.ToArray();
 
-    public IReadOnlyList<QSVerdictRow> QSEncoderVideoResults => qsEncoderVideoResults;
+    public string QSEncoderVideoCaution =>
+        qsEncoderVideoGate.CSEncoderVideoState.CSEncoderStateCodec.CSEncoderCodecNotice;
 
+    // Whether a trial has kept rows for the verdict window.
+    public bool QSEncoderVideoTried => qsEncoderVideoTrial.CSEncoderTrialRows.Count > 0;
+
+    public string[] QSEncoderVideoRead(string lMedia, string lChoice) =>
+        qsEncoderVideoGate.CSEncoderVideoRead(lMedia, lChoice);
+
+    public bool QSEncoderVideoCheck(string lEncoder) => qsEncoderVideoGate.CSEncoderVideoCheck(lEncoder);
+
+    // The notice key a video mode shows.
+    public string QSEncoderNoticeResolve(string lMode) => qsEncoderVideoGate.CSEncoderVideoResolve(lMode);
+
+    // An empty encoder or rate is no choice; the gate keeps any other and answers whether it changed.
+    public bool QSEncoderVideoSet(string lEncoder, string lMode) =>
+        lEncoder.Length > 0 && lMode.Length > 0 && qsEncoderVideoGate.CSEncoderVideoSet(lEncoder, lMode);
+
+    // A cancelled trial throws and keeps nothing.
+    public Task<IReadOnlyList<string>> QSEncoderVideoScan(IProgress<double> lSender) =>
+        qsEncoderVideoTrial.CSEncoderTrialRun(lSender);
+
+    // The video trial's verdict window: its title and the last trial's rows.
     public QSVerdict QSEncoderVerdictCreate() =>
-        new(QLocalizationCatalog.QLocalizationTextRead("Encoder.Verification.VideoTitle"), qsEncoderVideoResults);
+        new(
+            QLocalizationCatalog.QLocalizationTextRead("Encoder.Verification.VideoTitle"),
+            qsEncoderVideoTrial.CSEncoderTrialRows.Select(QSEncoderVerdictRead).ToArray());
 
-    public string QSEncoderNoticeResolve(string lMode)
-    {
-        if (lMode != "Smart")
-        {
-            return "Encoder.Video.Notice.Copied";
-        }
+    // The quality row starts with the stored text while the stored rate is kept, else with the mode's default.
+    public QSEncoderQuality? QSEncoderVideoQuality =>
+        qsEncoderVideoGate.CSEncoderVideoState.CSEncoderStateCodec.CSEncoderCodecQuality is { } lCodec
+            ? new QSEncoderQuality(
+                lCodec.CSEncoderQualityLabel,
+                QSEncoderStoredRead(qsEncoderVideoDraft.LPresetVideo.LPresetQuality, lCodec.CSEncoderQualityDefault),
+                lCodec.CSEncoderQualityMinimum,
+                lCodec.CSEncoderQualityMaximum,
+                lCodec.CSEncoderQualityStep,
+                lCodec.CSEncoderQualityAscending,
+                lCodec.CSEncoderQualityBitrate,
+                QSEncoderRangeFormat(lCodec))
+            : null;
 
-        return qsEncoderSmart ? "Encoder.Video.Notice.Smart" : "Encoder.Video.Notice.SmartFull";
-    }
+    // The speed row starts at the stored preset while the stored rate is kept, else at the codec's default; a value
+    // the codec does not offer starts at the first place.
+    public QSEncoderSpeed? QSEncoderVideoSpeed =>
+        qsEncoderVideoGate.CSEncoderVideoState.CSEncoderStateCodec.CSEncoderCodecSpeed is { } lCodec
+            ? QSEncoderSpeedRead(lCodec)
+            : null;
 
-    public bool QSEncoderVideoSet(string lEncoder, string lRate)
-    {
-        bool lEncoderChanged = !string.Equals(qsEncoderVideoEncoder, lEncoder, StringComparison.Ordinal);
-        qsEncoderVideoEncoder = lEncoder;
-        string lResolved = QSEncoder.QSEncoderRateResolve(QSEncoderVideoCodec.LCapabilityModeLabels, lRate);
-        if (!lEncoderChanged && string.Equals(qsEncoderVideoRate, lResolved, StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        qsEncoderVideoRate = lResolved;
-        QSEncoderVideoChanged?.Invoke();
-        return true;
-    }
-
-    public static string[] QSEncoderVideoRead(string lContainer, string lKeep)
-    {
-        bool lKnown = LRepertoireCatalog.LRepertoireContainerNames.Contains(lContainer);
-        string[] lItems = LRepertoireVideo.LRepertoireEncodersRead()
-            .Where(lCandidate =>
-                (!lKnown || LRepertoireVideo.LRepertoireContainerCheck(lCandidate.LRepertoireText, lContainer))
-                && LTrialCatalog.LTrialSetCheck(lCandidate))
-            .Select(lCandidate => lCandidate.LRepertoireText)
+    // Each extra row starts with the stored value when the row offers it, else with its default.
+    public IReadOnlyList<QSEncoderExtra> QSEncoderVideoExtras =>
+        qsEncoderVideoGate.CSEncoderVideoState.CSEncoderStateCodec.CSEncoderCodecExtras
+            .Select(QSEncoderExtraRead)
             .ToArray();
-        if (string.IsNullOrEmpty(lKeep) || lItems.Contains(lKeep))
-        {
-            return lItems;
-        }
 
-        bool lFits = LRepertoireVideo.LRepertoireEncodersRead()
-                .Any(lCandidate => string.Equals(lCandidate.LRepertoireText, lKeep, StringComparison.Ordinal))
-            && (!lKnown || LRepertoireVideo.LRepertoireContainerCheck(lKeep, lContainer));
-        return lFits ? [lKeep, .. lItems] : lItems;
-    }
+    private static QSVerdictRow QSEncoderVerdictRead(CSEncoderRow lEntry) =>
+        new(
+            lEntry.CSEncoderRowFamily,
+            lEntry.CSEncoderRowEncoder,
+            lEntry.CSEncoderRowSuccess,
+            lEntry.CSEncoderRowMessage);
 
-    public static bool QSEncoderVideoCheck(string lText)
+    private string QSEncoderStoredRead(string lChoice, string lMode) =>
+        string.Equals(
+                QSEncoderVideoRate, qsEncoderVideoDraft.LPresetVideo.LPresetRateControl, StringComparison.Ordinal)
+            && !string.IsNullOrWhiteSpace(lChoice)
+            ? lChoice
+            : lMode;
+
+    private static string QSEncoderRangeFormat(CSEncoderQuality lCodec) =>
+        string.IsNullOrEmpty(lCodec.CSEncoderQualityRange)
+            ? QLocalizationCatalog.QLocalizationFormat("Encoder.Video.FFmpegOption", lCodec.CSEncoderQualityOption)
+            : QLocalizationCatalog.QLocalizationFormat(
+                "Encoder.Video.FFmpegOptionRange",
+                lCodec.CSEncoderQualityOption,
+                lCodec.CSEncoderQualityRange);
+
+    private QSEncoderSpeed QSEncoderSpeedRead(CSEncoderSpeed lCodec)
     {
-        foreach (LRepertoireEncoder lCandidate in LRepertoireVideo.LRepertoireEncodersRead())
-        {
-            if (string.Equals(lCandidate.LRepertoireText, lText, StringComparison.Ordinal))
-            {
-                return LTrialCatalog.LTrialSetCheck(lCandidate);
-            }
-        }
-
-        return true;
+        string[] lEntry = lCodec.CSEncoderSpeedValues.Select(QSEncoderValueRead).ToArray();
+        string lChoice = QSEncoderStoredRead(
+            qsEncoderVideoDraft.LPresetVideo.LPresetSpeedPreset, lCodec.CSEncoderSpeedDefault);
+        return new QSEncoderSpeed(
+            lCodec.CSEncoderSpeedLabel,
+            Math.Max(0, Array.IndexOf(lEntry, lChoice)),
+            lCodec.CSEncoderSpeedValues.Select(QSEncoderLabelRead).ToArray(),
+            lEntry);
     }
 
-    public async Task<IReadOnlyList<string>> QSEncoderVideoScan(IProgress<double> lFeed)
+    private QSEncoderExtra QSEncoderExtraRead(CSEncoderExtra lCodec)
     {
-        CancellationToken lToken = QSEncoderScanStart();
-        IReadOnlyList<LRepertoireEncoder> lCandidates = LRepertoireVideo.LRepertoireEncodersRead();
-        (List<string> lAvailable, HashSet<string> lNames, List<QSVerdictRow> lRows) =
-            await QSEncoderVideoRun(lCandidates, lFeed, lToken);
-        lToken.ThrowIfCancellationRequested();
-        LTrialCatalog.LTrialSetApply(lNames);
-        QSEncoderVideoInsert(lAvailable, lCandidates);
-        qsEncoderVideoResults = lRows;
-        QSVerdictTrace.QSVerdictRecord("video", lRows);
-        return lAvailable;
+        string? lChoice = qsEncoderVideoDraft.LPresetVideo.LPresetExtras.TryGetValue(
+            lCodec.CSEncoderExtraOption, out string? lEntry)
+            ? lEntry
+            : null;
+        return new QSEncoderExtra(
+            lCodec.CSEncoderExtraLabel,
+            lCodec.CSEncoderExtraOption,
+            lChoice is not null && lCodec.CSEncoderExtraValues.Select(QSEncoderValueRead).Contains(lChoice)
+                ? lChoice
+                : lCodec.CSEncoderExtraDefault,
+            lCodec.CSEncoderExtraValues.Select(QSEncoderChoiceRead).ToArray());
     }
 
-    // A new trial cancels the one still running; closing the window cancels the last one.
-    private CancellationToken QSEncoderScanStart()
-    {
-        qsEncoderVideoTrial?.Cancel();
-        qsEncoderVideoTrial = new CancellationTokenSource();
-        return qsEncoderVideoTrial.Token;
-    }
+    private static LLocalizationChoice QSEncoderChoiceRead(CSEncoderChoice lChoice) =>
+        new(lChoice.CSEncoderChoiceValue, string.Empty, lChoice.CSEncoderChoiceLabel);
 
-    internal void QSEncoderVideoCancel() => qsEncoderVideoTrial?.Cancel();
+    private static string QSEncoderValueRead(CSEncoderChoice lChoice) => lChoice.CSEncoderChoiceValue;
 
-    private static async Task<(List<string>, HashSet<string>, List<QSVerdictRow>)> QSEncoderVideoRun(
-        IReadOnlyList<LRepertoireEncoder> lCandidates, IProgress<double> lFeed, CancellationToken lToken)
-    {
-        var lAvailable = new List<string>();
-        var lNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var lRows = new List<QSVerdictRow>();
-        int lTotal = lCandidates.Sum(lCandidate => lCandidate.LRepertoireTokens.Count);
-        int lDone = 0;
-        foreach (LRepertoireEncoder lCandidate in lCandidates)
-        {
-            bool lCandidateAvailable = false;
-            foreach (string lEncoder in lCandidate.LRepertoireTokens)
-            {
-                LTrialResult lResult = await LTrial.LTrialRun(lEncoder, LTrialKind.LTrialKindVideo, lToken);
-                lCandidateAvailable |= lResult.LTrialSuccess;
-                if (lResult.LTrialSuccess)
-                {
-                    lNames.Add(lEncoder);
-                }
-
-                lRows.Add(new QSVerdictRow(
-                    lCandidate.LRepertoireText, lEncoder, lResult.LTrialSuccess, lResult.LTrialMessage));
-                lDone++;
-                lFeed.Report(QSEncoder.QSEncoderProgressResolve(lDone, lTotal));
-            }
-
-            if (lCandidateAvailable)
-            {
-                lAvailable.Add(lCandidate.LRepertoireText);
-            }
-        }
-
-        return (lAvailable, lNames, lRows);
-    }
-
-    private void QSEncoderVideoInsert(List<string> lAvailable, IReadOnlyList<LRepertoireEncoder> lCandidates)
-    {
-        if (!lAvailable.Contains(qsEncoderVideoEncoder)
-            && lCandidates.Any(lCandidate => string.Equals(
-                lCandidate.LRepertoireText, qsEncoderVideoEncoder, StringComparison.Ordinal)))
-        {
-            lAvailable.Insert(0, qsEncoderVideoEncoder);
-        }
-    }
+    private static string QSEncoderLabelRead(CSEncoderChoice lChoice) => lChoice.CSEncoderChoiceLabel;
 }

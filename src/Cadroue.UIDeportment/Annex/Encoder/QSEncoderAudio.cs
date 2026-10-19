@@ -15,9 +15,13 @@ public sealed class QSEncoderAudio
     internal QSEncoderAudio(LPreset lDraft)
     {
         qsEncoderAudioEncoder = lDraft.LPresetAudio.LPresetEncoder;
-        qsEncoderAudioRate = QSEncoder.QSEncoderRateResolve(
+        qsEncoderAudioRate = QSEncoderRateResolve(
             QSEncoderAudioCodec.LCapabilityModeLabels, lDraft.LPresetAudio.LPresetRateControl);
     }
+
+    // The rate a codec keeps: the asked rate when the codec offers it, else the codec's first mode.
+    private static string QSEncoderRateResolve(string[] lCodec, string lMode) =>
+        lCodec.Contains(lMode) ? lMode : lCodec[0];
 
     public event Action? QSEncoderAudioChanged;
 
@@ -37,7 +41,7 @@ public sealed class QSEncoderAudio
     {
         bool lEncoderChanged = !string.Equals(qsEncoderAudioEncoder, lEncoder, StringComparison.Ordinal);
         qsEncoderAudioEncoder = lEncoder;
-        string lResolved = QSEncoder.QSEncoderRateResolve(QSEncoderAudioCodec.LCapabilityModeLabels, lRate);
+        string lResolved = QSEncoderRateResolve(QSEncoderAudioCodec.LCapabilityModeLabels, lRate);
         if (!lEncoderChanged && string.Equals(qsEncoderAudioRate, lResolved, StringComparison.Ordinal))
         {
             return false;
@@ -123,7 +127,7 @@ public sealed class QSEncoderAudio
             }
 
             lDone++;
-            lFeed.Report(QSEncoder.QSEncoderProgressResolve(lDone, lCandidates.Count));
+            lFeed.Report(lCandidates.Count == 0 ? 1 : (double)lDone / lCandidates.Count);
         }
 
         return (lAvailable, lNames, lRows);

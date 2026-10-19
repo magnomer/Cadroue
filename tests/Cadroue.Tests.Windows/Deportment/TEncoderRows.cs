@@ -14,8 +14,9 @@ public sealed class TEncoderRows
         int rows = 0;
         TInterface.TEncoderVideoAttach(encoder, () => rows++);
         string codec = encoder.QSEncoderVideo.QSEncoderVideoEncoder;
-        string[] modes = encoder.QSEncoderVideo.QSEncoderVideoCodec.LCapabilityModeLabels;
-        bool several = modes.Length > 1;
+        IReadOnlyList<string> modes =
+            encoder.QSEncoderVideo.QSEncoderVideoModes;
+        bool several = modes.Count > 1;
 
         Assert.Equal(several, TInterface.TEncoderVideoSet(encoder, codec, modes[^1]));
         Assert.Equal(modes[^1], encoder.QSEncoderVideo.QSEncoderVideoRate);
@@ -32,14 +33,15 @@ public sealed class TEncoderRows
         string other = Interface.TInterface.TRepertoireEncodersRead()
             .Select(candidate => candidate.LRepertoireText)
             .First(text =>
-                !string.Equals(text, encoder.QSEncoderVideo.QSEncoderVideoEncoder, StringComparison.Ordinal));
+                !string.Equals(
+                    text, encoder.QSEncoderVideo.QSEncoderVideoEncoder, StringComparison.Ordinal));
         string rate = encoder.QSEncoderVideo.QSEncoderVideoRate;
 
         Assert.True(TInterface.TEncoderVideoSet(encoder, other, rate));
         Assert.Equal(other, encoder.QSEncoderVideo.QSEncoderVideoEncoder);
         Assert.Contains(
             encoder.QSEncoderVideo.QSEncoderVideoRate,
-            encoder.QSEncoderVideo.QSEncoderVideoCodec.LCapabilityModeLabels);
+            encoder.QSEncoderVideo.QSEncoderVideoModes);
     }
 
     [Fact]

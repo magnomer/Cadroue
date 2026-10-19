@@ -60,4 +60,10 @@ public sealed record LAtelierPort
     public required Func<Func<string, string>, LListPort> LAtelierList { get; init; }
 
     public required LRelayPort LAtelierRelay { get; init; }
+
+    // The video encoder trial every encoder window reaches.
+    public required LSTrialPort LAtelierTrial { get; init; }
+
+    // The video encoder repertoire and capability table every encoder window reads.
+    public required LSRepertoirePort LAtelierRepertoire { get; init; }
 }

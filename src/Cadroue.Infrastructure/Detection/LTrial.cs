@@ -20,6 +20,13 @@ public static class LTrial
     public static Task<LTrialResult> LTrialRun(string lEncoder, LTrialKind lKind, CancellationToken lToken = default) =>
         Task.Run(() => LTrialLaneRun(lEncoder, lKind, lToken), CancellationToken.None);
 
+    // One video encoder token's trial, answered as whether it passed and its message.
+    public static async Task<(bool, string)> LTrialVideoRun(string lEncoder, CancellationToken lToken)
+    {
+        LTrialResult lResult = await LTrialRun(lEncoder, LTrialKind.LTrialKindVideo, lToken);
+        return (lResult.LTrialSuccess, lResult.LTrialMessage);
+    }
+
     private static async Task<LTrialResult> LTrialLaneRun(string lEncoder, LTrialKind lKind, CancellationToken lToken)
     {
         lToken.ThrowIfCancellationRequested();

@@ -228,5 +228,16 @@ internal static partial class TInterface
             LAtelierScene = TSceneOutletCreate(),
             LAtelierList = TInterfaceList.TListOutletCreate,
             LAtelierRelay = TInterfaceList.TRelayOutletCreate(),
+            LAtelierTrial = new LSTrialOutlet(
+                LTrial.LTrialVideoRun,
+                available => LTrialCatalog.LTrialSetApply(available),
+                LTrialCatalog.LTrialSetCheck,
+                LTraceLog.LTraceInfoRecord),
+            LAtelierRepertoire = new LSRepertoireOutlet(
+                LRepertoireVideo.LRepertoireEncodersRead,
+                LRepertoireCatalog.LRepertoireContainerNames,
+                LRepertoireVideo.LRepertoireContainerCheck,
+                LRepertoireVideo.LRepertoireTokenResolve,
+                LCapability.LCapabilityRead),
         });
 }

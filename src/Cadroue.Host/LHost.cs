@@ -52,6 +52,17 @@ Func<LEngine, LAtelierPort> port = static engine => new LAtelierPort
         lMessage => LTraceLog.LTraceLoadingRecord(lMessage))),
     LAtelierList = LListOutlet.LListOutletCreate(LRigFactoryList.LRigListCreate()),
     LAtelierRelay = engine.LEngineRelay,
+    LAtelierTrial = new LSTrialOutlet(
+        LTrial.LTrialVideoRun,
+        lAvailable => LTrialCatalog.LTrialSetApply(lAvailable),
+        LTrialCatalog.LTrialSetCheck,
+        LTraceLog.LTraceInfoRecord),
+    LAtelierRepertoire = new LSRepertoireOutlet(
+        LRepertoireVideo.LRepertoireEncodersRead,
+        LRepertoireCatalog.LRepertoireContainerNames,
+        LRepertoireVideo.LRepertoireContainerCheck,
+        LRepertoireVideo.LRepertoireTokenResolve,
+        LCapability.LCapabilityRead),
 };
 
 int code = 1;

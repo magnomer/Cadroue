@@ -32,7 +32,7 @@ public sealed class QWorkspace
         QWorkspacePresetOwner = new LPresetSelection(string.Empty, lKey);
         QWorkspacePresetAttach();
         QWorkspacePresetAccept(QWorkspacePreset);
-        QWorkspaceExport = new QExport(lUsher, QWorkspacePresetOwner, QWorkspaceFacts);
+        QWorkspaceExport = new QExport(lUsher, lAtelier.CAtelierEncoder, QWorkspacePresetOwner, QWorkspaceFacts);
         QWorkspaceMode = new QWorkspaceMode(
             QWorkspaceFacts, lAtelier, QWorkspacePresetOwner, QWorkspaceViewer, QWorkspaceList, QWorkspaceFlow);
         QWorkspaceRelay = new QWorkspaceRelay(this);
