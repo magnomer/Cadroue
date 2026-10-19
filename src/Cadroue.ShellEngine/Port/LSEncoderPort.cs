@@ -8,6 +8,8 @@ public interface LSEncoderPort
 
     (string, string, string, IReadOnlyDictionary<string, string>) LSEncoderRateRead();
 
+    string LSEncoderSizeRead();
+
     // Writes the kept values into the draft, then copies the draft back into the source preset.
     void LSEncoderDraftSave(
         string lDisplay,

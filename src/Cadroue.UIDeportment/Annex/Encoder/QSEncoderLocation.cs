@@ -20,7 +20,7 @@ public sealed class QSEncoderLocation
         qsEncoderUsher.CUsherFolderExist(lCurrent) ? lCurrent : string.Empty;
 
     public static bool QSEncoderFolderCheck(string lMode) =>
-        !string.Equals(lMode, QSEncoder.QSEncoderSourceMode, StringComparison.Ordinal);
+        !string.Equals(lMode, CSEncoderDraft.CSEncoderDraftSource, StringComparison.Ordinal);
 
     public static bool QSEncoderCustomCheck(string lMode) =>
         string.Equals(lMode, "Custom location", StringComparison.Ordinal);

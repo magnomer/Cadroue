@@ -9,6 +9,7 @@ internal static class TAuditEngineSetting
                 [
                     "LUsherPort", "LLineagePort", "LLineageAnswer", "LLineageGroup", "LLineageBatch", "LLineageStep",
                     "LWorkspacePort", "LPlacementPort", "LViewerPort", "LEditPort", "LInspectorPort",
+                    "LSEncoderPort", "LSRepertoirePort", "LSTrialPort",
                 ],
         };
 }

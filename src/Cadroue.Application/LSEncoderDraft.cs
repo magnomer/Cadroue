@@ -28,6 +28,8 @@ public sealed class LSEncoderDraft
             LSEncoderDraftPreset.LPresetVideo.LPresetSpeedPreset,
             LSEncoderDraftPreset.LPresetVideo.LPresetExtras);
 
+    public string LSEncoderSizeRead() => LSEncoderDraftPreset.LPresetVideo.LPresetSize;
+
     // Writes the kept values into the draft, then copies the draft back into the source preset.
     public void LSEncoderDraftSave(
         string lDisplay,

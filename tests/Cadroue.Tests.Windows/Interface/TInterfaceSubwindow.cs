@@ -47,7 +47,11 @@ internal static partial class TInterface
         encoder.QSEncoderSize.QSEncoderTierSelect(tier);
     internal static bool TEncoderSizeSet(QSEncoder encoder, int width, int height) =>
         encoder.QSEncoderSize.QSEncoderSizeSet(width, height);
-    internal static string TEncoderSizeFormat(QSEncoder encoder) => encoder.QSEncoderSize.QSEncoderSizeFormat();
+    internal static string TEncoderSizeFormat(QSEncoder encoder)
+    {
+        encoder.QSEncoderApply();
+        return encoder.QSEncoderDraft.LPresetVideo.LPresetSize;
+    }
     internal static string TEncoderSuffixSelect(QSEncoder encoder, string policy, string shown) =>
         encoder.QSEncoderSuffix.QSEncoderSuffixSelect(policy, shown);
     internal static string TEncoderLocationSelect(QSEncoder encoder, string mode, string shown) =>

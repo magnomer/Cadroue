@@ -13,7 +13,7 @@ internal static class TAuditDemeanorSetting
                     "CViewer", "CEdit", "CEditVerdict",
                     "CSEncoder", "CSEncoderCodec", "CSEncoderDraft", "CSEncoderChoice", "CSEncoderExtra",
                     "CSEncoderQuality", "CSEncoderSpeed", "CSEncoderRow", "CSEncoderTrial",
-                    "CSEncoderState", "CSEncoderVideo",
+                    "CSEncoderState", "CSEncoderVideo", "CSEncoderSize", "CSEncoderDimension",
                 ],
         };
 }

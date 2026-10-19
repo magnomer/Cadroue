@@ -7,8 +7,6 @@ namespace Cadroue.UIDeportment;
 // The encoder window's driver: it holds the draft and its gate, hands each row group its piece, and relays apply.
 public sealed class QSEncoder
 {
-    public const string QSEncoderSourceMode = "Same as source";
-
     private readonly LSEncoderDraft qsEncoderPreset;
     private readonly CSEncoderDraft qsEncoderGate;
     private Action? qsEncoderHelpHandler;
@@ -20,10 +18,11 @@ public sealed class QSEncoder
             qsEncoderPreset.LSEncoderDraftRead,
             qsEncoderPreset.LSEncoderDraftSave,
             qsEncoderPreset.LSEncoderRateRead,
+            qsEncoderPreset.LSEncoderSizeRead,
             lSmart);
         QSEncoderVideo = new QSEncoderVideo(
             qsEncoderGate.CSEncoderDraftVideo, qsEncoderGate.CSEncoderDraftTrial);
-        QSEncoderSize = new QSEncoderSize(qsEncoderPreset.LSEncoderDraftPreset);
+        QSEncoderSize = new QSEncoderSize(qsEncoderGate.CSEncoderDraftSize);
         QSEncoderAudio = new QSEncoderAudio(qsEncoderPreset.LSEncoderDraftPreset);
         QSEncoderSuffix = new QSEncoderSuffix(qsEncoderPreset.LSEncoderDraftPreset);
         QSEncoderLocation = new QSEncoderLocation(lUsher, qsEncoderPreset.LSEncoderDraftPreset);
@@ -65,7 +64,6 @@ public sealed class QSEncoder
 
     public void QSEncoderApply() =>
         qsEncoderGate.CSEncoderDraftApply(
-            QSEncoderSize.QSEncoderSizeFormat(),
             QSEncoderAudio.QSEncoderAudioEncoder,
             QSEncoderAudio.QSEncoderAudioRate);
 }

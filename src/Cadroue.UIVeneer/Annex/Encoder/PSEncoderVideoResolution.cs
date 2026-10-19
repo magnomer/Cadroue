@@ -65,7 +65,7 @@ internal sealed class PSEncoderVideoResolution
             Foreground = PSField.PSFieldText,
             VerticalAlignment = VerticalAlignment.Center
         };
-        psVideoResolutionSlider = PSFader.PSFaderCreate(0, QSEncoderSize.QSEncoderTiers.Count - 1, 0);
+        psVideoResolutionSlider = PSFader.PSFaderCreate(0, QSEncoderSize.QSEncoderTierLabels.Count - 1, 0);
         psVideoWidthBox = PSEntry.PSEntryBuild(string.Empty, 110);
         psVideoHeightBox = PSEntry.PSEntryBuild(string.Empty, 110);
         psVideoWidthSlider = PSFader.PSFaderCreate(0, QSEncoderSize.QSEncoderDimensionMost, 0);
@@ -191,7 +191,7 @@ internal sealed class PSEncoderVideoResolution
             ? QLocalizationCatalog.QLocalizationTextRead("Encoder.Value.Custom")
             : pSource
                 ? QLocalizationCatalog.QLocalizationTextRead("Encoder.Sample.Source")
-                : QSEncoderSize.QSEncoderTiers[pTier].QSEncoderTierLabel;
+                : QSEncoderSize.QSEncoderTierLabels[pTier];
 
     private void PSVideoTierSet(int pTier, bool pSource, bool pCustom)
     {

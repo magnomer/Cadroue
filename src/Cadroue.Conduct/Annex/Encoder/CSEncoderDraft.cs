@@ -18,15 +18,20 @@ public sealed class CSEncoderDraft
         (_, string encoder, string rate) = draft.LSEncoderDraftRead();
         CSEncoderDraftVideo = new CSEncoderVideo(encoder, rate, trial, repertoire, draft, smart);
         CSEncoderDraftTrial = new CSEncoderTrial(trial, repertoire, CSEncoderDraftVideo);
+        CSEncoderDraftSize = new CSEncoderSize(draft.LSEncoderSizeRead());
     }
+
+    public const string CSEncoderDraftSource = "Same as source";
 
     public CSEncoderVideo CSEncoderDraftVideo { get; }
 
     public CSEncoderTrial CSEncoderDraftTrial { get; }
 
-    // The draft keeps a display name, the video stream, the chosen encoder and rate, and the size text. The size
-    // text and audio's encoder and rate arrive as values until their own gates hold them.
-    public void CSEncoderDraftApply(string size, string audioEncoder, string audioRate)
+    public CSEncoderSize CSEncoderDraftSize { get; }
+
+    // The draft keeps a display name, the video stream, the chosen encoder and rate, and the size its gate formats.
+    // Audio's encoder and rate arrive as values until their own gate holds them.
+    public void CSEncoderDraftApply(string audioEncoder, string audioRate)
     {
         string display = CSEncoderDraftNormalize(_csEncoderDraftPort.LSEncoderDraftRead().LSEncoderDisplay);
         CSEncoderState state = CSEncoderDraftVideo.CSEncoderVideoState;
@@ -35,7 +40,7 @@ public sealed class CSEncoderDraft
             "Include",
             state.CSEncoderStateEncoder,
             state.CSEncoderStateRate,
-            size,
+            CSEncoderDraftSize.CSEncoderSizeFormat(),
             audioEncoder,
             audioRate);
     }

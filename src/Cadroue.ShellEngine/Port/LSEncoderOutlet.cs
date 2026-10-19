@@ -6,18 +6,22 @@ public sealed class LSEncoderOutlet : LSEncoderPort
     private readonly Func<(string, string, string)> _lsEncoderReader;
     private readonly Action<string, string, string, string, string, string, string> _lsEncoderWriter;
     private readonly Func<(string, string, string, IReadOnlyDictionary<string, string>)> _lsEncoderRates;
+    private readonly Func<string> _lsEncoderSize;
 
     public LSEncoderOutlet(
         Func<(string, string, string)> lSource,
         Action<string, string, string, string, string, string, string> lOutput,
-        Func<(string, string, string, IReadOnlyDictionary<string, string>)> lRates)
+        Func<(string, string, string, IReadOnlyDictionary<string, string>)> lRates,
+        Func<string> lSize)
     {
         ArgumentNullException.ThrowIfNull(lSource);
         ArgumentNullException.ThrowIfNull(lOutput);
         ArgumentNullException.ThrowIfNull(lRates);
+        ArgumentNullException.ThrowIfNull(lSize);
         _lsEncoderReader = lSource;
         _lsEncoderWriter = lOutput;
         _lsEncoderRates = lRates;
+        _lsEncoderSize = lSize;
     }
 
     public (string LSEncoderDisplay, string LSEncoderCodec, string LSEncoderRate) LSEncoderDraftRead() =>
@@ -25,6 +29,8 @@ public sealed class LSEncoderOutlet : LSEncoderPort
 
     public (string, string, string, IReadOnlyDictionary<string, string>) LSEncoderRateRead() =>
         _lsEncoderRates();
+
+    public string LSEncoderSizeRead() => _lsEncoderSize();
 
     public void LSEncoderDraftSave(
         string lDisplay,
