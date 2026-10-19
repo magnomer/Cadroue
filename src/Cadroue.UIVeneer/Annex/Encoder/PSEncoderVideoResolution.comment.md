@@ -1,26 +1,28 @@
 # PSEncoderVideoResolution.cs
 Hash: `80d6bc0d348870be`
 
-## `private void PSVideoResolutionBuild(Panel pHost)`
+## `internal void PSVideoResolutionBuild(Panel pHost)`
 
-Builds the size tier row, the width and height rows and the source notice into the given host.
-The tier, width and height live in QSEncoder, and every control redraws from its size notice.
-The tier slider selects a tier in QSEncoder directly.
-A dimension slider only writes its box, and box edits alone carry dimensions to QSEncoder.
+Builds the size tier row, the width and height rows, the source notice and the reactive row into the given host.
+The tier, width and height live in the Conduct size gate `CSEncoderSize`, which QSEncoderSize relays.
+Every control redraws when `QSEncoderSizeChanged` fires, which PSEncoder wires to PSVideoSizeApply.
+The tier slider selects a tier through QSEncoderSize directly.
+A dimension slider only writes its box, and box edits alone carry dimensions to QSEncoderSize.
 
 ## `private static void PSVideoDimensionChange(Slider? pSlider, TextBox? pBox)`
 
-A slider writes its box only when the text differs, so an echo from the size notice stops there.
-Zero shows as an empty box, which QSEncoder reads as no value on that axis.
+A slider writes its box only when the text differs, so an echo from PSVideoSizeApply stops there.
+Zero shows as an empty box, which the size gate reads as no value on that axis.
 
 ## `private void PSVideoDimensionChange()`
 
-Both boxes go to QSEncoder together, which picks the source, a matching tier or custom.
-A box showing the localized source word reads as zero, so the source tier holds.
+Both boxes go to QSEncoderSize together.
+The size gate picks the source, a matching tier or custom.
+A box showing the localized source word reads as zero, so two such boxes keep the source tier.
 
-## `private void PSVideoSizeApply()`
+## `internal void PSVideoSizeApply()`
 
-Redraws the whole size block from QSEncoder after any tier or dimension change.
+Redraws the whole size block from QSEncoderSize after any tier or dimension change.
 The source tier mutes both boxes and shows the notice that the source size applies.
 A custom size leaves the tier slider where it was, since no tier matches.
 
