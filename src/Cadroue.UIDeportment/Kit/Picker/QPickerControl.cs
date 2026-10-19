@@ -25,6 +25,34 @@ public static class QPickerControl
         [false] = "PPickerText",
     };
 
+    // The picker's items and their checked state; the picker's rows write it back as they are checked.
+    internal static readonly DependencyProperty QPickerItemsProperty = DependencyProperty.RegisterAttached(
+        "QPickerItems",
+        typeof(IReadOnlyList<QPickerItem>),
+        typeof(QPickerControl),
+        new FrameworkPropertyMetadata(null));
+
+    // The summary the picker shows while nothing is checked.
+    internal static readonly DependencyProperty QPickerHintProperty = DependencyProperty.RegisterAttached(
+        "QPickerHint",
+        typeof(string),
+        typeof(QPickerControl),
+        new FrameworkPropertyMetadata(string.Empty));
+
+    // Receives the checked tokens after each row is checked or unchecked.
+    internal static readonly DependencyProperty QPickerHandlerProperty = DependencyProperty.RegisterAttached(
+        "QPickerHandler",
+        typeof(Action<IReadOnlyList<string>>),
+        typeof(QPickerControl),
+        new FrameworkPropertyMetadata(null));
+
+    internal static void QPickerControlHook() =>
+        EventManager.RegisterClassHandler(
+            typeof(Control),
+            FrameworkElement.LoadedEvent,
+            new RoutedEventHandler((lSender, _) => QPickerControlLoad((Control)lSender)),
+            true);
+
     public static void QPickerControlAttach(
         Control lHost,
         IReadOnlyList<QPickerItem> lItems,
@@ -34,28 +62,43 @@ public static class QPickerControl
         ArgumentNullException.ThrowIfNull(lHost);
         ArgumentNullException.ThrowIfNull(lItems);
 
-        QPickerStyleApply(lHost);
-        (ToggleButton lArrow, Popup lPopup, Panel lList) = QPickerPartsBuild(lHost);
-        QPickerPopupAttach(lArrow, lPopup);
         QPickerItemsSet(lHost, lItems);
-        foreach (QPickerItem lItem in lItems)
-        {
-            lList.Children.Add(QPickerRowBuild(lHost, lItem, lEmptyText, lChanged));
-        }
-
-        QLook.QLookAttach(lHost, QPickerControlStyle);
-        QPickerControlUpdate(lHost, lEmptyText);
+        lHost.SetValue(QPickerHintProperty, lEmptyText);
+        lHost.SetValue(QPickerHandlerProperty, lChanged);
+        lHost.Style = QContract.QContractSheetFind<Style>(QPickerControlStyle);
+        QPickerControlLoad(lHost);
+        QLook.QLookAttach(lHost);
     }
 
-    private static CheckBox QPickerRowBuild(
-        Control lHost,
-        QPickerItem lItem,
-        string lEmptyText,
-        Action<IReadOnlyList<string>>? lChanged)
+    // Builds a row per item the picker holds when it loads; items set later are not shown.
+    private static void QPickerControlLoad(Control lHost)
+    {
+        if (QLook.QLookStyleResolve(lHost, [QPickerControlStyle]) is null)
+        {
+            return;
+        }
+
+        QScrollbar.QScrollbarAttach(lHost);
+        (ToggleButton lArrow, Popup lPopup, Panel lList) = QPickerPartsBuild(lHost);
+        QPickerPopupAttach(lArrow, lPopup);
+        if (QPickerItemsRead(lHost) is not { } lItems)
+        {
+            return;
+        }
+
+        foreach (QPickerItem lItem in lItems)
+        {
+            lList.Children.Add(QPickerRowBuild(lHost, lItem));
+        }
+
+        QPickerControlUpdate(lHost);
+    }
+
+    private static CheckBox QPickerRowBuild(Control lHost, QPickerItem lItem)
     {
         CheckBox lBox = QContract.QContractSheetFind<CheckBox>(QPickerControlRow);
         QPickerRowUpdate(lBox, lItem);
-        QPickerRowAttach(lBox, lHost, lItem.QPickerItemToken, lEmptyText, lChanged);
+        QPickerRowAttach(lBox, lHost, lItem.QPickerItemToken);
         return lBox;
     }
 
@@ -63,13 +106,7 @@ public static class QPickerControl
     {
         ArgumentNullException.ThrowIfNull(lHost);
 
-        return QPicker.QPickerSelectionRead(QPickerItemsRead(lHost));
-    }
-
-    private static void QPickerStyleApply(Control lHost)
-    {
-        QScrollbar.QScrollbarAttach(lHost);
-        lHost.Style = QContract.QContractSheetFind<Style>(QPickerControlStyle);
+        return QPicker.QPickerSelectionRead(QPickerItemsRead(lHost)!);
     }
 
     private static (ToggleButton, Popup, Panel) QPickerPartsBuild(Control lHost)
@@ -100,38 +137,31 @@ public static class QPickerControl
         lBox.IsChecked = lItem.QPickerItemChecked;
     }
 
-    private static void QPickerRowAttach(
-        CheckBox lBox,
-        Control lHost,
-        string lToken,
-        string lEmptyText,
-        Action<IReadOnlyList<string>>? lChanged)
+    // The checkbox style records the row's clicks.
+    private static void QPickerRowAttach(CheckBox lBox, Control lHost, string lToken)
     {
-        QInteractionClick.QInteractionClickAttach(lBox);
         QCheckbox.QCheckboxAttach(lBox);
-        lBox.Checked += (_, _) => QPickerRowHandle(lHost, lToken, true, lEmptyText, lChanged);
-        lBox.Unchecked += (_, _) => QPickerRowHandle(lHost, lToken, false, lEmptyText, lChanged);
+        lBox.Checked += (_, _) => QPickerRowHandle(lHost, lToken, true);
+        lBox.Unchecked += (_, _) => QPickerRowHandle(lHost, lToken, false);
     }
 
-    private static void QPickerRowHandle(
-        Control lHost,
-        string lToken,
-        bool lChecked,
-        string lEmptyText,
-        Action<IReadOnlyList<string>>? lChanged)
+    private static void QPickerRowHandle(Control lHost, string lToken, bool lChecked)
     {
-        QPickerItemsSet(lHost, QPicker.QPickerItemSet(QPickerItemsRead(lHost), lToken, lChecked));
-        QPickerControlUpdate(lHost, lEmptyText);
-        lChanged?.Invoke(QPickerControlRead(lHost));
+        QPickerItemsSet(lHost, QPicker.QPickerItemSet(QPickerItemsRead(lHost)!, lToken, lChecked));
+        QPickerControlUpdate(lHost);
+        (lHost.GetValue(QPickerHandlerProperty) as Action<IReadOnlyList<string>>)?.Invoke(QPickerControlRead(lHost));
     }
 
-    private static IReadOnlyList<QPickerItem> QPickerItemsRead(Control lHost) => (IReadOnlyList<QPickerItem>)lHost.Tag;
+    private static IReadOnlyList<QPickerItem>? QPickerItemsRead(Control lHost) =>
+        (IReadOnlyList<QPickerItem>?)lHost.GetValue(QPickerItemsProperty);
 
-    private static void QPickerItemsSet(Control lHost, IReadOnlyList<QPickerItem> lItems) => lHost.Tag = lItems;
+    private static void QPickerItemsSet(Control lHost, IReadOnlyList<QPickerItem> lItems) =>
+        lHost.SetValue(QPickerItemsProperty, lItems);
 
-    private static void QPickerControlUpdate(Control lHost, string lEmptyText)
+    private static void QPickerControlUpdate(Control lHost)
     {
-        (string lText, bool lEmpty) = QPicker.QPickerSummaryRead(QPickerItemsRead(lHost), lEmptyText);
+        (string lText, bool lEmpty) = QPicker.QPickerSummaryRead(
+            QPickerItemsRead(lHost)!, (string)lHost.GetValue(QPickerHintProperty));
         TextBlock lSummary = (TextBlock)lHost.Template.FindName(QPickerControlSummary, lHost);
         QPickerSummaryUpdate(lSummary, lText);
         QPickerSummaryApply(lSummary, lEmpty);

@@ -12,6 +12,9 @@
     <ProjectReference Include="..\Cadroue.UIDeportment.Capsule\Cadroue.UIDeportment.Capsule.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Cadroue.Tests.Windows" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="SharpVectors.Wpf" Version="1.8.5" />
   </ItemGroup>
 </Project>

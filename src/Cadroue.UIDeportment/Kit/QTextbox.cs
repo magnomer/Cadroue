@@ -10,17 +10,32 @@ public static class QTextbox
 
     private const string QTextboxHostPart = "PART_ContentHost";
 
+    internal static void QTextboxHook() =>
+        EventManager.RegisterClassHandler(
+            typeof(TextBox),
+            FrameworkElement.LoadedEvent,
+            new RoutedEventHandler((lSender, _) => QTextboxLoad((TextBox)lSender)),
+            true);
+
     public static void QTextboxAttach(TextBox lBox)
     {
         ArgumentNullException.ThrowIfNull(lBox);
 
         QTextboxStyleApply(lBox);
-        QTextboxHostBuild(lBox);
-        QLook.QLookAttach(lBox, QTextboxStyle);
+        QTextboxLoad(lBox);
+        QLook.QLookAttach(lBox);
     }
 
     private static void QTextboxStyleApply(TextBox lBox) =>
         lBox.Style = QContract.QContractSheetFind<Style>(QTextboxStyle);
+
+    private static void QTextboxLoad(TextBox lBox)
+    {
+        if (QLook.QLookStyleResolve(lBox, [QTextboxStyle]) is not null)
+        {
+            QTextboxHostBuild(lBox);
+        }
+    }
 
     private static void QTextboxHostBuild(TextBox lBox)
     {

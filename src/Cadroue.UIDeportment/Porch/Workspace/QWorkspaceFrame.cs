@@ -16,7 +16,6 @@ public sealed class QWorkspaceFrame
     private readonly QWorkspace qWorkspace;
     private readonly FrameworkElement qWorkspaceFrameSurface;
     private readonly Func<UserControl> qWorkspaceFrameFactory;
-    private readonly Func<QSource, UIElement> qWorkspaceSourceFactory;
     private readonly Func<QInfo, UIElement> qWorkspaceInfoFactory;
     private readonly Action qWorkspaceExportHandler;
     private readonly Func<ImageSource> qWorkspaceExportIcon;
@@ -27,7 +26,6 @@ public sealed class QWorkspaceFrame
         QWorkspace lWorkspace,
         FrameworkElement lSurface,
         Func<UserControl> lFrameFactory,
-        Func<QSource, UIElement> lSourceFactory,
         Func<QInfo, UIElement> lInfoFactory,
         Action lExportHandler,
         Func<ImageSource> lExportIcon,
@@ -38,7 +36,6 @@ public sealed class QWorkspaceFrame
         qWorkspace = lWorkspace;
         qWorkspaceFrameSurface = lSurface;
         qWorkspaceFrameFactory = lFrameFactory;
-        qWorkspaceSourceFactory = lSourceFactory;
         qWorkspaceInfoFactory = lInfoFactory;
         qWorkspaceExportHandler = lExportHandler;
         qWorkspaceExportIcon = lExportIcon;
@@ -62,10 +59,10 @@ public sealed class QWorkspaceFrame
     private static FrameworkElement QWorkspaceGridBuild(QWorkspaceFrame lFrame)
     {
         UserControl lRoot = lFrame.qWorkspaceFrameFactory();
+        QLook.QLookStyleAttach(lRoot);
         lFrame.QWorkspacePanelsPlace(lRoot);
         Button lExport = QContract.QContractFind<Button>(lRoot, "pWorkspaceExport");
         lFrame.QWorkspaceExportAttach(lExport);
-        QButton.QButtonAttach(lExport, QButtonLook.QButtonLookSource);
         lFrame.QWorkspaceIconApply(lRoot);
         return lRoot;
     }
@@ -73,7 +70,7 @@ public sealed class QWorkspaceFrame
     private void QWorkspacePanelsPlace(UserControl lRoot)
     {
         QContract.QContractFind<Border>(lRoot, "pWorkspaceSource").Child =
-            qWorkspaceSourceFactory(qWorkspace.QWorkspaceSource!);
+            qWorkspace.QWorkspaceSource!.QSourceAttach();
         QContract.QContractFind<Border>(lRoot, "pWorkspaceInfo").Child =
             qWorkspaceInfoFactory(qWorkspace.QWorkspaceInfo!);
         QContract.QContractFind<Border>(lRoot, "pWorkspaceSurface").Child = qWorkspaceFrameSurface;

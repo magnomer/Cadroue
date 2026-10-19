@@ -28,6 +28,7 @@ public static class QInfoFace
 
     public static UserControl QInfoFaceAttach(QInfo info, UserControl surface)
     {
+        QLook.QLookStyleAttach(surface);
         QInfoFaceApply(info, surface);
         QInfoHandlerAttach(info, surface);
         return surface;

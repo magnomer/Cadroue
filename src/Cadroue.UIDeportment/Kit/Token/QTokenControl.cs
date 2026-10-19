@@ -15,17 +15,53 @@ public static class QTokenControl
 
     private const string QTokenControlHost = "PART_ContentHost";
 
+    // The token logic the box inserts and drops through; a box without one takes no inserts or drops.
+    internal static readonly DependencyProperty QTokenLogicProperty = DependencyProperty.RegisterAttached(
+        "QTokenLogic",
+        typeof(QToken),
+        typeof(QTokenControl),
+        new FrameworkPropertyMetadata(null));
+
+    // The name notation the box shows when it loads.
+    internal static readonly DependencyProperty QTokenTextProperty = DependencyProperty.RegisterAttached(
+        "QTokenText",
+        typeof(string),
+        typeof(QTokenControl),
+        new FrameworkPropertyMetadata(string.Empty));
+
+    internal static void QTokenControlHook() =>
+        EventManager.RegisterClassHandler(
+            typeof(RichTextBox),
+            FrameworkElement.LoadedEvent,
+            new RoutedEventHandler((lSender, _) => QTokenControlLoad((RichTextBox)lSender)),
+            true);
+
     public static void QTokenControlAttach(RichTextBox lBox, QToken lToken, string lText)
     {
         ArgumentNullException.ThrowIfNull(lBox);
         ArgumentNullException.ThrowIfNull(lToken);
 
+        lBox.SetValue(QTokenLogicProperty, lToken);
+        lBox.SetValue(QTokenTextProperty, lText);
         QTokenStyleApply(lBox);
+        QTokenControlLoad(lBox);
+        QLook.QLookAttach(lBox);
+    }
+
+    private static void QTokenControlLoad(RichTextBox lBox)
+    {
+        if (QLook.QLookStyleResolve(lBox, [QTokenControlStyle]) is null)
+        {
+            return;
+        }
+
         QTokenHostBuild(lBox);
-        QLook.QLookAttach(lBox, QTokenControlStyle);
-        Paragraph lParagraph = QTokenParagraphBuild(lBox, lText);
+        Paragraph lParagraph = QTokenParagraphBuild(lBox, (string)lBox.GetValue(QTokenTextProperty));
         QTokenCaretSet(lBox, lParagraph.ContentEnd);
-        QTokenHandlersAttach(lBox, lToken);
+        if (lBox.GetValue(QTokenLogicProperty) is QToken lToken)
+        {
+            QTokenHandlersAttach(lBox, lToken);
+        }
     }
 
     private static void QTokenStyleApply(RichTextBox lBox) =>

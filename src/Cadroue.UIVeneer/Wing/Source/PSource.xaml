@@ -47,7 +47,7 @@
                            IsHitTestVisible="False" />
             </Grid>
         </Border>
-        <Button x:Name="pSourceBrowse" Grid.Column="2">
+        <Button x:Name="pSourceBrowse" Grid.Column="2" Style="{StaticResource PButtonSource}">
             <Image Width="18"
                    Height="18"
                    Stretch="Uniform">

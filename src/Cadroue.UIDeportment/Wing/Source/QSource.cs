@@ -38,10 +38,10 @@ public sealed class QSource
     private Button QSourceBrowse => QContract.QContractFind<Button>(qSourceSurface, "pSourceBrowse");
 
     // Subscriptions sit before the placeholder writes; those writes raise none of the subscribed events.
-    public UserControl QSourceAttach(UserControl lSurface)
+    public UserControl QSourceAttach()
     {
-        QSourceSurfaceSet(lSurface);
-        QButton.QButtonAttach(QSourceBrowse, QButtonLook.QButtonLookSource);
+        QSourceSurfaceSet(QContract.QContractSheetFind<UserControl>("PSource"));
+        QLook.QLookStyleAttach(qSourceSurface);
         QSourceHandlersAttach();
         QSourcePlaceholderApply(QSourcePlaceholderRead());
         QSourcePlaceholderSync();

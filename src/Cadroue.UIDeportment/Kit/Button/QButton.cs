@@ -32,52 +32,71 @@ public static class QButton
 
     private const string QButtonFacePart = "PButtonFace";
 
+    // Every look's style key; a button whose style chain holds one gets its parts bound and its clicks recorded.
+    private static readonly string[] QButtonStyles =
+    [
+        QButtonSourceStyle,
+        QButtonCommandStyle,
+        QButtonFadedStyle,
+        QButtonPanelStyle,
+        QButtonWhiteStyle,
+        QButtonIconStyle,
+        QButtonChipStyle,
+        QButtonChromeStyle,
+        QButtonFirstStyle,
+        QButtonExitStyle,
+        QButtonLastStyle,
+    ];
+
+    internal static void QButtonHook() =>
+        EventManager.RegisterClassHandler(
+            typeof(Button),
+            FrameworkElement.LoadedEvent,
+            new RoutedEventHandler((lSender, _) => QButtonLoad((Button)lSender)),
+            true);
+
     public static void QButtonAttach(Button lButton, QButtonLook lLook)
     {
         ArgumentNullException.ThrowIfNull(lButton);
 
-        (Style lStyle, string lSheet) = QButtonStyleResolve(lLook);
-        lButton.Style = lStyle;
-        QButtonPartAttach(lButton);
-        QLook.QLookAttach(lButton, lSheet);
+        lButton.Style = QButtonStyleResolve(lLook);
+        QButtonLoad(lButton);
+        QLook.QLookAttach(lButton);
+    }
 
-        if (QButtonRecordCheck(lLook))
+    private static void QButtonLoad(Button lButton)
+    {
+        if (QLook.QLookStyleResolve(lButton, QButtonStyles) is not string lStyle)
+        {
+            return;
+        }
+
+        QButtonPartAttach(lButton);
+        if (QButtonRecordCheck(lStyle))
         {
             QInteractionClick.QInteractionClickAttach(lButton);
         }
     }
 
     // The Chrome and Exit families stay unrecorded; every other look records its clicks.
-    private static bool QButtonRecordCheck(QButtonLook lLook) =>
-        lLook is not (QButtonLook.QButtonLookChrome or QButtonLook.QButtonLookFirst
-            or QButtonLook.QButtonLookExit or QButtonLook.QButtonLookLast);
+    private static bool QButtonRecordCheck(string lStyle) =>
+        lStyle is not (QButtonChromeStyle or QButtonFirstStyle or QButtonExitStyle or QButtonLastStyle);
 
-    // A look picks its template style and the look sheet its states follow; a variant follows its family's sheet.
-    private static (Style, string) QButtonStyleResolve(QButtonLook lLook) =>
+    // A look picks its template style; the sheets its states follow come from the style's BasedOn chain.
+    private static Style QButtonStyleResolve(QButtonLook lLook) =>
         lLook switch
         {
-            QButtonLook.QButtonLookSource =>
-                (QContract.QContractSheetFind<Style>(QButtonSourceStyle), QButtonSourceStyle),
-            QButtonLook.QButtonLookCommand =>
-                (QContract.QContractSheetFind<Style>(QButtonCommandStyle), QButtonCommandStyle),
-            QButtonLook.QButtonLookFaded =>
-                (QContract.QContractSheetFind<Style>(QButtonFadedStyle), QButtonFadedStyle),
-            QButtonLook.QButtonLookPanel =>
-                (QContract.QContractSheetFind<Style>(QButtonPanelStyle), QButtonPanelStyle),
-            QButtonLook.QButtonLookWhite =>
-                (QContract.QContractSheetFind<Style>(QButtonWhiteStyle), QButtonWhiteStyle),
-            QButtonLook.QButtonLookIcon =>
-                (QContract.QContractSheetFind<Style>(QButtonIconStyle), QButtonWhiteStyle),
-            QButtonLook.QButtonLookChip =>
-                (QContract.QContractSheetFind<Style>(QButtonChipStyle), QButtonWhiteStyle),
-            QButtonLook.QButtonLookChrome =>
-                (QContract.QContractSheetFind<Style>(QButtonChromeStyle), QButtonChromeStyle),
-            QButtonLook.QButtonLookFirst =>
-                (QContract.QContractSheetFind<Style>(QButtonFirstStyle), QButtonChromeStyle),
-            QButtonLook.QButtonLookExit =>
-                (QContract.QContractSheetFind<Style>(QButtonExitStyle), QButtonExitStyle),
-            QButtonLook.QButtonLookLast =>
-                (QContract.QContractSheetFind<Style>(QButtonLastStyle), QButtonExitStyle),
+            QButtonLook.QButtonLookSource => QContract.QContractSheetFind<Style>(QButtonSourceStyle),
+            QButtonLook.QButtonLookCommand => QContract.QContractSheetFind<Style>(QButtonCommandStyle),
+            QButtonLook.QButtonLookFaded => QContract.QContractSheetFind<Style>(QButtonFadedStyle),
+            QButtonLook.QButtonLookPanel => QContract.QContractSheetFind<Style>(QButtonPanelStyle),
+            QButtonLook.QButtonLookWhite => QContract.QContractSheetFind<Style>(QButtonWhiteStyle),
+            QButtonLook.QButtonLookIcon => QContract.QContractSheetFind<Style>(QButtonIconStyle),
+            QButtonLook.QButtonLookChip => QContract.QContractSheetFind<Style>(QButtonChipStyle),
+            QButtonLook.QButtonLookChrome => QContract.QContractSheetFind<Style>(QButtonChromeStyle),
+            QButtonLook.QButtonLookFirst => QContract.QContractSheetFind<Style>(QButtonFirstStyle),
+            QButtonLook.QButtonLookExit => QContract.QContractSheetFind<Style>(QButtonExitStyle),
+            QButtonLook.QButtonLookLast => QContract.QContractSheetFind<Style>(QButtonLastStyle),
             _ => throw new ArgumentOutOfRangeException(nameof(lLook)),
         };
 

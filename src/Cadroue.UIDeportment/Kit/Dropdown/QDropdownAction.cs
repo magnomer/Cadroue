@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 
 namespace Cadroue.UIDeportment;
@@ -9,11 +8,7 @@ namespace Cadroue.UIDeportment;
 // The editable dropdown whose every row carries a remove button.
 public static class QDropdownAction
 {
-    private const string QDropdownEditableStyle = "PDropdownEditable";
-
     private const string QDropdownActionStyle = "PDropdownRowAction";
-
-    private const string QDropdownButtonStyle = "PDropdownRowButton";
 
     private const string QDropdownButtonPart = "PDropdownRowButton";
 
@@ -23,39 +18,60 @@ public static class QDropdownAction
 
     private const string QDropdownMinusIcon = "/PAsset/PPanel/PExportMinus.svg";
 
+    // Set on the dropdown; its rows' remove buttons show it as their tooltip and automation name.
+    internal static readonly DependencyProperty QDropdownTooltipProperty = DependencyProperty.RegisterAttached(
+        "QDropdownTooltip",
+        typeof(string),
+        typeof(QDropdownAction),
+        new FrameworkPropertyMetadata(null));
+
+    internal static void QDropdownActionHook() =>
+        EventManager.RegisterClassHandler(
+            typeof(ComboBoxItem),
+            FrameworkElement.LoadedEvent,
+            new RoutedEventHandler((lSender, _) => QDropdownActionLoad((ComboBoxItem)lSender)),
+            true);
+
     public static void QDropdownActionAttach(ComboBox lCombo, string lActionTooltip)
     {
         ArgumentNullException.ThrowIfNull(lCombo);
 
-        QDropdownActionApply(lCombo, lActionTooltip);
-        _ = lCombo.ApplyTemplate();
-        QDropdown.QDropdownPartAttach(
-            lCombo, QDropdown.QDropdownArrowPart, ToggleButton.IsCheckedProperty, "IsDropDownOpen");
-        QDropdown.QDropdownPopupAttach(lCombo);
-        QLook.QLookAttach(lCombo, QDropdown.QDropdownStyle);
+        lCombo.SetValue(QDropdownTooltipProperty, lActionTooltip);
+        QDropdownActionApply(lCombo);
+        QDropdown.QDropdownLoad(lCombo);
+        QLook.QLookAttach(lCombo);
     }
 
-    private static void QDropdownActionApply(ComboBox lCombo, string lActionTooltip)
+    private static void QDropdownActionApply(ComboBox lCombo)
     {
-        lCombo.Style = QContract.QContractSheetFind<Style>(QDropdownEditableStyle);
+        lCombo.Style = QContract.QContractSheetFind<Style>(QDropdown.QDropdownEditableStyle);
         lCombo.ItemContainerStyle = QDropdown.QDropdownHookBuild(
             QContract.QContractSheetFind<Style>(QDropdownActionStyle),
-            (lSender, _) => QDropdownActionLoad((ComboBoxItem)lSender, lActionTooltip));
+            (lSender, _) => QDropdownRowApply((ComboBoxItem)lSender));
     }
 
-    private static void QDropdownActionLoad(ComboBoxItem lRow, string lActionTooltip)
+    private static void QDropdownActionLoad(ComboBoxItem lRow)
     {
-        QDropdownRowApply(lRow);
-        QLook.QLookAttach(lRow, QDropdown.QDropdownRowStyle);
+        if (QLook.QLookStyleResolve(lRow, [QDropdownActionStyle]) is null)
+        {
+            return;
+        }
 
         Button lButton = (Button)lRow.Template.FindName(QDropdownButtonPart, lRow);
-        QDropdownTooltipSet(lButton, lActionTooltip);
+        if (ItemsControl.ItemsControlFromItemContainer(lRow)?.GetValue(QDropdownTooltipProperty) is string lTooltip)
+        {
+            QDropdownTooltipSet(lButton, lTooltip);
+        }
+
         QDropdownMinusApply(lRow);
-        QLook.QLookAttach(lButton, QDropdownButtonStyle);
+        QLook.QLookAttach(lButton);
     }
 
-    private static void QDropdownRowApply(ComboBoxItem lRow) =>
+    private static void QDropdownRowApply(ComboBoxItem lRow)
+    {
         lRow.Style = QContract.QContractSheetFind<Style>(QDropdownActionStyle);
+        QLook.QLookAttach(lRow);
+    }
 
     private static void QDropdownTooltipSet(Button lButton, string lActionTooltip)
     {

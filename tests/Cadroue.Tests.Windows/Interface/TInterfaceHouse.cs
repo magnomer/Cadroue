@@ -9,6 +9,9 @@ namespace Cadroue.Tests.Windows;
 
 internal static partial class TInterface
 {
+    internal static void TLookStateAttach() => QLook.QLookStateAttach();
+    internal static void TLookStyleAttach(System.Windows.FrameworkElement surface) => QLook.QLookStyleAttach(surface);
+
     internal static QWindow TWindowCreate(Func<Func<bool>, bool> dispatch)
     {
         QWindow window = new(TAtelierCreate());

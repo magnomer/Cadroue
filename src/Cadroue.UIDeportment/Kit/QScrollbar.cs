@@ -10,39 +10,39 @@ public static class QScrollbar
 
     private const string QScrollbarHorizontalStyle = "PScrollbarHorizontal";
 
-    private const string QScrollbarThumbStyle = "PScrollbarThumb";
-
     private const string QScrollbarThumbPart = "PScrollbarThumb";
 
     private const string QScrollbarBackPart = "PScrollbarBack";
 
     private const string QScrollbarAheadPart = "PScrollbarAhead";
 
+    internal static void QScrollbarHook() =>
+        EventManager.RegisterClassHandler(
+            typeof(ScrollBar),
+            FrameworkElement.LoadedEvent,
+            new RoutedEventHandler((lSender, _) => QScrollbarLoad((ScrollBar)lSender)),
+            true);
+
+    // Every scrollbar below the host takes the style; the class handler does the rest when each one loads.
     public static void QScrollbarAttach(FrameworkElement lHost)
     {
         ArgumentNullException.ThrowIfNull(lHost);
 
-        Style lStyle = QScrollbarStyleCreate();
-        QScrollbarLoadAttach(lStyle);
-        QScrollbarStyleSet(lHost, lStyle);
+        lHost.Resources[typeof(ScrollBar)] = QContract.QContractSheetFind<Style>(QScrollbarStyle);
     }
 
-    private static Style QScrollbarStyleCreate() =>
-        new(typeof(ScrollBar), QContract.QContractSheetFind<Style>(QScrollbarStyle));
-
-    private static void QScrollbarLoadAttach(Style lStyle) =>
-        lStyle.Setters.Add(new EventSetter(FrameworkElement.LoadedEvent, new RoutedEventHandler(QScrollbarLoad)));
-
-    private static void QScrollbarStyleSet(FrameworkElement lHost, Style lStyle) =>
-        lHost.Resources[typeof(ScrollBar)] = lStyle;
-
-    private static void QScrollbarLoad(object lSender, RoutedEventArgs lEvent)
+    // The horizontal style is BasedOn the vertical one, so the work keyed on the base runs once either way.
+    private static void QScrollbarLoad(ScrollBar lBar)
     {
-        ScrollBar lBar = (ScrollBar)lSender;
+        if (QLook.QLookStyleResolve(lBar, [QScrollbarStyle]) is null)
+        {
+            return;
+        }
+
         QScrollbarStyleApply(lBar);
         (RepeatButton lBack, RepeatButton lAhead, Thumb lThumb) = QScrollbarPartsBuild(lBar);
         QScrollbarPageAttach(lBack, lAhead);
-        QLook.QLookAttach(lThumb, QScrollbarThumbStyle);
+        QLook.QLookAttach(lThumb);
     }
 
     private static void QScrollbarStyleApply(ScrollBar lBar) =>

@@ -17,7 +17,8 @@
             <Border x:Name="pWorkspaceInfo" Grid.Column="0" />
             <Button x:Name="pWorkspaceExport"
                     Grid.Column="2"
-                    VerticalAlignment="Center">
+                    VerticalAlignment="Center"
+                    Style="{StaticResource PButtonSource}">
                 <Image x:Name="pWorkspaceExportIcon"
                        Width="18"
                        Height="18"

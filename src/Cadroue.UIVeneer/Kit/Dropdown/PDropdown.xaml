@@ -35,6 +35,7 @@
 
     <Style x:Key="PDropdown" TargetType="ComboBox">
         <Setter Property="IsEditable" Value="False" />
+        <Setter Property="ItemContainerStyle" Value="{DynamicResource PDropdownRow}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ComboBox">
@@ -89,6 +90,7 @@
 
     <Style x:Key="PDropdownEditable" TargetType="ComboBox" BasedOn="{StaticResource PDropdown}">
         <Setter Property="IsEditable" Value="True" />
+        <Setter Property="ItemContainerStyle" Value="{DynamicResource PDropdownRowAction}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ComboBox">

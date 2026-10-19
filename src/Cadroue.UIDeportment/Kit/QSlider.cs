@@ -9,24 +9,49 @@ public static class QSlider
 {
     private const string QSliderStyle = "PSlider";
 
-    private const string QSliderThumbStyle = "PSliderThumb";
-
     private const string QSliderThumbPart = "PSliderThumb";
+
+    // Reads the value a double-click on the thumb restores; a slider without one ignores the double-click.
+    internal static readonly DependencyProperty QSliderOriginProperty = DependencyProperty.RegisterAttached(
+        "QSliderOrigin",
+        typeof(Func<double>),
+        typeof(QSlider),
+        new FrameworkPropertyMetadata(null));
+
+    internal static void QSliderHook() =>
+        EventManager.RegisterClassHandler(
+            typeof(Slider),
+            FrameworkElement.LoadedEvent,
+            new RoutedEventHandler((lSender, _) => QSliderLoad((Slider)lSender)),
+            true);
 
     public static void QSliderAttach(Slider lSlider)
     {
         ArgumentNullException.ThrowIfNull(lSlider);
 
-        QSliderPointerSet(lSlider);
-        QSliderLookAttach(lSlider);
+        lSlider.Style = QContract.QContractSheetFind<Style>(QSliderStyle);
+        QSliderLoad(lSlider);
+        QLook.QLookAttach(lSlider);
     }
 
     public static void QSliderResetAttach(Slider lSlider, Func<double> lDefaultRead)
     {
         ArgumentNullException.ThrowIfNull(lSlider);
 
-        QSliderThumbFind(lSlider).PreviewMouseDoubleClick += (_, lEvent) =>
-            QSliderResetHandle(lSlider, lDefaultRead, lEvent);
+        lSlider.SetValue(QSliderOriginProperty, lDefaultRead);
+    }
+
+    private static void QSliderLoad(Slider lSlider)
+    {
+        if (QLook.QLookStyleResolve(lSlider, [QSliderStyle]) is null)
+        {
+            return;
+        }
+
+        QSliderPointerSet(lSlider);
+        Thumb lThumb = QSliderThumbFind(lSlider);
+        QLook.QLookAttach(lThumb);
+        lThumb.PreviewMouseDoubleClick += (_, lEvent) => QSliderResetHandle(lSlider, lEvent);
     }
 
     private static void QSliderPointerSet(Slider lSlider)
@@ -35,15 +60,13 @@ public static class QSlider
         lSlider.IsSnapToTickEnabled = false;
     }
 
-    private static void QSliderLookAttach(Slider lSlider)
+    private static void QSliderResetHandle(Slider lSlider, MouseButtonEventArgs lEvent)
     {
-        lSlider.Style = QContract.QContractSheetFind<Style>(QSliderStyle);
-        QLook.QLookAttach(lSlider, QSliderStyle);
-        QLook.QLookAttach(QSliderThumbFind(lSlider), QSliderThumbStyle);
-    }
+        if (lSlider.GetValue(QSliderOriginProperty) is not Func<double> lDefaultRead)
+        {
+            return;
+        }
 
-    private static void QSliderResetHandle(Slider lSlider, Func<double> lDefaultRead, MouseButtonEventArgs lEvent)
-    {
         QSliderValueReset(lSlider, lDefaultRead);
         lEvent.Handled = true;
     }

@@ -37,6 +37,7 @@ public sealed class QProgram
         LRendererFolder.LRendererSettingsLoad();
 
         QProgramSeamAttach(lResourceNames, lResourceRead, lDebounceRestart);
+        QProgramKit.QProgramKitApply();
         LPreference.LPreferenceLoad();
         LFrameStore.LFrameLoad();
         LBinding.LBindingLoad();

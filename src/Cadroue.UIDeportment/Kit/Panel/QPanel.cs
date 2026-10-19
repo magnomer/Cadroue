@@ -16,12 +16,28 @@ public static class QPanel
 
     private const string QPanelMarginSheet = "PPanelMargin";
 
+    internal static void QPanelHook() =>
+        EventManager.RegisterClassHandler(
+            typeof(UserControl),
+            FrameworkElement.LoadedEvent,
+            new RoutedEventHandler((lSender, _) => QPanelLoad((UserControl)lSender)),
+            true);
+
     public static void QPanelAttach(UserControl lPanel)
     {
         ArgumentNullException.ThrowIfNull(lPanel);
 
         lPanel.Style = QContract.QContractSheetFind<Style>(QPanelStyle);
-        QScrollbar.QScrollbarAttach(lPanel);
+        QPanelLoad(lPanel);
+    }
+
+    // A panel's scrollbars take the Kit scrollbar style.
+    private static void QPanelLoad(UserControl lPanel)
+    {
+        if (QLook.QLookStyleResolve(lPanel, [QPanelStyle]) is not null)
+        {
+            QScrollbar.QScrollbarAttach(lPanel);
+        }
     }
 
     public static Border QPanelBuild(UIElement lContent)

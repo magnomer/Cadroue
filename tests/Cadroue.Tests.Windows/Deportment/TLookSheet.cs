@@ -1,4 +1,9 @@
+using System.Runtime.ExceptionServices;
 using System.Text.RegularExpressions;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Markup;
+using System.Windows.Threading;
 using System.Xml.Linq;
 
 using Xunit;
@@ -12,6 +17,54 @@ public sealed class TLookSheet
     private static readonly Regex TLookSheetRow = new(
         """new\(\s*"(?<style>\w+)"\s*,[^"]*?"(?<part>\w+)"\s*,[^"]*?"(?<key>\w+)"\s*\)""",
         RegexOptions.Singleline);
+
+    // The window carries no Loaded handler of its own; the reach set on it is what lets Loaded find the button.
+    [Fact]
+    public void Look_SurfaceWithoutHandler_ReachesChild()
+    {
+        double faded = 1;
+        TLookSheetRun(() =>
+        {
+            TInterface.TLookStateAttach();
+            Window window = new() { Width = 120, Height = 80, ShowInTaskbar = false, WindowStyle = WindowStyle.None };
+            window.Resources["PButtonFade"] = 0.35;
+            window.Resources["PButtonFaded"] = (Style)XamlReader.Parse(
+                "<Style xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" "
+                + "xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" TargetType=\"Button\">"
+                + "<Setter Property=\"Template\"><Setter.Value><ControlTemplate TargetType=\"Button\">"
+                + "<Border x:Name=\"PButtonFrame\"><Border x:Name=\"PButtonPlate\" /></Border>"
+                + "</ControlTemplate></Setter.Value></Setter></Style>");
+            TInterface.TLookStyleAttach(window);
+            Button button = new() { IsEnabled = false, Style = (Style)window.Resources["PButtonFaded"] };
+            window.Content = button;
+            window.Show();
+            window.Dispatcher.Invoke(() => { }, DispatcherPriority.SystemIdle);
+            faded = ((FrameworkElement)button.Template.FindName("PButtonFrame", button)).Opacity;
+            window.Close();
+        });
+
+        Assert.Equal(0.35, faded, 3);
+    }
+
+    private static void TLookSheetRun(Action body)
+    {
+        ExceptionDispatchInfo? failure = null;
+        Thread thread = new(() =>
+        {
+            try
+            {
+                body();
+            }
+            catch (Exception exception)
+            {
+                failure = ExceptionDispatchInfo.Capture(exception);
+            }
+        });
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        thread.Join();
+        failure?.Throw();
+    }
 
     [Fact]
     public void Sheet_EveryStylePartAndKey_ExistsInMergedMarkup()

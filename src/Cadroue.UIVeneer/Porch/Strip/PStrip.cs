@@ -37,7 +37,6 @@ public sealed class PStrip
         lWorkspace.QWorkspaceFrameBuild(
             pSurface,
             () => new PWorkspace(),
-            lSource => lSource.QSourceAttach(new PSource()),
             lInfo => QInfoFace.QInfoFaceAttach(lInfo, new PInfo()),
             pSurface.PTabExportToggle,
             () => QIcon.QIconRead("/PAsset/PPanel/PExportToggle.svg"),

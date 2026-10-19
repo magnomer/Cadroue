@@ -14,6 +14,11 @@ public sealed class QDeckCatalog
     public void QDeckBuilderAdd(string lKey, QDeckBuilder lBuilder) =>
         qDeckBuilders.Add(lKey, lBuilder);
 
-    public FrameworkElement QDeckSurfaceBuild(QStripTab lStripTab, LSceneTabEntry? lPreferenceTabLayout) =>
-        qDeckBuilders[lStripTab.QStripTabKey](lStripTab.QStripTabWorkspace, lPreferenceTabLayout);
+    public FrameworkElement QDeckSurfaceBuild(QStripTab lStripTab, LSceneTabEntry? lPreferenceTabLayout)
+    {
+        FrameworkElement lSurface =
+            qDeckBuilders[lStripTab.QStripTabKey](lStripTab.QStripTabWorkspace, lPreferenceTabLayout);
+        QLook.QLookStyleAttach(lSurface);
+        return lSurface;
+    }
 }
