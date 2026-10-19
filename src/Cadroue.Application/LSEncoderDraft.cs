@@ -30,6 +30,10 @@ public sealed class LSEncoderDraft
 
     public string LSEncoderSizeRead() => LSEncoderDraftPreset.LPresetVideo.LPresetSize;
 
+    // The draft's audio encoder and audio rate control.
+    public (string, string) LSEncoderAudioRead() =>
+        (LSEncoderDraftPreset.LPresetAudio.LPresetEncoder, LSEncoderDraftPreset.LPresetAudio.LPresetRateControl);
+
     // Writes the kept values into the draft, then copies the draft back into the source preset.
     public void LSEncoderDraftSave(
         string lDisplay,

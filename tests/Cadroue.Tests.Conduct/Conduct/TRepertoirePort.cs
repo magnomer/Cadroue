@@ -17,4 +17,12 @@ internal sealed class TRepertoirePort : LSRepertoirePort
     public string? LSRepertoireTokenResolve(string lText) => null;
 
     public LCapabilityCodec LSRepertoireCodecRead(string? lEncoder) => new(lEncoder ?? string.Empty, [new("Default")]);
+
+    public IReadOnlyList<LRepertoireAudio> LSRepertoireAudioCandidates { get; } = [];
+
+    public bool LSRepertoireAudioCheck(string lName, string lContainer) => false;
+
+    public string? LSRepertoireAudioResolve(string lText) => null;
+
+    public LCapabilityCodec LSRepertoireAudioRead(string lText) => new(lText, [new("Default")]);
 }

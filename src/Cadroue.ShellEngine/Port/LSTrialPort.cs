@@ -15,6 +15,14 @@ public interface LSTrialPort
     // Whether the available set lets the entry through: always while no trial has kept a set.
     bool LSTrialCheck(LRepertoireEncoder lCandidate);
 
+    Task<(bool LSTrialSuccess, string LSTrialMessage)> LSTrialAudioRun(string lName, CancellationToken lToken);
+
+    void LSTrialAudioApply(IEnumerable<string> lAvailable);
+
+    // Whether the audio available set holds the codec name; while no audio trial has kept a set, whether it is
+    // installed.
+    bool LSTrialAudioCheck(string lName);
+
     // Records the verification trace line with its detail.
     void LSTrialRecord(string lMessage, string lDetail);
 }

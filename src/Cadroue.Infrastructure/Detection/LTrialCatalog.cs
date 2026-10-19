@@ -57,6 +57,9 @@ public static class LTrialCatalog
         }
     }
 
+    public static void LTrialAudioApply(IEnumerable<string> lAvailable) =>
+        LTrialSetApply(lAvailable, LTrialKind.LTrialKindAudio);
+
     public static void LTrialSetReset()
     {
         lTrialSetVideo = null;
@@ -77,4 +80,11 @@ public static class LTrialCatalog
 
     public static bool LTrialSetCheck(string lEncoder, LTrialKind lKind) =>
         LTrialSetRead(lKind) is not { } lSet || lSet.Contains(lEncoder);
+
+    // Whether the audio available set holds the codec name; while no audio trial has kept a set, whether it is
+    // installed.
+    public static bool LTrialAudioCheck(string lName) =>
+        LTrialSetRead(LTrialKind.LTrialKindAudio) is { } lSet
+            ? lSet.Contains(lName)
+            : LInventory.LInventoryInstalledCheck(lName);
 }

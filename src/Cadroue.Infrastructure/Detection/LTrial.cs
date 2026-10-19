@@ -27,6 +27,12 @@ public static class LTrial
         return (lResult.LTrialSuccess, lResult.LTrialMessage);
     }
 
+    public static async Task<(bool, string)> LTrialAudioRun(string lName, CancellationToken lToken)
+    {
+        LTrialResult lResult = await LTrialRun(lName, LTrialKind.LTrialKindAudio, lToken);
+        return (lResult.LTrialSuccess, lResult.LTrialMessage);
+    }
+
     private static async Task<LTrialResult> LTrialLaneRun(string lEncoder, LTrialKind lKind, CancellationToken lToken)
     {
         lToken.ThrowIfCancellationRequested();

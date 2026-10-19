@@ -19,6 +19,15 @@ internal sealed class TTrialPort : LSTrialPort
 
     public bool LSTrialCheck(LRepertoireEncoder lCandidate) => true;
 
+    public Task<(bool LSTrialSuccess, string LSTrialMessage)> LSTrialAudioRun(string lName, CancellationToken lToken) =>
+        Task.FromResult((false, string.Empty));
+
+    public void LSTrialAudioApply(IEnumerable<string> lAvailable)
+    {
+    }
+
+    public bool LSTrialAudioCheck(string lName) => true;
+
     public void LSTrialRecord(string lMessage, string lDetail)
     {
     }

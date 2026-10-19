@@ -10,6 +10,9 @@ public interface LSEncoderPort
 
     string LSEncoderSizeRead();
 
+    // The draft's audio encoder and audio rate control.
+    (string, string) LSEncoderAudioRead();
+
     // Writes the kept values into the draft, then copies the draft back into the source preset.
     void LSEncoderDraftSave(
         string lDisplay,

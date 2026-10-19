@@ -19,6 +19,8 @@ public sealed class CSEncoderDraft
         CSEncoderDraftVideo = new CSEncoderVideo(encoder, rate, trial, repertoire, draft, smart);
         CSEncoderDraftTrial = new CSEncoderTrial(trial, repertoire, CSEncoderDraftVideo);
         CSEncoderDraftSize = new CSEncoderSize(draft.LSEncoderSizeRead());
+        (string audioEncoder, string audioRate) = draft.LSEncoderAudioRead();
+        CSEncoderDraftAudio = new CSEncoderAudio(audioEncoder, audioRate, trial, repertoire);
     }
 
     public const string CSEncoderDraftSource = "Same as source";
@@ -29,24 +31,31 @@ public sealed class CSEncoderDraft
 
     public CSEncoderSize CSEncoderDraftSize { get; }
 
-    // The draft keeps a display name, the video stream, the chosen encoder and rate, and the size its gate formats.
-    // Audio's encoder and rate arrive as values until their own gate holds them.
-    public void CSEncoderDraftApply(string audioEncoder, string audioRate)
+    public CSEncoderAudio CSEncoderDraftAudio { get; }
+
+    // The draft keeps a display name, the video stream, the chosen video encoder and rate, the size its gate formats,
+    // and the chosen audio encoder and rate.
+    public void CSEncoderDraftApply()
     {
         string display = CSEncoderDraftNormalize(_csEncoderDraftPort.LSEncoderDraftRead().LSEncoderDisplay);
         CSEncoderState state = CSEncoderDraftVideo.CSEncoderVideoState;
+        CSEncoderAudioState audio = CSEncoderDraftAudio.CSEncoderAudioState;
         _csEncoderDraftPort.LSEncoderDraftSave(
             display,
             "Include",
             state.CSEncoderStateEncoder,
             state.CSEncoderStateRate,
             CSEncoderDraftSize.CSEncoderSizeFormat(),
-            audioEncoder,
-            audioRate);
+            audio.CSEncoderAudioEncoder,
+            audio.CSEncoderAudioRate);
     }
 
     // Closing the window cancels the trial still running.
-    public void CSEncoderDraftClose() => CSEncoderDraftTrial.CSEncoderTrialCancel();
+    public void CSEncoderDraftClose()
+    {
+        CSEncoderDraftTrial.CSEncoderTrialCancel();
+        CSEncoderDraftAudio.CSEncoderAudioCancel();
+    }
 
     private static string CSEncoderDraftNormalize(string display) =>
         string.IsNullOrWhiteSpace(display) ? "{OriginalName}_export" : display.Trim();

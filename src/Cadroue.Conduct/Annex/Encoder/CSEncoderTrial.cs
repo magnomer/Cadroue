@@ -47,7 +47,7 @@ public sealed class CSEncoderTrial
         _csEncoderTrialPort.LSTrialApply(names);
         CSEncoderTrialInsert(available, candidates);
         _csEncoderTrialRows = rows;
-        CSEncoderTrialRecord(rows);
+        CSEncoderTrialRecord(_csEncoderTrialPort, "video", rows);
         return available;
     }
 
@@ -107,11 +107,11 @@ public sealed class CSEncoderTrial
     }
 
     // How many encoders passed, with one detail line per row.
-    private void CSEncoderTrialRecord(IReadOnlyList<CSEncoderRow> rows)
+    internal static void CSEncoderTrialRecord(LSTrialPort port, string kind, IReadOnlyList<CSEncoderRow> rows)
     {
         int passed = rows.Count(row => row.CSEncoderRowSuccess);
-        _csEncoderTrialPort.LSTrialRecord(
-            $"Encoder verification (video): {passed} of {rows.Count} encoder(s) available",
+        port.LSTrialRecord(
+            $"Encoder verification ({kind}): {passed} of {rows.Count} encoder(s) available",
             CSEncoderTrialFormat(rows));
     }
 

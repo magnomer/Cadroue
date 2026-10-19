@@ -56,13 +56,20 @@ Func<LEngine, LAtelierPort> port = static engine => new LAtelierPort
         LTrial.LTrialVideoRun,
         lAvailable => LTrialCatalog.LTrialSetApply(lAvailable),
         LTrialCatalog.LTrialSetCheck,
+        LTrial.LTrialAudioRun,
+        LTrialCatalog.LTrialAudioApply,
+        LTrialCatalog.LTrialAudioCheck,
         LTraceLog.LTraceInfoRecord),
     LAtelierRepertoire = new LSRepertoireOutlet(
         LRepertoireVideo.LRepertoireEncodersRead,
         LRepertoireCatalog.LRepertoireContainerNames,
         LRepertoireVideo.LRepertoireContainerCheck,
         LRepertoireVideo.LRepertoireTokenResolve,
-        LCapability.LCapabilityRead),
+        LCapability.LCapabilityRead,
+        LRepertoireAudioCatalog.LRepertoireAudioCandidates,
+        LRepertoireCatalog.LRepertoireAudioCheck,
+        LRepertoireAudioCatalog.LRepertoireAudioResolve,
+        lText => LCapability.LCapabilityAudioRead(LCapability.LCapabilityNameRead(lText))),
 };
 
 int code = 1;

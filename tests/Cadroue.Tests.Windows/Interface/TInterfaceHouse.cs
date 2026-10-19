@@ -232,12 +232,19 @@ internal static partial class TInterface
                 LTrial.LTrialVideoRun,
                 available => LTrialCatalog.LTrialSetApply(available),
                 LTrialCatalog.LTrialSetCheck,
+                LTrial.LTrialAudioRun,
+                LTrialCatalog.LTrialAudioApply,
+                LTrialCatalog.LTrialAudioCheck,
                 LTraceLog.LTraceInfoRecord),
             LAtelierRepertoire = new LSRepertoireOutlet(
                 LRepertoireVideo.LRepertoireEncodersRead,
                 LRepertoireCatalog.LRepertoireContainerNames,
                 LRepertoireVideo.LRepertoireContainerCheck,
                 LRepertoireVideo.LRepertoireTokenResolve,
-                LCapability.LCapabilityRead),
+                LCapability.LCapabilityRead,
+                LRepertoireAudioCatalog.LRepertoireAudioCandidates,
+                LRepertoireCatalog.LRepertoireAudioCheck,
+                LRepertoireAudioCatalog.LRepertoireAudioResolve,
+                text => LCapability.LCapabilityAudioRead(LCapability.LCapabilityNameRead(text))),
         });
 }

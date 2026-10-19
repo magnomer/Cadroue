@@ -19,11 +19,12 @@ public sealed class QSEncoder
             qsEncoderPreset.LSEncoderDraftSave,
             qsEncoderPreset.LSEncoderRateRead,
             qsEncoderPreset.LSEncoderSizeRead,
+            qsEncoderPreset.LSEncoderAudioRead,
             lSmart);
         QSEncoderVideo = new QSEncoderVideo(
             qsEncoderGate.CSEncoderDraftVideo, qsEncoderGate.CSEncoderDraftTrial);
         QSEncoderSize = new QSEncoderSize(qsEncoderGate.CSEncoderDraftSize);
-        QSEncoderAudio = new QSEncoderAudio(qsEncoderPreset.LSEncoderDraftPreset);
+        QSEncoderAudio = new QSEncoderAudio(qsEncoderGate.CSEncoderDraftAudio);
         QSEncoderSuffix = new QSEncoderSuffix(qsEncoderPreset.LSEncoderDraftPreset);
         QSEncoderLocation = new QSEncoderLocation(lUsher, qsEncoderPreset.LSEncoderDraftPreset);
         QSEncoderInventoryAttach();
@@ -47,7 +48,6 @@ public sealed class QSEncoder
     {
         QSEncoderHelpDetach();
         qsEncoderGate.CSEncoderDraftClose();
-        QSEncoderAudio.QSEncoderAudioCancel();
     }
 
     public void QSEncoderHelpAttach(Action lHandler) => qsEncoderHelpHandler = lHandler;
@@ -62,8 +62,5 @@ public sealed class QSEncoder
         qsEncoderHelpHandler = null;
     }
 
-    public void QSEncoderApply() =>
-        qsEncoderGate.CSEncoderDraftApply(
-            QSEncoderAudio.QSEncoderAudioEncoder,
-            QSEncoderAudio.QSEncoderAudioRate);
+    public void QSEncoderApply() => qsEncoderGate.CSEncoderDraftApply();
 }

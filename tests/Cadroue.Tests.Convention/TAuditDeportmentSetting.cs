@@ -14,6 +14,7 @@ internal static class TAuditDeportmentSetting
                     "CSEncoder", "CSEncoderCodec", "CSEncoderDraft", "CSEncoderChoice", "CSEncoderExtra",
                     "CSEncoderQuality", "CSEncoderSpeed", "CSEncoderRow", "CSEncoderTrial",
                     "CSEncoderState", "CSEncoderVideo", "CSEncoderSize", "CSEncoderDimension",
+                    "CSEncoderAudio", "CSEncoderAudioState",
                 ],
         };
 }

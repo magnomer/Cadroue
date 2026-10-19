@@ -20,4 +20,16 @@ public interface LSRepertoirePort
 
     // The codec an encoder token reads; an unknown token reads the fallback codec.
     LCapabilityCodec LSRepertoireCodecRead(string? lEncoder);
+
+    // Every audio repertoire entry, in repertoire order.
+    IReadOnlyList<LRepertoireAudio> LSRepertoireAudioCandidates { get; }
+
+    // Whether a container takes the audio codec with this name.
+    bool LSRepertoireAudioCheck(string lName, string lContainer);
+
+    // The audio codec name an entry's text names; null when no audio entry has the text.
+    string? LSRepertoireAudioResolve(string lText);
+
+    // The audio codec an encoder text reads; an unknown text reads the fallback audio codec.
+    LCapabilityCodec LSRepertoireAudioRead(string lText);
 }

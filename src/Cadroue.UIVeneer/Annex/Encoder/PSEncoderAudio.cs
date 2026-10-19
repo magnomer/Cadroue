@@ -38,11 +38,11 @@ internal sealed class PSEncoderAudio
         psAudioEncoderNotice = PSEncoderNotice.PSEncoderErrorBuild();
         psAudioEncoderCombo = PSCombo.PSComboBuild(
             lsAudio.QSEncoderAudioEncoder,
-            QSEncoderAudio.QSEncoderAudioRead(lsDraft.LPresetContainer, lsAudio.QSEncoderAudioEncoder));
+            lsAudio.QSEncoderAudioRead(lsDraft.LPresetContainer, lsAudio.QSEncoderAudioEncoder));
         PSEncoderChip.PSEncoderChipApply(psAudioEncoderCombo);
         psAudioRateCombo = PSCombo.PSComboBuild(
             lsAudio.QSEncoderAudioRate,
-            lsAudio.QSEncoderAudioCodec.LCapabilityModeLabels);
+            lsAudio.QSEncoderAudioModes);
         psEncoderAudioRate = new PSEncoderAudioRate(lsAudio, lsDraft);
         psEncoderAudioSample = new PSEncoderAudioSample(lsAudio, lsDraft);
         psEncoderAudioChannel = new PSEncoderAudioChannel(lsAudio, lsDraft);
@@ -61,7 +61,7 @@ internal sealed class PSEncoderAudio
 
     private void PSAudioEncoderUpdate()
     {
-        bool pAvailable = QSEncoderAudio.QSEncoderAudioCheck(PSCombo.PSComboTextRead(psAudioEncoderCombo));
+        bool pAvailable = lsEncoderAudio.QSEncoderAudioCheck(PSCombo.PSComboTextRead(psAudioEncoderCombo));
         PSAudioWarningApply(pAvailable);
         if (!pAvailable)
         {
@@ -78,7 +78,7 @@ internal sealed class PSEncoderAudio
     internal void PSAudioContainerHandle(string pContainer)
     {
         string pCurrent = PSAudioSelectedRead();
-        string[] pItems = QSEncoderAudio.QSEncoderAudioRead(pContainer, pCurrent);
+        string[] pItems = lsEncoderAudio.QSEncoderAudioRead(pContainer, pCurrent);
         PSEncoderVerification.PSEncoderComboApply(
             psAudioEncoderCombo, pItems, PSEncoderVerification.PSEncoderChoiceResolve(pItems, pCurrent));
         PSAudioEncoderUpdate();
@@ -205,7 +205,7 @@ internal sealed class PSEncoderAudio
 
     internal void PSAudioRowsApply()
     {
-        string[] pModeLabels = lsEncoderAudio.QSEncoderAudioCodec.LCapabilityModeLabels;
+        string[] pModeLabels = lsEncoderAudio.QSEncoderAudioModes;
         if (!PSEncoderLabelsCheck(psAudioRateCombo, pModeLabels))
         {
             PSAudioLabelsApply(pModeLabels);
