@@ -1,0 +1,43 @@
+<UserControl x:Class="Cadroue.UIVeneer.PSEncoderFramerate"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="psEncoderFramerateMuted" Color="#626F83" />
+        <SolidColorBrush x:Key="psEncoderFramerateInk" Color="#1D2A3D" />
+    </UserControl.Resources>
+    <StackPanel>
+        <Grid Margin="0,0,0,9" MinHeight="32">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="130" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="psEncoderFramerateCaption"
+                       Foreground="{StaticResource psEncoderFramerateMuted}"
+                       VerticalAlignment="Center" />
+            <StackPanel Grid.Column="1"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Left"
+                        MinHeight="32">
+                <Slider x:Name="psEncoderFramerateScale"
+                        Minimum="0"
+                        SmallChange="1"
+                        LargeChange="1"
+                        TickFrequency="1"
+                        IsSnapToTickEnabled="True"
+                        Width="220"
+                        VerticalAlignment="Center" />
+                <TextBox x:Name="psEncoderFramerateValue"
+                         Width="88"
+                         Height="32"
+                         HorizontalAlignment="Left"
+                         VerticalAlignment="Center"
+                         Margin="12,0,0,0"
+                         Padding="6,0,10,0" />
+            </StackPanel>
+        </Grid>
+        <TextBlock x:Name="psEncoderFramerateHint"
+                   Foreground="{StaticResource psEncoderFramerateMuted}"
+                   TextWrapping="Wrap"
+                   Margin="130,-7,0,9" />
+    </StackPanel>
+</UserControl>

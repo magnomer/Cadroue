@@ -12,7 +12,7 @@ internal sealed class PSEncoderVideo
     private readonly Window psEncoderWindow;
     private readonly PSEncoderVideoRate psEncoderVideoRate;
     private readonly PSEncoderVideoResolution psEncoderVideoResolution;
-    private readonly PSEncoderVideoFps psEncoderVideoFps;
+    private readonly QSEncoderFramerate psEncoderFramerate;
     private readonly Border psVideoMode;
     private readonly ComboBox psVideoEncoderCombo;
     private readonly ComboBox psVideoRateCombo;
@@ -38,7 +38,7 @@ internal sealed class PSEncoderVideo
         psVideoNotice = PSEncoderNotice.PSEncoderNoticeBuild();
         psVideoEncoderNotice = PSEncoderNotice.PSEncoderErrorBuild();
         psEncoderVideoResolution = new PSEncoderVideoResolution(lsSize, lsDraft.LPresetVideo.LPresetSizeReactive);
-        psEncoderVideoFps = new PSEncoderVideoFps(lsDraft.LPresetVideo.LPresetFps);
+        psEncoderFramerate = new QSEncoderFramerate(new PSEncoderFramerate(), lsDraft.LPresetVideo.LPresetFps);
         psVideoPixelCombo = PSCombo.PSComboBuild(lsDraft.LPresetVideo.LPresetPixelLayout,
             new LLocalizationChoice("Auto", "Encoder.Codec.Auto"),
             new LLocalizationChoice("yuv420p", "Encoder.Pixel.Yuv420"),
@@ -56,7 +56,7 @@ internal sealed class PSEncoderVideo
         lsEncoderDraft.LPresetVideo.LPresetQuality = psEncoderVideoRate.PSVideoQualityRead();
         lsEncoderDraft.LPresetVideo.LPresetSpeedPreset = psEncoderVideoRate.PSVideoSpeedRead();
         lsEncoderDraft.LPresetVideo.LPresetSizeReactive = psEncoderVideoResolution.PSVideoReactiveRead();
-        lsEncoderDraft.LPresetVideo.LPresetFps = psEncoderVideoFps.PSVideoFpsRead();
+        lsEncoderDraft.LPresetVideo.LPresetFps = psEncoderFramerate.QSEncoderFramerateRead();
         lsEncoderDraft.LPresetVideo.LPresetPixelLayout = PSCombo.PSComboTextRead(psVideoPixelCombo);
         lsEncoderDraft.LPresetVideo.LPresetExtras = psEncoderVideoRate.PSVideoExtrasRead();
     }
@@ -127,7 +127,7 @@ internal sealed class PSEncoderVideo
                 psVideoRateCombo));
         psVideoEncodePanel.Children.Add(psEncoderVideoRate.PSVideoRowsPanel);
         psEncoderVideoResolution.PSVideoResolutionBuild(psVideoEncodePanel);
-        psEncoderVideoFps.PSVideoFpsBuild(psVideoEncodePanel);
+        psVideoEncodePanel.Children.Add(psEncoderFramerate.QSEncoderFramerateBuild());
         psVideoEncodePanel.Children.Add(
             PSField.PSFieldBuild(
                 QLocalizationCatalog.QLocalizationTextRead("Encoder.Video.Field.PixelFormat"),
