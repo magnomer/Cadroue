@@ -25,4 +25,10 @@ internal sealed class TRepertoirePort : LSRepertoirePort
     public string? LSRepertoireAudioResolve(string lText) => null;
 
     public LCapabilityCodec LSRepertoireAudioRead(string lText) => new(lText, [new("Default")]);
+
+    public (LCapabilityCodec, LCapabilityMode) LSRepertoireAudioRead(string lText, string lRate)
+    {
+        LCapabilityCodec codec = LSRepertoireAudioRead(lText);
+        return (codec, codec.LCapabilityModes[0]);
+    }
 }

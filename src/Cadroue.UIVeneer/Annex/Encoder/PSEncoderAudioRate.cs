@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Application;
-using Cadroue.Core;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
@@ -24,25 +23,23 @@ internal sealed class PSEncoderAudioRate
 
     internal string PSAudioQualityRead() => PSEncoderValue.PSEncoderTrimRead(psAudioQualityBox);
 
-    internal string PSAudioSpeedRead() =>
-        psAudioSpeedCombo is null ? string.Empty : PSCombo.PSComboTextRead(psAudioSpeedCombo);
+    internal string PSAudioSpeedRead() => QSEncoderAudio.QSEncoderAudioRead(psAudioSpeedCombo);
 
     internal Dictionary<string, string> PSAudioExtrasRead() => PSEncoderValue.PSEncoderExtrasRead(psAudioExtraCombos);
 
     internal void PSAudioRowsRebuild()
     {
         PSAudioRowsClear();
-        LCapabilityCodec pCodec = lsEncoderAudio.QSEncoderAudioCodec;
-        LCapabilityMode pMode = pCodec.LCapabilityModeFind(lsEncoderAudio.QSEncoderAudioRate);
-        bool pModeStored = PSAudioModeCheck(pMode);
+        QSEncoderAudioCodec pCodec = lsEncoderAudio.QSEncoderAudioRead();
+        bool pModeStored = PSAudioModeCheck(pCodec.QSEncoderAudioMode);
 
-        PSAudioQualityBuild(pMode, pModeStored);
-        PSAudioSpeedBuild(pCodec, pModeStored);
-        PSAudioExtraBuild(pCodec);
+        PSAudioQualityBuild(pCodec.QSEncoderAudioQuality, pModeStored);
+        PSAudioSpeedBuild(pCodec.QSEncoderAudioSpeed, pModeStored);
+        PSAudioExtraBuild(pCodec.QSEncoderAudioExtras);
 
-        if (!string.IsNullOrWhiteSpace(pCodec.LCapabilityNotice))
+        if (!string.IsNullOrWhiteSpace(pCodec.QSEncoderAudioCaution))
         {
-            PSAudioRowAdd(PSNotice.PSNoticeBuild(pCodec.LCapabilityNotice));
+            PSAudioRowAdd(PSNotice.PSNoticeBuild(pCodec.QSEncoderAudioCaution));
         }
     }
 
@@ -54,8 +51,8 @@ internal sealed class PSEncoderAudioRate
         psAudioExtraCombos.Clear();
     }
 
-    private bool PSAudioModeCheck(LCapabilityMode pMode) => string.Equals(
-        pMode.LCapabilityModeLabel,
+    private bool PSAudioModeCheck(string pMode) => string.Equals(
+        pMode,
         lsEncoderDraft.LPresetAudio.LPresetRateControl,
         StringComparison.Ordinal);
 
@@ -64,28 +61,28 @@ internal sealed class PSEncoderAudioRate
     private static string PSAudioStoredResolve(bool pModeStored, string pStored, string pDefault) =>
         pModeStored && !string.IsNullOrWhiteSpace(pStored) ? pStored : pDefault;
 
-    private void PSAudioQualityBuild(LCapabilityMode pMode, bool pModeStored)
+    private void PSAudioQualityBuild(QSCodecQuality? pQuality, bool pModeStored)
     {
-        if (pMode.LCapabilityModeQuality is not LCapabilityQuality pQuality)
+        if (pQuality is null)
         {
             return;
         }
 
         string pText = PSAudioStoredResolve(
-            pModeStored, lsEncoderDraft.LPresetAudio.LPresetQuality, pQuality.LCapabilityQualityDefault);
+            pModeStored, lsEncoderDraft.LPresetAudio.LPresetQuality, pQuality.QSCodecQualityDefault);
         TextBox pBox = PSAudioEntryBuild(pText);
-        if (pQuality.LCapabilityQualityMinimum is double pMinimum
-            && pQuality.LCapabilityQualityMaximum is double pMaximum)
+        if (pQuality.QSCodecQualityMinimum is double pMinimum
+            && pQuality.QSCodecQualityMaximum is double pMaximum)
         {
             PSAudioRowAdd(PSField.PSFieldBuild(
-                pQuality.LCapabilityQualityLabel, PSAudioSliderBuild(pQuality, pMinimum, pMaximum, pText, pBox)));
+                pQuality.QSCodecQualityLabel, PSAudioSliderBuild(pQuality, pMinimum, pMaximum, pText, pBox)));
         }
         else
         {
-            PSAudioRowAdd(PSField.PSFieldBuild(pQuality.LCapabilityQualityLabel, pBox));
+            PSAudioRowAdd(PSField.PSFieldBuild(pQuality.QSCodecQualityLabel, pBox));
         }
 
-        PSAudioRowAdd(PSNotice.PSNoticeBuild(PSAudioOptionFormat(pQuality)));
+        PSAudioRowAdd(PSNotice.PSNoticeBuild(pQuality.QSCodecQualityRange));
     }
 
     private TextBox PSAudioEntryBuild(string pText)
@@ -96,74 +93,71 @@ internal sealed class PSEncoderAudioRate
     }
 
     private static UIElement PSAudioSliderBuild(
-        LCapabilityQuality pQuality, double pMinimum, double pMaximum, string pText, TextBox pBox) =>
-        pQuality.LCapabilityQualityBitrate
+        QSCodecQuality pQuality, double pMinimum, double pMaximum, string pText, TextBox pBox) =>
+        pQuality.QSCodecQualityBitrate
             ? PSFaderBitrate.PSFaderBitrateBuild(pMinimum, pMaximum, pText, pBox)
             : PSFaderQuality.PSFaderQualityBuild(
                 pMinimum,
                 pMaximum,
-                pQuality.LCapabilityQualityStep,
+                pQuality.QSCodecQualityStep,
                 pText,
                 pBox,
-                pQuality.LCapabilityQualityAscending);
+                pQuality.QSCodecQualityAscending);
 
-    private static string PSAudioOptionFormat(LCapabilityQuality pQuality)
+    private void PSAudioSpeedBuild(QSCodecSpeed? pSpeed, bool pModeStored)
     {
-        string pRange = pQuality.LCapabilityQualityRange;
-        return string.IsNullOrEmpty(pRange)
-            ? QLocalizationCatalog.QLocalizationFormat("Encoder.Audio.FFmpegOption", pQuality.LCapabilityQualityOption)
-            : QLocalizationCatalog.QLocalizationFormat(
-                "Encoder.Audio.FFmpegOptionRange",
-                pQuality.LCapabilityQualityOption,
-                pRange);
-    }
-
-    private void PSAudioSpeedBuild(LCapabilityCodec pCodec, bool pModeStored)
-    {
-        if (pCodec.LCapabilitySpeed is not LCapabilitySpeed pSpeed)
+        if (pSpeed is null)
         {
             return;
         }
 
         string pSelected = PSAudioStoredResolve(
-            pModeStored, lsEncoderDraft.LPresetAudio.LPresetSpeed, pSpeed.LCapabilitySpeedDefault);
-        ComboBox pCombo = PSAudioPickerBuild(pSelected, pSpeed.LCapabilitySpeedValues);
-        PSAudioRowAdd(PSField.PSFieldBuild(pSpeed.LCapabilitySpeedLabel, pCombo));
+            pModeStored, lsEncoderDraft.LPresetAudio.LPresetSpeed, pSpeed.QSCodecSpeedDefault);
+        ComboBox pCombo = PSAudioPickerBuild(pSelected, pSpeed.QSCodecSpeedValues);
+        PSAudioRowAdd(PSField.PSFieldBuild(pSpeed.QSCodecSpeedLabel, pCombo));
     }
 
-    private ComboBox PSAudioPickerBuild(string pSelected, IReadOnlyList<LCapabilityChoice> pValues)
+    private ComboBox PSAudioPickerBuild(string pSelected,
+        IReadOnlyList<(string QSEncoderChoiceToken, string QSEncoderChoiceLabel)> pValues)
     {
-        ComboBox pCombo = PSCombo.PSComboBuild(pSelected, PSEncoderValue.PSEncoderChoicesRead(pValues));
+        ComboBox pCombo = QSEncoderAudio.QSEncoderAudioBuild(
+            pSelected, pValues, 260, PSField.PSFieldControlHeight);
         psAudioSpeedCombo = pCombo;
         return pCombo;
     }
 
-    private void PSAudioExtraBuild(LCapabilityCodec pCodec)
+    private void PSAudioExtraBuild(IReadOnlyList<(string QSCodecExtraLabel, string QSCodecExtraOption,
+        string QSCodecExtraDefault, IReadOnlyList<(string QSEncoderChoiceToken,
+        string QSEncoderChoiceLabel)> QSCodecExtraValues)> pExtras)
     {
-        foreach (LCapabilityExtra pExtra in pCodec.LCapabilityExtraList)
+        foreach (var pExtra in pExtras)
         {
             string pSelected = PSAudioExtraResolve(pExtra);
             ComboBox pCombo = PSAudioChoiceBuild(pExtra, pSelected);
-            PSAudioRowAdd(PSField.PSFieldBuild(pExtra.LCapabilityExtraLabel, pCombo));
+            PSAudioRowAdd(PSField.PSFieldBuild(pExtra.QSCodecExtraLabel, pCombo));
         }
     }
 
-    private string PSAudioExtraResolve(LCapabilityExtra pExtra) =>
+    private string PSAudioExtraResolve((string QSCodecExtraLabel, string QSCodecExtraOption,
+        string QSCodecExtraDefault, IReadOnlyList<(string QSEncoderChoiceToken,
+        string QSEncoderChoiceLabel)> QSCodecExtraValues) pExtra) =>
         lsEncoderDraft.LPresetAudio.LPresetExtras.TryGetValue(
-                pExtra.LCapabilityExtraOption,
+                pExtra.QSCodecExtraOption,
                 out string? pStored)
-            && pExtra.LCapabilityExtraValues.Any(pChoice => string.Equals(
-                pChoice.LCapabilityChoiceValue,
+            && pExtra.QSCodecExtraValues.Any(pChoice => string.Equals(
+                pChoice.QSEncoderChoiceToken,
                 pStored,
                 StringComparison.Ordinal))
             ? pStored
-            : pExtra.LCapabilityExtraDefault;
+            : pExtra.QSCodecExtraDefault;
 
-    private ComboBox PSAudioChoiceBuild(LCapabilityExtra pExtra, string pSelected)
+    private ComboBox PSAudioChoiceBuild((string QSCodecExtraLabel, string QSCodecExtraOption,
+        string QSCodecExtraDefault, IReadOnlyList<(string QSEncoderChoiceToken,
+        string QSEncoderChoiceLabel)> QSCodecExtraValues) pExtra, string pSelected)
     {
-        ComboBox pCombo = PSCombo.PSComboBuild(
-            pSelected, PSEncoderValue.PSEncoderChoicesRead(pExtra.LCapabilityExtraValues));
-        psAudioExtraCombos[pExtra.LCapabilityExtraOption] = pCombo;
+        ComboBox pCombo = QSEncoderAudio.QSEncoderAudioBuild(
+            pSelected, pExtra.QSCodecExtraValues, 260, PSField.PSFieldControlHeight);
+        psAudioExtraCombos[pExtra.QSCodecExtraOption] = pCombo;
         return pCombo;
     }
 }

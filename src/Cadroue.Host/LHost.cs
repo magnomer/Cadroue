@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using Cadroue.Application;
 using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
@@ -69,7 +70,8 @@ Func<LEngine, LAtelierPort> port = static engine => new LAtelierPort
         LRepertoireAudioCatalog.LRepertoireAudioCandidates,
         LRepertoireCatalog.LRepertoireAudioCheck,
         LRepertoireAudioCatalog.LRepertoireAudioResolve,
-        lText => LCapability.LCapabilityAudioRead(LCapability.LCapabilityNameRead(lText))),
+        LSCodec.LSCodecAudioRead,
+        LSCodec.LSCodecAudioRead),
 };
 
 int code = 1;

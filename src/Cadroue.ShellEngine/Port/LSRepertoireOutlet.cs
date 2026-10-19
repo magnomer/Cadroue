@@ -15,6 +15,7 @@ public sealed class LSRepertoireOutlet : LSRepertoirePort
     private readonly Func<string, string, bool> _lsRepertoireAudioFilter;
     private readonly Func<string, string?> _lsRepertoireAudioToken;
     private readonly Func<string, LCapabilityCodec> _lsRepertoireAudioCapability;
+    private readonly Func<string, string, (LCapabilityCodec, LCapabilityMode)> _lsRepertoireOutletResolver;
 
     public LSRepertoireOutlet(
         Func<IReadOnlyList<LRepertoireEncoder>> lRepertoire,
@@ -25,7 +26,8 @@ public sealed class LSRepertoireOutlet : LSRepertoirePort
         IReadOnlyList<LRepertoireAudio> lAudio,
         Func<string, string, bool> lAudioFilter,
         Func<string, string?> lAudioToken,
-        Func<string, LCapabilityCodec> lAudioCapability)
+        Func<string, LCapabilityCodec> lAudioCapability,
+        Func<string, string, (LCapabilityCodec, LCapabilityMode)> lAudioResolver)
     {
         ArgumentNullException.ThrowIfNull(lRepertoire);
         ArgumentNullException.ThrowIfNull(lMedia);
@@ -36,6 +38,7 @@ public sealed class LSRepertoireOutlet : LSRepertoirePort
         ArgumentNullException.ThrowIfNull(lAudioFilter);
         ArgumentNullException.ThrowIfNull(lAudioToken);
         ArgumentNullException.ThrowIfNull(lAudioCapability);
+        ArgumentNullException.ThrowIfNull(lAudioResolver);
         _lsRepertoireReader = lRepertoire;
         _lsRepertoireContainers = lMedia;
         _lsRepertoireFilter = lFilter;
@@ -45,6 +48,7 @@ public sealed class LSRepertoireOutlet : LSRepertoirePort
         _lsRepertoireAudioFilter = lAudioFilter;
         _lsRepertoireAudioToken = lAudioToken;
         _lsRepertoireAudioCapability = lAudioCapability;
+        _lsRepertoireOutletResolver = lAudioResolver;
     }
 
     public IReadOnlyList<LRepertoireEncoder> LSRepertoireEncodersRead() => _lsRepertoireReader();
@@ -64,4 +68,7 @@ public sealed class LSRepertoireOutlet : LSRepertoirePort
     public string? LSRepertoireAudioResolve(string lText) => _lsRepertoireAudioToken(lText);
 
     public LCapabilityCodec LSRepertoireAudioRead(string lText) => _lsRepertoireAudioCapability(lText);
+
+    public (LCapabilityCodec, LCapabilityMode) LSRepertoireAudioRead(string lText, string lRate) =>
+        _lsRepertoireOutletResolver(lText, lRate);
 }

@@ -32,4 +32,6 @@ public interface LSRepertoirePort
 
     // The audio codec an encoder text reads; an unknown text reads the fallback audio codec.
     LCapabilityCodec LSRepertoireAudioRead(string lText);
+
+    (LCapabilityCodec, LCapabilityMode) LSRepertoireAudioRead(string lText, string lRate);
 }

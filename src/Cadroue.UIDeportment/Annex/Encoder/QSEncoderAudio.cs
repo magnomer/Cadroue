@@ -1,5 +1,6 @@
 using Cadroue.Conduct;
-using Cadroue.Core;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace Cadroue.UIDeportment;
 
@@ -24,8 +25,40 @@ public sealed class QSEncoderAudio
 
     public string[] QSEncoderAudioModes => qsEncoderAudioGate.CSEncoderAudioState.CSEncoderAudioModes.ToArray();
 
-    public LCapabilityCodec QSEncoderAudioCodec =>
-        LCapability.LCapabilityAudioRead(LCapability.LCapabilityNameRead(QSEncoderAudioEncoder));
+    public QSEncoderAudioCodec QSEncoderAudioRead()
+    {
+        CSEncoderAudioCodec codec = qsEncoderAudioGate.CSEncoderAudioRead();
+        return new QSEncoderAudioCodec(
+            codec.CSEncoderAudioMode,
+            codec.CSEncoderAudioQuality is { } quality ? QSCodecQuality.QSCodecQualityRead(quality) : null,
+            codec.CSEncoderAudioSpeed is { } speed ? QSCodecSpeed.QSCodecSpeedRead(speed) : null,
+            codec.CSEncoderAudioExtras,
+            codec.CSEncoderAudioCaution);
+    }
+
+    public static ComboBox QSEncoderAudioBuild(
+        string selected, IReadOnlyList<(string QSEncoderChoiceToken, string QSEncoderChoiceLabel)> values,
+        double width, double height)
+    {
+        QSEncoderChoice[] items = values
+            .Select(value => new QSEncoderChoice(value.QSEncoderChoiceToken, value.QSEncoderChoiceLabel))
+            .ToArray();
+        var combo = new ComboBox
+        {
+            ItemsSource = items,
+            SelectedItem = items.Where(item => string.Equals(
+                    item.QSEncoderChoiceToken, selected, StringComparison.Ordinal))
+                .Concat(items).FirstOrDefault(),
+            MinWidth = width,
+            Height = height,
+            HorizontalAlignment = HorizontalAlignment.Left
+        };
+        QDropdown.QDropdownAttach(combo);
+        return combo;
+    }
+
+    public static string QSEncoderAudioRead(ComboBox? combo) =>
+        QSEncoderChoice.QSEncoderChoiceRead(combo?.SelectedItem);
 
     public IReadOnlyList<QSVerdictRow> QSEncoderAudioResults => qsEncoderAudioResults;
 

@@ -245,6 +245,7 @@ internal static partial class TInterface
                 LRepertoireAudioCatalog.LRepertoireAudioCandidates,
                 LRepertoireCatalog.LRepertoireAudioCheck,
                 LRepertoireAudioCatalog.LRepertoireAudioResolve,
-                text => LCapability.LCapabilityAudioRead(LCapability.LCapabilityNameRead(text))),
+                LSCodec.LSCodecAudioRead,
+                LSCodec.LSCodecAudioRead),
         });
 }

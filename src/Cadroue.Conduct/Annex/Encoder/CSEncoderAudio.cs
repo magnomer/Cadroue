@@ -36,6 +36,25 @@ public sealed class CSEncoderAudio
 
     public CSEncoderAudioState CSEncoderAudioState => _csEncoderAudioState;
 
+    public CSEncoderAudioCodec CSEncoderAudioRead()
+    {
+        CSEncoderAudioState state = _csEncoderAudioState;
+        (LCapabilityCodec codec, LCapabilityMode mode) = _csEncoderAudioRepertoire.LSRepertoireAudioRead(
+            state.CSEncoderAudioEncoder, state.CSEncoderAudioRate);
+        return new CSEncoderAudioCodec(
+            mode.LCapabilityModeLabel,
+            mode.LCapabilityModeQuality is { } quality ? CSCodecQuality.CSCodecQualityRead(quality) : null,
+            codec.LCapabilitySpeed is { } speed ? CSCodecSpeed.CSCodecSpeedRead(speed) : null,
+            codec.LCapabilityExtraList.Select(extra => (
+                extra.LCapabilityExtraLabel,
+                extra.LCapabilityExtraOption,
+                extra.LCapabilityExtraDefault,
+                (IReadOnlyList<(string CSEncoderChoiceToken, string CSEncoderChoiceLabel)>)extra.LCapabilityExtraValues
+                    .Select(choice => (choice.LCapabilityChoiceValue, choice.LCapabilityChoiceLabel))
+                    .ToArray())).ToArray(),
+            codec.LCapabilityNotice);
+    }
+
     public IReadOnlyList<CSEncoderRow> CSEncoderAudioRows => _csEncoderAudioRows;
 
     // Keeps the encoder and its rate resolved against the encoder's codec; answers whether the choice changed.
