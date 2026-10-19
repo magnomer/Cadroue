@@ -2,9 +2,12 @@ using System.Runtime.ExceptionServices;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Markup;
 using System.Windows.Threading;
 using System.Xml.Linq;
+
+using Cadroue.UIDeportment;
 
 using Xunit;
 
@@ -44,6 +47,43 @@ public sealed class TLookSheet
         });
 
         Assert.Equal(0.35, faded, 3);
+    }
+
+    // The window carries only the scrollbar attach and no reach; the style the attach sets must wire the bar itself.
+    [Fact]
+    public void Scrollbar_HostWithoutReach_WiresPage()
+    {
+        double offset = 0;
+        string sheet = Path.Combine(TLookSheetFind(), "src", "Cadroue.UIVeneer", "Kit", "PScrollbar.xaml");
+        TLookSheetRun(() =>
+        {
+            System.Windows.Application? program = System.Windows.Application.Current;
+            if (program is null)
+            {
+                program = new System.Windows.Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
+            }
+
+            if (program.TryFindResource("PScrollbar") is null)
+            {
+                using FileStream stream = File.OpenRead(sheet);
+                program.Resources.MergedDictionaries.Add((ResourceDictionary)XamlReader.Load(stream));
+            }
+
+            Window window = new() { Width = 120, Height = 80, ShowInTaskbar = false, WindowStyle = WindowStyle.None };
+            ScrollViewer viewer = new() { Content = new Border { Height = 1000 } };
+            window.Content = viewer;
+            QScrollbar.QScrollbarAttach(window);
+            window.Show();
+            window.Dispatcher.Invoke(() => { }, DispatcherPriority.SystemIdle);
+            ScrollBar bar = (ScrollBar)viewer.Template.FindName("PART_VerticalScrollBar", viewer);
+            RepeatButton ahead = (RepeatButton)bar.Template.FindName("PScrollbarAhead", bar);
+            ahead.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, ahead));
+            window.Dispatcher.Invoke(() => { }, DispatcherPriority.SystemIdle);
+            offset = viewer.VerticalOffset;
+            window.Close();
+        });
+
+        Assert.True(offset > 0);
     }
 
     private static void TLookSheetRun(Action body)

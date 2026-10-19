@@ -20,20 +20,24 @@ public static class QScrollbar
         EventManager.RegisterClassHandler(
             typeof(ScrollBar),
             FrameworkElement.LoadedEvent,
-            new RoutedEventHandler((lSender, _) => QScrollbarLoad((ScrollBar)lSender)),
+            new RoutedEventHandler(QScrollbarLoad),
             true);
 
-    // Every scrollbar below the host takes the style; the class handler does the rest when each one loads.
+    // Every scrollbar below the host takes a style whose own Loaded setter wires it, so Loaded reaches it whoever
+    // holds the host; where a reached surface also runs the class handler, the load guard keeps the work to once.
     public static void QScrollbarAttach(FrameworkElement lHost)
     {
         ArgumentNullException.ThrowIfNull(lHost);
 
-        lHost.Resources[typeof(ScrollBar)] = QContract.QContractSheetFind<Style>(QScrollbarStyle);
+        Style lStyle = new(typeof(ScrollBar), QContract.QContractSheetFind<Style>(QScrollbarStyle));
+        lStyle.Setters.Add(new EventSetter(FrameworkElement.LoadedEvent, new RoutedEventHandler(QScrollbarLoad)));
+        lHost.Resources[typeof(ScrollBar)] = lStyle;
     }
 
     // The horizontal style is BasedOn the vertical one, so the work keyed on the base runs once either way.
-    private static void QScrollbarLoad(ScrollBar lBar)
+    private static void QScrollbarLoad(object lSender, RoutedEventArgs lEvent)
     {
+        ScrollBar lBar = (ScrollBar)lSender;
         if (QLook.QLookStyleResolve(lBar, [QScrollbarStyle]) is null)
         {
             return;

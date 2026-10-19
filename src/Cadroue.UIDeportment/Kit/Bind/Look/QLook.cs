@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
@@ -21,7 +22,8 @@ internal static class QLook
 
     private static readonly RoutedEventHandler QLookBroadcast = (_, _) => { };
 
-    private static readonly Dictionary<Style, string> QLookStyle = [];
+    // Written by each scan and read by every load, on whichever thread runs them.
+    private static readonly ConcurrentDictionary<Style, string> QLookStyle = new();
 
     // An element is wired once, by whichever path reaches it first; the entry holds the sheets its states follow.
     private static readonly ConditionalWeakTable<FrameworkElement, IReadOnlyList<string>> QLookWatch = new();
