@@ -1,6 +1,7 @@
 using System.Windows.Controls;
 using Cadroue.Application;
 using Cadroue.Core;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
 
@@ -10,7 +11,9 @@ internal static class PSEncoderValue
 
     internal static Dictionary<string, string> PSEncoderExtrasRead(Dictionary<string, ComboBox> pCombos) =>
         pCombos.ToDictionary(
-            pExtra => pExtra.Key, pExtra => PSCombo.PSComboTextRead(pExtra.Value), StringComparer.Ordinal);
+            pExtra => pExtra.Key,
+            pExtra => QSEncoderChoice.QSEncoderChoiceRead(pExtra.Value.SelectedItem),
+            StringComparer.Ordinal);
 
     internal static LLocalizationChoice[] PSEncoderChoicesRead(IReadOnlyList<LCapabilityChoice> pChoices) =>
         pChoices

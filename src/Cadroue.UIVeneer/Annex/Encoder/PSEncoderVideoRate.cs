@@ -133,7 +133,7 @@ internal sealed class PSEncoderVideoRate
     {
         foreach (QSEncoderExtra pExtra in pExtras)
         {
-            ComboBox pCombo = PSCombo.PSComboBuild(pExtra.QSEncoderExtraSelected, pExtra.QSEncoderExtraChoices);
+            ComboBox pCombo = PSCombo.PSComboBuild(pExtra.QSEncoderExtraIndex, pExtra.QSEncoderExtraChoices);
             psVideoExtraCombos[pExtra.QSEncoderExtraOption] = pCombo;
             PSVideoRowsPanel.Children.Add(PSField.PSFieldBuild(pExtra.QSEncoderExtraLabel, pCombo));
         }

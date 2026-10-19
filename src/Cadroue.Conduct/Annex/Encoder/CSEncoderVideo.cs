@@ -12,14 +12,15 @@ public sealed record CSEncoderState(
     CSEncoderCodec CSEncoderStateCodec)
 {
     // The kept mode is the codec's mode the resolved rate labels.
-    internal static CSEncoderState CSEncoderStateRead(LSRepertoirePort repertoire, string encoder, string rate)
+    internal static CSEncoderState CSEncoderStateRead(
+        LSRepertoirePort repertoire, LSEncoderPort draft, string encoder, string rate)
     {
         LCapabilityCodec codec =
             repertoire.LSRepertoireCodecRead(repertoire.LSRepertoireTokenResolve(encoder) ?? string.Empty);
         string[] labels = codec.LCapabilityModeLabels;
         string resolved = CSEncoder.CSEncoderRateResolve(labels, rate);
         LCapabilityMode mode = codec.LCapabilityModes[Array.IndexOf(labels, resolved)];
-        return new CSEncoderState(encoder, resolved, CSEncoderCodec.CSEncoderCodecRead(codec, mode));
+        return new CSEncoderState(encoder, resolved, CSEncoderCodec.CSEncoderCodecRead(codec, mode, draft, resolved));
     }
 }
 
@@ -30,14 +31,17 @@ public sealed class CSEncoderVideo
     private readonly LSTrialPort _csEncoderVideoPort;
     private readonly LSRepertoirePort _csEncoderVideoRepertoire;
     private readonly bool _csEncoderVideoSmart;
+    private readonly LSEncoderPort _csEncoderVideoDraft;
     private CSEncoderState _csEncoderVideoState;
 
-    internal CSEncoderVideo(string encoder, string rate, LSTrialPort port, LSRepertoirePort repertoire, bool smart)
+    internal CSEncoderVideo(
+        string encoder, string rate, LSTrialPort port, LSRepertoirePort repertoire, LSEncoderPort draft, bool smart)
     {
         _csEncoderVideoPort = port;
         _csEncoderVideoRepertoire = repertoire;
         _csEncoderVideoSmart = smart;
-        _csEncoderVideoState = CSEncoderState.CSEncoderStateRead(repertoire, encoder, rate);
+        _csEncoderVideoDraft = draft;
+        _csEncoderVideoState = CSEncoderState.CSEncoderStateRead(repertoire, draft, encoder, rate);
     }
 
     // Raised once per kept change of encoder or rate, with the whole new choice.
@@ -61,7 +65,8 @@ public sealed class CSEncoderVideo
     {
         CSEncoderState kept = _csEncoderVideoState;
         bool encoderChanged = !string.Equals(kept.CSEncoderStateEncoder, encoder, StringComparison.Ordinal);
-        CSEncoderState state = CSEncoderState.CSEncoderStateRead(_csEncoderVideoRepertoire, encoder, rate);
+        CSEncoderState state =
+            CSEncoderState.CSEncoderStateRead(_csEncoderVideoRepertoire, _csEncoderVideoDraft, encoder, rate);
         if (!encoderChanged
             && string.Equals(kept.CSEncoderStateRate, state.CSEncoderStateRate, StringComparison.Ordinal))
         {

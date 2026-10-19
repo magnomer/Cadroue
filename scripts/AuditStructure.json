@@ -265,8 +265,8 @@
   },
   "offers": {
     "Cadroue.Conduct>Cadroue.ShellEngine": ["LUsherPort", "LLineagePort", "LLineageAnswer", "LLineageGroup", "LLineageBatch", "LLineageStep", "LWorkspacePort", "LPlacementPort", "LViewerPort", "LEditPort", "LInspectorPort"],
-    "Cadroue.UIDeportment>Cadroue.Conduct": ["CAtelier", "CUsher", "CLineage", "CLineageAnswer", "CLineageEntry", "CLineageBatch", "CLineageStep", "CWorkspace", "CWorkspaceIntent", "CPlacement", "CInfo", "CInspector", "CGamma", "CExposure", "CVolume", "CViewer", "CEdit", "CEditVerdict"],
-    "Cadroue.UIDemeanor>Cadroue.Conduct": ["CAtelier", "CUsher", "CLineage", "CLineageAnswer", "CLineageEntry", "CLineageBatch", "CLineageStep", "CWorkspace", "CWorkspaceIntent", "CPlacement", "CInfo", "CInspector", "CGamma", "CExposure", "CVolume", "CViewer", "CEdit", "CEditVerdict"]
+    "Cadroue.UIDeportment>Cadroue.Conduct": ["CAtelier", "CUsher", "CLineage", "CLineageAnswer", "CLineageEntry", "CLineageBatch", "CLineageStep", "CWorkspace", "CWorkspaceIntent", "CPlacement", "CInfo", "CInspector", "CGamma", "CExposure", "CVolume", "CViewer", "CEdit", "CEditVerdict", "CSEncoder", "CSEncoderCodec", "CSEncoderDraft", "CSEncoderChoice", "CSEncoderExtra", "CSEncoderQuality", "CSEncoderSpeed", "CSEncoderRow", "CSEncoderTrial", "CSEncoderState", "CSEncoderVideo"],
+    "Cadroue.UIDemeanor>Cadroue.Conduct": ["CAtelier", "CUsher", "CLineage", "CLineageAnswer", "CLineageEntry", "CLineageBatch", "CLineageStep", "CWorkspace", "CWorkspaceIntent", "CPlacement", "CInfo", "CInspector", "CGamma", "CExposure", "CVolume", "CViewer", "CEdit", "CEditVerdict", "CSEncoder", "CSEncoderCodec", "CSEncoderDraft", "CSEncoderChoice", "CSEncoderExtra", "CSEncoderQuality", "CSEncoderSpeed", "CSEncoderRow", "CSEncoderTrial", "CSEncoderState", "CSEncoderVideo"]
   },
   "offerPrefixes": {
     "Cadroue.Conduct": [

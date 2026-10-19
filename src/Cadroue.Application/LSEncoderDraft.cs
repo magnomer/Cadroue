@@ -22,6 +22,12 @@ public sealed class LSEncoderDraft
             LSEncoderDraftPreset.LPresetVideo.LPresetEncoder,
             LSEncoderDraftPreset.LPresetVideo.LPresetRateControl);
 
+    public (string, string, string, IReadOnlyDictionary<string, string>) LSEncoderRateRead() =>
+        (LSEncoderDraftPreset.LPresetVideo.LPresetRateControl,
+            LSEncoderDraftPreset.LPresetVideo.LPresetQuality,
+            LSEncoderDraftPreset.LPresetVideo.LPresetSpeedPreset,
+            LSEncoderDraftPreset.LPresetVideo.LPresetExtras);
+
     // Writes the kept values into the draft, then copies the draft back into the source preset.
     public void LSEncoderDraftSave(
         string lDisplay,

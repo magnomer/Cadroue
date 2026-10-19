@@ -25,8 +25,14 @@ public sealed class CSEncoder
     public CSEncoderDraft CSEncoderDraftCreate(
         Func<(string, string, string)> read,
         Action<string, string, string, string, string, string, string> save,
+        Func<(string, string, string, IReadOnlyDictionary<string, string>)> rates,
         bool smart) =>
-        new(new LSEncoderOutlet(read, save), _csEncoderPort, _csEncoderRepertoire, smart);
+        new(new LSEncoderOutlet(read, save, rates), _csEncoderPort, _csEncoderRepertoire, smart);
+
+    internal static string CSEncoderStoredRead(string rate, string stored, string choice, string fallback) =>
+        string.Equals(rate, stored, StringComparison.Ordinal) && !string.IsNullOrWhiteSpace(choice)
+            ? choice
+            : fallback;
 
     // The rate a codec keeps: the asked rate when the codec offers it, else the codec's first mode.
     internal static string CSEncoderRateResolve(IReadOnlyList<string> modes, string rate) =>

@@ -11,6 +11,9 @@ internal static class TAuditDeportmentSetting
                     "CLineageStep", "CWorkspace", "CWorkspaceIntent", "CPlacement", "CInfo", "CInspector", "CGamma",
                     "CExposure", "CVolume",
                     "CViewer", "CEdit", "CEditVerdict",
+                    "CSEncoder", "CSEncoderCodec", "CSEncoderDraft", "CSEncoderChoice", "CSEncoderExtra",
+                    "CSEncoderQuality", "CSEncoderSpeed", "CSEncoderRow", "CSEncoderTrial",
+                    "CSEncoderState", "CSEncoderVideo",
                 ],
         };
 }

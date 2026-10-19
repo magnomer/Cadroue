@@ -17,9 +17,12 @@ public sealed class QSEncoder
     {
         qsEncoderPreset = new LSEncoderDraft(lSource);
         qsEncoderGate = lEncoder.CSEncoderDraftCreate(
-            qsEncoderPreset.LSEncoderDraftRead, qsEncoderPreset.LSEncoderDraftSave, lSmart);
+            qsEncoderPreset.LSEncoderDraftRead,
+            qsEncoderPreset.LSEncoderDraftSave,
+            qsEncoderPreset.LSEncoderRateRead,
+            lSmart);
         QSEncoderVideo = new QSEncoderVideo(
-            qsEncoderGate.CSEncoderDraftVideo, qsEncoderGate.CSEncoderDraftTrial, qsEncoderPreset.LSEncoderDraftPreset);
+            qsEncoderGate.CSEncoderDraftVideo, qsEncoderGate.CSEncoderDraftTrial);
         QSEncoderSize = new QSEncoderSize(qsEncoderPreset.LSEncoderDraftPreset);
         QSEncoderAudio = new QSEncoderAudio(qsEncoderPreset.LSEncoderDraftPreset);
         QSEncoderSuffix = new QSEncoderSuffix(qsEncoderPreset.LSEncoderDraftPreset);

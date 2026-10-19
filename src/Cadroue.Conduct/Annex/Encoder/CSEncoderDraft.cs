@@ -16,7 +16,7 @@ public sealed class CSEncoderDraft
         ArgumentNullException.ThrowIfNull(repertoire);
         _csEncoderDraftPort = draft;
         (_, string encoder, string rate) = draft.LSEncoderDraftRead();
-        CSEncoderDraftVideo = new CSEncoderVideo(encoder, rate, trial, repertoire, smart);
+        CSEncoderDraftVideo = new CSEncoderVideo(encoder, rate, trial, repertoire, draft, smart);
         CSEncoderDraftTrial = new CSEncoderTrial(trial, repertoire, CSEncoderDraftVideo);
     }
 

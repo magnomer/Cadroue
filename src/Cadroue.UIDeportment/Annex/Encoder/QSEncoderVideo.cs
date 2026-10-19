@@ -13,35 +13,78 @@ public sealed record QSEncoderQuality(
     double QSEncoderQualityStep,
     bool QSEncoderQualityAscending,
     bool QSEncoderQualityBitrate,
-    string QSEncoderQualityRange);
+    string QSEncoderQualityRange)
+{
+    internal static QSEncoderQuality QSEncoderQualityRead(CSEncoderQuality lCodec) =>
+        new(
+            lCodec.CSEncoderQualityLabel,
+            lCodec.CSEncoderQualityText,
+            lCodec.CSEncoderQualityMinimum,
+            lCodec.CSEncoderQualityMaximum,
+            lCodec.CSEncoderQualityStep,
+            lCodec.CSEncoderQualityAscending,
+            lCodec.CSEncoderQualityBitrate,
+            string.IsNullOrEmpty(lCodec.CSEncoderQualityRange)
+                ? QLocalizationCatalog.QLocalizationFormat(
+                    "Encoder.Video.FFmpegOption", lCodec.CSEncoderQualityOption)
+                : QLocalizationCatalog.QLocalizationFormat(
+                    "Encoder.Video.FFmpegOptionRange",
+                    lCodec.CSEncoderQualityOption,
+                    lCodec.CSEncoderQualityRange));
+}
 
 // The codec's speed row: its label, the place it starts at, and the label and value of each place.
 public sealed record QSEncoderSpeed(
     string QSEncoderSpeedLabel,
     int QSEncoderSpeedIndex,
     IReadOnlyList<string> QSEncoderSpeedLabels,
-    IReadOnlyList<string> QSEncoderSpeedValues);
+    IReadOnlyList<string> QSEncoderSpeedValues)
+{
+    internal static QSEncoderSpeed QSEncoderSpeedRead(CSEncoderSpeed lCodec) =>
+        new(
+            lCodec.CSEncoderSpeedLabel,
+            lCodec.CSEncoderSpeedIndex,
+            lCodec.CSEncoderSpeedLabels,
+            lCodec.CSEncoderSpeedValues);
+}
 
 // One extra option row: its label and option, the value it starts with, and the values it offers.
 public sealed record QSEncoderExtra(
     string QSEncoderExtraLabel,
     string QSEncoderExtraOption,
-    string QSEncoderExtraSelected,
-    LLocalizationChoice[] QSEncoderExtraChoices);
+    int QSEncoderExtraIndex,
+    IReadOnlyList<QSEncoderChoice> QSEncoderExtraChoices)
+{
+    internal static QSEncoderExtra QSEncoderExtraRead(CSEncoderExtra lCodec) =>
+        new(
+            lCodec.CSEncoderExtraLabel,
+            lCodec.CSEncoderExtraOption,
+            lCodec.CSEncoderExtraIndex,
+            lCodec.CSEncoderExtraChoices.Select(QSEncoderChoice.QSEncoderChoiceCreate).ToArray());
+}
 
-// The encoder window's video driver: it answers the video sheet from the video and trial gates, hands the sheet's
-// choice and trial to them, and decides what each rate row starts with from the codec and the stored draft.
+public sealed record QSEncoderChoice(string QSEncoderChoiceToken, string QSEncoderChoiceLabel)
+{
+    internal static QSEncoderChoice QSEncoderChoiceCreate(CSEncoderChoice lChoice) =>
+        new(lChoice.CSEncoderChoiceValue, lChoice.CSEncoderChoiceLabel);
+
+    public static string QSEncoderChoiceRead(object? choice) =>
+        choice is QSEncoderChoice entry
+            ? entry.QSEncoderChoiceToken
+            : LLocalizationChoice.LLocalizationChoiceRead(choice);
+
+    public override string ToString() => QSEncoderChoiceLabel ?? QSEncoderChoiceToken;
+}
+
 public sealed class QSEncoderVideo
 {
     private readonly CSEncoderVideo qsEncoderVideoGate;
     private readonly CSEncoderTrial qsEncoderVideoTrial;
-    private readonly LPreset qsEncoderVideoDraft;
 
-    internal QSEncoderVideo(CSEncoderVideo lVideo, CSEncoderTrial lTrial, LPreset lPreset)
+    internal QSEncoderVideo(CSEncoderVideo lVideo, CSEncoderTrial lTrial)
     {
         qsEncoderVideoGate = lVideo;
         qsEncoderVideoTrial = lTrial;
-        qsEncoderVideoDraft = lPreset;
         lVideo.CSEncoderVideoChanged += _ => QSEncoderVideoChanged?.Invoke();
     }
 
@@ -86,28 +129,20 @@ public sealed class QSEncoderVideo
     // The quality row starts with the stored text while the stored rate is kept, else with the mode's default.
     public QSEncoderQuality? QSEncoderVideoQuality =>
         qsEncoderVideoGate.CSEncoderVideoState.CSEncoderStateCodec.CSEncoderCodecQuality is { } lCodec
-            ? new QSEncoderQuality(
-                lCodec.CSEncoderQualityLabel,
-                QSEncoderStoredRead(qsEncoderVideoDraft.LPresetVideo.LPresetQuality, lCodec.CSEncoderQualityDefault),
-                lCodec.CSEncoderQualityMinimum,
-                lCodec.CSEncoderQualityMaximum,
-                lCodec.CSEncoderQualityStep,
-                lCodec.CSEncoderQualityAscending,
-                lCodec.CSEncoderQualityBitrate,
-                QSEncoderRangeFormat(lCodec))
+            ? QSEncoderQuality.QSEncoderQualityRead(lCodec)
             : null;
 
     // The speed row starts at the stored preset while the stored rate is kept, else at the codec's default; a value
     // the codec does not offer starts at the first place.
     public QSEncoderSpeed? QSEncoderVideoSpeed =>
         qsEncoderVideoGate.CSEncoderVideoState.CSEncoderStateCodec.CSEncoderCodecSpeed is { } lCodec
-            ? QSEncoderSpeedRead(lCodec)
+            ? QSEncoderSpeed.QSEncoderSpeedRead(lCodec)
             : null;
 
     // Each extra row starts with the stored value when the row offers it, else with its default.
     public IReadOnlyList<QSEncoderExtra> QSEncoderVideoExtras =>
         qsEncoderVideoGate.CSEncoderVideoState.CSEncoderStateCodec.CSEncoderCodecExtras
-            .Select(QSEncoderExtraRead)
+            .Select(QSEncoderExtra.QSEncoderExtraRead)
             .ToArray();
 
     private static QSVerdictRow QSEncoderVerdictRead(CSEncoderRow lEntry) =>
@@ -116,53 +151,4 @@ public sealed class QSEncoderVideo
             lEntry.CSEncoderRowEncoder,
             lEntry.CSEncoderRowSuccess,
             lEntry.CSEncoderRowMessage);
-
-    private string QSEncoderStoredRead(string lChoice, string lMode) =>
-        string.Equals(
-                QSEncoderVideoRate, qsEncoderVideoDraft.LPresetVideo.LPresetRateControl, StringComparison.Ordinal)
-            && !string.IsNullOrWhiteSpace(lChoice)
-            ? lChoice
-            : lMode;
-
-    private static string QSEncoderRangeFormat(CSEncoderQuality lCodec) =>
-        string.IsNullOrEmpty(lCodec.CSEncoderQualityRange)
-            ? QLocalizationCatalog.QLocalizationFormat("Encoder.Video.FFmpegOption", lCodec.CSEncoderQualityOption)
-            : QLocalizationCatalog.QLocalizationFormat(
-                "Encoder.Video.FFmpegOptionRange",
-                lCodec.CSEncoderQualityOption,
-                lCodec.CSEncoderQualityRange);
-
-    private QSEncoderSpeed QSEncoderSpeedRead(CSEncoderSpeed lCodec)
-    {
-        string[] lEntry = lCodec.CSEncoderSpeedValues.Select(QSEncoderValueRead).ToArray();
-        string lChoice = QSEncoderStoredRead(
-            qsEncoderVideoDraft.LPresetVideo.LPresetSpeedPreset, lCodec.CSEncoderSpeedDefault);
-        return new QSEncoderSpeed(
-            lCodec.CSEncoderSpeedLabel,
-            Math.Max(0, Array.IndexOf(lEntry, lChoice)),
-            lCodec.CSEncoderSpeedValues.Select(QSEncoderLabelRead).ToArray(),
-            lEntry);
-    }
-
-    private QSEncoderExtra QSEncoderExtraRead(CSEncoderExtra lCodec)
-    {
-        string? lChoice = qsEncoderVideoDraft.LPresetVideo.LPresetExtras.TryGetValue(
-            lCodec.CSEncoderExtraOption, out string? lEntry)
-            ? lEntry
-            : null;
-        return new QSEncoderExtra(
-            lCodec.CSEncoderExtraLabel,
-            lCodec.CSEncoderExtraOption,
-            lChoice is not null && lCodec.CSEncoderExtraValues.Select(QSEncoderValueRead).Contains(lChoice)
-                ? lChoice
-                : lCodec.CSEncoderExtraDefault,
-            lCodec.CSEncoderExtraValues.Select(QSEncoderChoiceRead).ToArray());
-    }
-
-    private static LLocalizationChoice QSEncoderChoiceRead(CSEncoderChoice lChoice) =>
-        new(lChoice.CSEncoderChoiceValue, string.Empty, lChoice.CSEncoderChoiceLabel);
-
-    private static string QSEncoderValueRead(CSEncoderChoice lChoice) => lChoice.CSEncoderChoiceValue;
-
-    private static string QSEncoderLabelRead(CSEncoderChoice lChoice) => lChoice.CSEncoderChoiceLabel;
 }

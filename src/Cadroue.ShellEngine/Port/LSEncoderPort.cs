@@ -6,6 +6,8 @@ public interface LSEncoderPort
     // The draft's display name, video encoder and video rate control.
     (string LSEncoderDisplay, string LSEncoderCodec, string LSEncoderRate) LSEncoderDraftRead();
 
+    (string, string, string, IReadOnlyDictionary<string, string>) LSEncoderRateRead();
+
     // Writes the kept values into the draft, then copies the draft back into the source preset.
     void LSEncoderDraftSave(
         string lDisplay,

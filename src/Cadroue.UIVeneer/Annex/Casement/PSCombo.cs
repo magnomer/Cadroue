@@ -17,6 +17,9 @@ internal static class PSCombo
     internal static ComboBox PSComboBuild(int pIndex, Action<int> pChoice, params string[] pItems) =>
         PSComboShapeBuild(pItems, pItems.ElementAtOrDefault(pIndex), pChoice);
 
+    internal static ComboBox PSComboBuild(int pIndex, IEnumerable<object> pItems) =>
+        PSComboShapeBuild(pItems, pItems.ElementAtOrDefault(pIndex), PSComboIdleHandle);
+
     internal static ComboBox PSComboBuild(string pSelected, params LLocalizationChoice[] pItems) =>
         PSComboShapeBuild(
             pItems,
