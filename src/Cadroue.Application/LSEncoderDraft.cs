@@ -34,6 +34,32 @@ public sealed class LSEncoderDraft
     public (string, string) LSEncoderAudioRead() =>
         (LSEncoderDraftPreset.LPresetAudio.LPresetEncoder, LSEncoderDraftPreset.LPresetAudio.LPresetRateControl);
 
+    public (string, bool, string, string, string) LSEncoderVideoRead() =>
+        (LSEncoderDraftPreset.LPresetVideo.LPresetMode,
+            LSEncoderDraftPreset.LPresetVideo.LPresetSizeReactive,
+            LSEncoderDraftPreset.LPresetVideo.LPresetFps,
+            LSEncoderDraftPreset.LPresetVideo.LPresetPixelLayout,
+            LSEncoderDraftPreset.LPresetContainer);
+
+    public void LSEncoderVideoSave(
+        string lMode,
+        string lQuality,
+        string lSpeed,
+        bool lReactive,
+        string lFps,
+        string lLayout,
+        IReadOnlyDictionary<string, string> lExtras)
+    {
+        LPresetVideo lVideo = LSEncoderDraftPreset.LPresetVideo;
+        lVideo.LPresetMode = lMode;
+        lVideo.LPresetQuality = lQuality;
+        lVideo.LPresetSpeedPreset = lSpeed;
+        lVideo.LPresetSizeReactive = lReactive;
+        lVideo.LPresetFps = lFps;
+        lVideo.LPresetPixelLayout = lLayout;
+        lVideo.LPresetExtras = new Dictionary<string, string>(lExtras, StringComparer.Ordinal);
+    }
+
     // Writes the kept values into the draft, then copies the draft back into the source preset.
     public void LSEncoderDraftSave(
         string lDisplay,

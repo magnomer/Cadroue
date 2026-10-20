@@ -22,6 +22,9 @@ public sealed class CSEncoderExtra
         CSEncoderExtraChoices = codec.LCapabilityExtraValues
             .Select(entry => new CSEncoderChoice(entry.LCapabilityChoiceValue, entry.LCapabilityChoiceLabel))
             .ToArray();
+        CSEncoderExtraLabels = CSEncoderExtraChoices
+            .Select(entry => entry.CSEncoderChoiceLabel ?? entry.CSEncoderChoiceValue)
+            .ToArray();
     }
 
     public string CSEncoderExtraLabel { get; }
@@ -29,6 +32,8 @@ public sealed class CSEncoderExtra
     public string CSEncoderExtraOption { get; }
 
     public IReadOnlyList<CSEncoderChoice> CSEncoderExtraChoices { get; }
+
+    public IReadOnlyList<string> CSEncoderExtraLabels { get; }
 
     public int CSEncoderExtraIndex
     {
@@ -42,4 +47,9 @@ public sealed class CSEncoderExtra
             return values.Length == 0 ? -1 : Math.Max(0, index);
         }
     }
+
+    internal string CSEncoderExtraRead(int index) =>
+        index >= 0 && index < CSEncoderExtraChoices.Count
+            ? CSEncoderExtraChoices[index].CSEncoderChoiceValue
+            : string.Empty;
 }

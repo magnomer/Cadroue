@@ -1,0 +1,85 @@
+<UserControl x:Class="Cadroue.UIVeneer.PSEncoderResolution"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="psEncoderResolutionMuted" Color="#626F83" />
+        <SolidColorBrush x:Key="psEncoderResolutionInk" Color="#1D2A3D" />
+        <DataTemplate x:Key="psEncoderResolutionDimension">
+            <Grid Margin="0,0,0,9" MinHeight="32">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="130" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="psEncoderResolutionAxis"
+                           Foreground="#626F83"
+                           VerticalAlignment="Center" />
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Left"
+                            MinHeight="32">
+                    <Slider x:Name="psEncoderResolutionScale"
+                            Minimum="0"
+                            SmallChange="1"
+                            LargeChange="1"
+                            TickFrequency="1"
+                            IsSnapToTickEnabled="True"
+                            Width="220"
+                            VerticalAlignment="Center" />
+                    <TextBox x:Name="psEncoderResolutionValue"
+                             Width="88"
+                             Height="32"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Center"
+                             Margin="12,0,0,0"
+                             Padding="6,0,10,0" />
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
+    </UserControl.Resources>
+    <StackPanel>
+        <Grid Margin="0,0,0,9" MinHeight="32">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="130" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="psEncoderResolutionCaption"
+                       Foreground="{StaticResource psEncoderResolutionMuted}"
+                       VerticalAlignment="Center" />
+            <StackPanel Grid.Column="1"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Left"
+                        MinHeight="32">
+                <Slider x:Name="psEncoderResolutionTier"
+                        Minimum="0"
+                        SmallChange="1"
+                        LargeChange="1"
+                        TickFrequency="1"
+                        IsSnapToTickEnabled="True"
+                        Width="220"
+                        VerticalAlignment="Center" />
+                <TextBlock x:Name="psEncoderResolutionReadout"
+                           Foreground="{StaticResource psEncoderResolutionInk}"
+                           Margin="12,0,0,0"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+        </Grid>
+        <StackPanel x:Name="psEncoderResolutionRows" />
+        <TextBlock x:Name="psEncoderResolutionHint"
+                   Foreground="{StaticResource psEncoderResolutionMuted}"
+                   TextWrapping="Wrap"
+                   Margin="130,-7,0,9" />
+        <Grid Margin="0,0,0,9" MinHeight="32">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="130" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="psEncoderResolutionLegend"
+                       Foreground="{StaticResource psEncoderResolutionMuted}"
+                       VerticalAlignment="Center" />
+            <CheckBox x:Name="psEncoderResolutionOrientation"
+                      Grid.Column="1"
+                      MinHeight="32"
+                      VerticalAlignment="Center" />
+        </Grid>
+    </StackPanel>
+</UserControl>

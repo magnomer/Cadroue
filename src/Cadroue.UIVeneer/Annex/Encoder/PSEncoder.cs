@@ -26,7 +26,7 @@ internal sealed class PSEncoder : Window
     private readonly QSEncoder lsEncoder;
     private readonly System.Action psEncoderSummary;
     private readonly PSEncoderOutput psEncoderOutput;
-    private readonly PSEncoderVideo psEncoderVideo;
+    private readonly QSEncoderPicture qsEncoderPicture;
     private readonly PSEncoderAudio psEncoderAudio;
     private readonly PSGrabber psEncoderGrabber;
 
@@ -41,8 +41,11 @@ internal sealed class PSEncoder : Window
             lsEncoder.QSEncoderTokenCreate(),
             this,
             PSEncoderContainerHandle);
-        psEncoderVideo = new PSEncoderVideo(
-            lsEncoder.QSEncoderVideo, lsEncoder.QSEncoderSize, lsEncoder.QSEncoderDraft, this);
+        qsEncoderPicture = new QSEncoderPicture(
+            new PSEncoderPicture(),
+            lsEncoder.QSEncoderVideo,
+            lsEncoder.QSEncoderSize,
+            pVerdict => PSVerdict.PSVerdictShow(this, pVerdict));
         psEncoderAudio = new PSEncoderAudio(lsEncoder.QSEncoderAudio, lsEncoder.QSEncoderDraft, this);
         PSEncoderAttach();
         PSEncoderWindowApply();
@@ -59,22 +62,20 @@ internal sealed class PSEncoder : Window
     private void PSEncoderContainerHandle()
     {
         string pContainer = psEncoderOutput.PSOutputContainerRead();
-        psEncoderVideo.PSCodecContainerHandle(pContainer);
+        qsEncoderPicture.QSEncoderPictureHandle(pContainer);
         psEncoderAudio.PSAudioContainerHandle(pContainer);
     }
 
     private void PSEncoderAttach()
     {
-        lsEncoder.QSEncoderVideo.QSEncoderVideoChanged += psEncoderVideo.PSVideoRowsApply;
         lsEncoder.QSEncoderAudio.QSEncoderAudioChanged += psEncoderAudio.PSAudioRowsApply;
         lsEncoder.QSEncoderHelpAttach(PSEncoderHelpHandle);
-        lsEncoder.QSEncoderSize.QSEncoderSizeChanged += psEncoderVideo.PSVideoSizeApply;
     }
 
     private void PSCodecProbeDefer() =>
         LTrialCatalog.LTrialSetDefer(() => Dispatcher.BeginInvoke(() =>
         {
-            if (IsLoaded) psEncoderVideo.PSCodecContainerHandle(psEncoderOutput.PSOutputContainerRead());
+            if (IsLoaded) qsEncoderPicture.QSEncoderPictureHandle(psEncoderOutput.PSOutputContainerRead());
         }));
 
     private void PSEncoderWindowApply()
@@ -116,7 +117,7 @@ internal sealed class PSEncoder : Window
     private UIElement PSVideoBuild()
     {
         var pPanel = new StackPanel();
-        pPanel.Children.Add(psEncoderVideo.PSVideoPlateBuild());
+        pPanel.Children.Add(qsEncoderPicture.QSEncoderPictureBuild());
         return pPanel;
     }
 
@@ -184,7 +185,7 @@ internal sealed class PSEncoder : Window
     private void PSEncoderDraftSet()
     {
         psEncoderOutput.PSOutputDraftSet();
-        psEncoderVideo.PSVideoDraftSet();
+        qsEncoderPicture.QSEncoderPictureCommit();
         psEncoderAudio.PSAudioDraftSet();
     }
 

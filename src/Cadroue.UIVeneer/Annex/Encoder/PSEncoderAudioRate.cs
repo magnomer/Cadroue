@@ -70,39 +70,24 @@ internal sealed class PSEncoderAudioRate
 
         string pText = PSAudioStoredResolve(
             pModeStored, lsEncoderDraft.LPresetAudio.LPresetQuality, pQuality.QSCodecQualityDefault);
-        TextBox pBox = PSAudioEntryBuild(pText);
-        if (pQuality.QSCodecQualityMinimum is double pMinimum
-            && pQuality.QSCodecQualityMaximum is double pMaximum)
-        {
-            PSAudioRowAdd(PSField.PSFieldBuild(
-                pQuality.QSCodecQualityLabel, PSAudioSliderBuild(pQuality, pMinimum, pMaximum, pText, pBox)));
-        }
-        else
-        {
-            PSAudioRowAdd(PSField.PSFieldBuild(pQuality.QSCodecQualityLabel, pBox));
-        }
-
-        PSAudioRowAdd(PSNotice.PSNoticeBuild(pQuality.QSCodecQualityRange));
+        PSAudioRowAdd(PSAudioEntryBuild(pQuality, pText));
     }
 
-    private TextBox PSAudioEntryBuild(string pText)
+    private PSFader PSAudioEntryBuild(QSCodecQuality pQuality, string pText)
     {
-        TextBox pBox = PSEntry.PSEntryBuild(pText, 120);
-        psAudioQualityBox = pBox;
-        return pBox;
+        var pFader = new PSFader();
+        psAudioQualityBox = QSFader.QSFaderBuild(
+            pFader,
+            pQuality.QSCodecQualityLabel,
+            pText,
+            pQuality.QSCodecQualityMinimum,
+            pQuality.QSCodecQualityMaximum,
+            pQuality.QSCodecQualityStep,
+            pQuality.QSCodecQualityAscending,
+            pQuality.QSCodecQualityBitrate,
+            pQuality.QSCodecQualityRange);
+        return pFader;
     }
-
-    private static UIElement PSAudioSliderBuild(
-        QSCodecQuality pQuality, double pMinimum, double pMaximum, string pText, TextBox pBox) =>
-        pQuality.QSCodecQualityBitrate
-            ? PSFaderBitrate.PSFaderBitrateBuild(pMinimum, pMaximum, pText, pBox)
-            : PSFaderQuality.PSFaderQualityBuild(
-                pMinimum,
-                pMaximum,
-                pQuality.QSCodecQualityStep,
-                pText,
-                pBox,
-                pQuality.QSCodecQualityAscending);
 
     private void PSAudioSpeedBuild(QSCodecSpeed? pSpeed, bool pModeStored)
     {

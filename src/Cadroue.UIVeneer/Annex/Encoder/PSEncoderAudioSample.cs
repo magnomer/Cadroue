@@ -48,20 +48,19 @@ internal sealed class PSEncoderAudioSample
 
     private void PSAudioDetentRebuild(IReadOnlyList<int> pTicks, bool pDiscrete, double pMaximum, string pStored)
     {
-        psAudioSampleReadout = PSEntry.PSEntryBuild(string.Empty, 96);
-        UIElement pNotice = PSNotice.PSNoticeBuild(
-            QLocalizationCatalog.QLocalizationTextRead("Encoder.Audio.Notice.SampleSource"));
-        UIElement pRow = PSFaderDetent.PSFaderDetentBuild(
-            pTicks, pDiscrete, pMaximum,
+        var pFader = new PSFader();
+        psAudioSampleReadout = QSFader.QSFaderBuild(
+            pFader,
+            QLocalizationCatalog.QLocalizationTextRead("Encoder.Audio.Field.SampleRate"),
+            pStored,
+            pTicks,
+            pDiscrete,
+            pMaximum,
             QLocalizationCatalog.QLocalizationTextRead("Encoder.Sample.Source"),
-            pStored, psAudioSampleReadout, pNotice);
+            QLocalizationCatalog.QLocalizationTextRead("Encoder.Audio.Notice.SampleSource"));
 
         PSAudioSamplePanel.Children.Clear();
-        PSAudioSamplePanel.Children.Add(
-            PSField.PSFieldBuild(
-                QLocalizationCatalog.QLocalizationTextRead("Encoder.Audio.Field.SampleRate"),
-                pRow));
-        PSAudioSamplePanel.Children.Add(pNotice);
+        PSAudioSamplePanel.Children.Add(pFader);
     }
 
     internal string PSAudioSampleRead()

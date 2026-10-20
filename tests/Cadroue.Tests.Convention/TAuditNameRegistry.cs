@@ -258,6 +258,7 @@ internal static class TAuditNameRegistry
     {
         ["PART_ContentHost"] = ["*"],
         ["PART_EditableTextBox"] = ["*"],
+        ["PART_Indicator"] = ["*"],
         ["PART_Popup"] = ["*"],
         ["PART_Track"] = ["*"],
     };

@@ -13,6 +13,54 @@ public sealed record CSEncoderDimension(
     int CSEncoderDimensionHeight)
 {
     public const int CSEncoderDimensionMost = 7680;
+
+    public bool CSEncoderDimensionNative => CSEncoderDimensionTier == 0;
+
+    public bool CSEncoderDimensionCustom => CSEncoderDimensionTier < 0;
+
+    public int? CSEncoderDimensionNotch => CSEncoderDimensionTier >= 0 ? CSEncoderDimensionTier : null;
+
+    public (int, int) CSEncoderDimensionKnobs =>
+        (Math.Min(CSEncoderDimensionWidth, CSEncoderDimensionMost),
+            Math.Min(CSEncoderDimensionHeight, CSEncoderDimensionMost));
+
+    public (string, string) CSEncoderDimensionShown =>
+        (CSEncoderDimensionFormat(CSEncoderDimensionWidth), CSEncoderDimensionFormat(CSEncoderDimensionHeight));
+
+    public string CSEncoderDimensionResolve(string source, string custom) =>
+        CSEncoderDimensionCustom
+            ? custom
+            : CSEncoderDimensionNative
+                ? source
+                : CSEncoderSize.CSEncoderTierLabels[CSEncoderDimensionTier];
+
+    public string? CSEncoderDimensionSync(string typed, double knob)
+    {
+        string text = CSEncoderDimensionFormat((int)Math.Round(knob));
+        return string.Equals(typed.Trim(), text, StringComparison.Ordinal)
+            || (CSEncoderDimensionNative && text.Length == 0)
+                ? null
+                : text;
+    }
+
+    public static (string, string) CSEncoderDimensionDescribe(bool? reactive)
+    {
+        bool turned = reactive == true;
+        return (
+            turned ? "Encoder.Video.Field.AxisX" : "Encoder.Video.Field.Width",
+            turned ? "Encoder.Video.Field.AxisY" : "Encoder.Video.Field.Height");
+    }
+
+    internal string CSEncoderDimensionFormat()
+    {
+        (int tier, int width, int height) = this;
+        return tier != 0 && width > 0 && height > 0
+            ? string.Create(CultureInfo.InvariantCulture, $"{width} × {height}")
+            : CSEncoderDraft.CSEncoderDraftSource;
+    }
+
+    private static string CSEncoderDimensionFormat(int value) =>
+        value > 0 ? value.ToString(CultureInfo.InvariantCulture) : string.Empty;
 }
 
 public sealed class CSEncoderSize
@@ -42,11 +90,13 @@ public sealed class CSEncoderSize
     public static IReadOnlyList<string> CSEncoderTierLabels =>
         _csEncoderTierValues.Select(tier => tier.CSEncoderTierLabel).ToArray();
 
+    public static int CSEncoderTierMost => _csEncoderTierValues.Length - 1;
+
     public CSEncoderDimension CSEncoderSizeValue => _csEncoderSizeValue;
 
-    public bool CSEncoderSizeSelect(int tier)
+    public bool CSEncoderSizeSelect(double knob)
     {
-        tier = CSEncoderSizeClamp(tier);
+        int tier = CSEncoderSizeClamp((int)Math.Round(knob));
         if (tier == _csEncoderSizeValue.CSEncoderDimensionTier)
         {
             return false;
@@ -59,9 +109,9 @@ public sealed class CSEncoderSize
         return true;
     }
 
-    public bool CSEncoderSizeSet(int width, int height)
+    public bool CSEncoderSizeSet(string width, string height)
     {
-        CSEncoderDimension value = CSEncoderSizeNormalize(width, height);
+        CSEncoderDimension value = CSEncoderSizeNormalize(CSEncoderSizeRead(width), CSEncoderSizeRead(height));
         if (value == _csEncoderSizeValue)
         {
             return false;
@@ -72,13 +122,7 @@ public sealed class CSEncoderSize
         return true;
     }
 
-    internal string CSEncoderSizeFormat()
-    {
-        (int tier, int width, int height) = _csEncoderSizeValue;
-        return tier != 0 && width > 0 && height > 0
-            ? string.Create(CultureInfo.InvariantCulture, $"{width} × {height}")
-            : CSEncoderDraft.CSEncoderDraftSource;
-    }
+    internal string CSEncoderSizeFormat() => _csEncoderSizeValue.CSEncoderDimensionFormat();
 
     private static (int, int)? CSEncoderSizeParse(string size)
     {
@@ -94,6 +138,9 @@ public sealed class CSEncoderSize
         return null;
     }
 
+    private static int CSEncoderSizeRead(string typed) =>
+        int.TryParse(typed.Trim(), out int value) && value > 0 ? value : 0;
+
     private static int CSEncoderTierResolve(int width, int height)
     {
         for (int at = 1; at < _csEncoderTierValues.Length; at++)
@@ -108,7 +155,7 @@ public sealed class CSEncoderSize
         return -1;
     }
 
-    private static int CSEncoderSizeClamp(int tier) => Math.Clamp(tier, 0, _csEncoderTierValues.Length - 1);
+    private static int CSEncoderSizeClamp(int tier) => Math.Clamp(tier, 0, CSEncoderTierMost);
 
     private static CSEncoderDimension CSEncoderSizeNormalize(int width, int height)
     {

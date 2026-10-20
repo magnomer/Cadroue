@@ -36,4 +36,16 @@ public sealed record CSEncoderCodec(
                 .Select(extra => new CSEncoderExtra(extra, draft))
                 .ToArray());
     }
+
+    public Dictionary<string, string> CSEncoderCodecResolve(IReadOnlyList<int> selected)
+    {
+        var extras = new Dictionary<string, string>(StringComparer.Ordinal);
+        for (int at = 0; at < selected.Count; at++)
+        {
+            CSEncoderExtra extra = CSEncoderCodecExtras[at];
+            extras[extra.CSEncoderExtraOption] = extra.CSEncoderExtraRead(selected[at]);
+        }
+
+        return extras;
+    }
 }

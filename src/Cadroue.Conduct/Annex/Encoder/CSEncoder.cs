@@ -28,8 +28,14 @@ public sealed class CSEncoder
         Func<(string, string, string, IReadOnlyDictionary<string, string>)> rates,
         Func<string> size,
         Func<(string, string)> audio,
+        Func<(string, bool, string, string, string)> video,
+        Action<string, string, string, bool, string, string, IReadOnlyDictionary<string, string>> videoSave,
         bool smart) =>
-        new(new LSEncoderOutlet(read, save, rates, size, audio), _csEncoderPort, _csEncoderRepertoire, smart);
+        new(
+            new LSEncoderOutlet(read, save, rates, size, audio, video, videoSave),
+            _csEncoderPort,
+            _csEncoderRepertoire,
+            smart);
 
     internal static string CSEncoderStoredRead(string rate, string stored, string choice, string fallback) =>
         string.Equals(rate, stored, StringComparison.Ordinal) && !string.IsNullOrWhiteSpace(choice)

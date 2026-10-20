@@ -13,6 +13,17 @@ public interface LSEncoderPort
     // The draft's audio encoder and audio rate control.
     (string, string) LSEncoderAudioRead();
 
+    (string, bool, string, string, string) LSEncoderVideoRead();
+
+    void LSEncoderVideoSave(
+        string lMode,
+        string lQuality,
+        string lSpeed,
+        bool lReactive,
+        string lFps,
+        string lLayout,
+        IReadOnlyDictionary<string, string> lExtras);
+
     // Writes the kept values into the draft, then copies the draft back into the source preset.
     void LSEncoderDraftSave(
         string lDisplay,

@@ -5,8 +5,6 @@ namespace Cadroue.UIDeportment;
 // The encoder window's size driver: it relays tier picks and typed sizes to the Conduct size gate.
 public sealed class QSEncoderSize
 {
-    public const int QSEncoderDimensionMost = CSEncoderDimension.CSEncoderDimensionMost;
-
     private readonly CSEncoderSize qsEncoderSizeGate;
 
     internal QSEncoderSize(CSEncoderSize lSize)
@@ -17,15 +15,9 @@ public sealed class QSEncoderSize
 
     public event Action? QSEncoderSizeChanged;
 
-    public static IReadOnlyList<string> QSEncoderTierLabels => CSEncoderSize.CSEncoderTierLabels;
+    public CSEncoderDimension QSEncoderSizeValue => qsEncoderSizeGate.CSEncoderSizeValue;
 
-    public int QSEncoderSizeTier => qsEncoderSizeGate.CSEncoderSizeValue.CSEncoderDimensionTier;
+    public bool QSEncoderTierSelect(double lKnob) => qsEncoderSizeGate.CSEncoderSizeSelect(lKnob);
 
-    public int QSEncoderWidth => qsEncoderSizeGate.CSEncoderSizeValue.CSEncoderDimensionWidth;
-
-    public int QSEncoderHeight => qsEncoderSizeGate.CSEncoderSizeValue.CSEncoderDimensionHeight;
-
-    public bool QSEncoderTierSelect(int lTier) => qsEncoderSizeGate.CSEncoderSizeSelect(lTier);
-
-    public bool QSEncoderSizeSet(int lWidth, int lHeight) => qsEncoderSizeGate.CSEncoderSizeSet(lWidth, lHeight);
+    public bool QSEncoderSizeSet(string lWidth, string lHeight) => qsEncoderSizeGate.CSEncoderSizeSet(lWidth, lHeight);
 }

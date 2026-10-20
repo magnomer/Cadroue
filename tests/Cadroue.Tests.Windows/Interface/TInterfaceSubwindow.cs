@@ -1,3 +1,4 @@
+using System.Globalization;
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
@@ -46,18 +47,19 @@ internal static partial class TInterface
     internal static bool TEncoderTierSelect(QSEncoder encoder, int tier) =>
         encoder.QSEncoderSize.QSEncoderTierSelect(tier);
     internal static bool TEncoderSizeSet(QSEncoder encoder, int width, int height) =>
-        encoder.QSEncoderSize.QSEncoderSizeSet(width, height);
-    internal static string TEncoderSizeFormat(QSEncoder encoder)
-    {
-        encoder.QSEncoderApply();
-        return encoder.QSEncoderDraft.LPresetVideo.LPresetSize;
-    }
+        encoder.QSEncoderSize.QSEncoderSizeSet(
+            width.ToString(CultureInfo.InvariantCulture), height.ToString(CultureInfo.InvariantCulture));
+    internal static string TEncoderSizeFormat(QSEncoder encoder) =>
+        encoder.QSEncoderSize.QSEncoderSizeValue.CSEncoderDimensionFormat();
     internal static string TEncoderSuffixSelect(QSEncoder encoder, string policy, string shown) =>
         encoder.QSEncoderSuffix.QSEncoderSuffixSelect(policy, shown);
     internal static string TEncoderLocationSelect(QSEncoder encoder, string mode, string shown) =>
         encoder.QSEncoderLocation.QSEncoderLocationSelect(mode, shown);
-    internal static string TEncoderNoticeResolve(QSEncoder encoder, string mode) =>
-        encoder.QSEncoderVideo.QSEncoderNoticeResolve(mode);
+    internal static string TEncoderNoticeResolve(QSEncoder encoder, int facet)
+    {
+        encoder.QSEncoderVideo.QSEncoderModeSet(facet);
+        return encoder.QSEncoderVideo.QSEncoderNoticeResolve();
+    }
     internal static void TEncoderApply(QSEncoder encoder) => encoder.QSEncoderApply();
     internal static LPreset TPresetCreate() => new();
     internal static string TPresetSuffixRead(LPreset preset, string policy) => preset.LPresetSuffixRead(policy);

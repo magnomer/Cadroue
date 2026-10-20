@@ -15,7 +15,6 @@ internal sealed class PSEncoderAudioChannel
     private readonly QSEncoderAudio lsEncoderAudio;
     private readonly LPreset lsEncoderDraft;
     private Slider? psAudioChannelSlider;
-    private TextBox? psAudioChannelReadout;
     private IReadOnlyList<string> psAudioChannelLayouts = Array.Empty<string>();
 
     internal PSEncoderAudioChannel(QSEncoderAudio lsAudio, LPreset lsDraft)
@@ -35,7 +34,7 @@ internal sealed class PSEncoderAudioChannel
         PSAudioLayoutRebuild(PSAudioCaptionsResolve(pLayouts), PSAudioPositionResolve(pLayouts, pStored));
     }
 
-    private string PSAudioLayoutRead() => psAudioChannelReadout is null
+    private string PSAudioLayoutRead() => psAudioChannelSlider is null
         ? lsEncoderDraft.LPresetAudio.LPresetChannels
         : PSAudioChannelRead();
 
@@ -71,17 +70,16 @@ internal sealed class PSEncoderAudioChannel
 
     private void PSAudioLayoutRebuild(List<string> pLabels, int pIndex)
     {
-        psAudioChannelSlider = new Slider();
-        psAudioChannelReadout = PSEntry.PSEntryBuild(string.Empty, 96);
-        UIElement pNotice = PSNotice.PSNoticeBuild(
+        var pFader = new PSFader();
+        psAudioChannelSlider = QSFader.QSFaderBuild(
+            pFader,
+            QLocalizationCatalog.QLocalizationTextRead("Encoder.Audio.Field.Channels"),
+            pLabels,
+            pIndex,
             QLocalizationCatalog.QLocalizationTextRead("Encoder.Audio.Notice.ChannelSource"));
-        UIElement pRow = PSFaderLayout.PSFaderLayoutBuild(
-            psAudioChannelSlider, pLabels, pIndex, psAudioChannelReadout, pNotice);
 
         PSAudioChannelPanel.Children.Clear();
-        PSAudioChannelPanel.Children.Add(PSField.PSFieldBuild(
-            QLocalizationCatalog.QLocalizationTextRead("Encoder.Audio.Field.Channels"), pRow));
-        PSAudioChannelPanel.Children.Add(pNotice);
+        PSAudioChannelPanel.Children.Add(pFader);
     }
 
     internal string PSAudioChannelRead()

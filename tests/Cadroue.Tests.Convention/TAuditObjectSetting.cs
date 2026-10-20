@@ -50,7 +50,7 @@ internal static class TAuditObjectSetting
         ["Hydra"] = 0,
         ["Kraken"] = 1,
         ["Spider"] = 0,
-        ["Chameleon"] = 58,
+        ["Chameleon"] = 57,
         ["Octopus"] = 1,
         ["Centipede"] = 36,
         ["Serpent"] = 0,

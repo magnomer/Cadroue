@@ -35,9 +35,19 @@ public sealed class CSEncoderTrial
 
     public IReadOnlyList<CSEncoderRow> CSEncoderTrialRows => _csEncoderTrialRows;
 
+    public IReadOnlyList<CSEncoderTrialEntry> CSEncoderTrialRead<CSEncoderTrialEntry>(
+        Func<string, string, bool, string, CSEncoderTrialEntry> compose)
+    {
+        ArgumentNullException.ThrowIfNull(compose);
+        return _csEncoderTrialRows
+            .Select(row => compose(
+                row.CSEncoderRowFamily, row.CSEncoderRowEncoder, row.CSEncoderRowSuccess, row.CSEncoderRowMessage))
+            .ToArray();
+    }
+
     // The available repertoire entries, with the chosen encoder first when it is a repertoire entry that failed.
     // A cancelled trial throws and keeps nothing.
-    public async Task<IReadOnlyList<string>> CSEncoderTrialRun(IProgress<double> feed)
+    public async Task<(IReadOnlyList<string>, int)> CSEncoderTrialRun(IProgress<double> feed)
     {
         CancellationToken token = CSEncoderTrialStart();
         IReadOnlyList<LRepertoireEncoder> candidates = _csEncoderTrialRepertoire.LSRepertoireEncodersRead();
@@ -48,7 +58,8 @@ public sealed class CSEncoderTrial
         CSEncoderTrialInsert(available, candidates);
         _csEncoderTrialRows = rows;
         CSEncoderTrialRecord(_csEncoderTrialPort, "video", rows);
-        return available;
+        return CSEncoderVideo.CSEncoderChoiceResolve(
+            available, _csEncoderTrialVideo.CSEncoderVideoState.CSEncoderStateEncoder);
     }
 
     // A new trial cancels the one still running; closing the window cancels the last one.

@@ -38,4 +38,22 @@ public sealed class CSEncoderSpeed
             return Math.Max(0, Array.IndexOf(CSEncoderSpeedValues.ToArray(), selected));
         }
     }
+
+    public double CSEncoderSpeedMost => Math.Max(CSEncoderSpeedLabels.Count - 1, 0);
+
+    public double CSEncoderSpeedOrigin =>
+        Math.Clamp(CSEncoderSpeedLabels.Count - 1 - CSEncoderSpeedIndex, 0, CSEncoderSpeedMost);
+
+    public string CSEncoderSpeedShown => CSEncoderSpeedLabels[CSEncoderSpeedIndex];
+
+    public string CSEncoderSpeedFormat(double position) =>
+        CSEncoderSpeedLabels[CSEncoderSpeedClamp(position, CSEncoderSpeedLabels.Count - 1)];
+
+    public string CSEncoderSpeedRead(double position) =>
+        CSEncoderSpeedValues.Count == 0
+            ? string.Empty
+            : CSEncoderSpeedValues[CSEncoderSpeedClamp(position, CSEncoderSpeedValues.Count - 1)];
+
+    private static int CSEncoderSpeedClamp(double position, int last) =>
+        last - Math.Clamp((int)Math.Round(position), 0, last);
 }

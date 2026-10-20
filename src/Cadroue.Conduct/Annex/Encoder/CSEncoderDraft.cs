@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Cadroue.ShellEngine;
 
 namespace Cadroue.Conduct;
@@ -49,6 +50,24 @@ public sealed class CSEncoderDraft
             audio.CSEncoderAudioEncoder,
             audio.CSEncoderAudioRate);
     }
+
+    public (string, bool, string, string, string) CSEncoderDraftOrigin => _csEncoderDraftPort.LSEncoderVideoRead();
+
+    public void CSEncoderDraftSet(
+        string quality,
+        string speed,
+        bool? reactive,
+        string fps,
+        int layout,
+        IReadOnlyDictionary<string, string> extras) =>
+        _csEncoderDraftPort.LSEncoderVideoSave(
+            CSEncoderDraftVideo.CSEncoderVideoMode,
+            quality.Trim(),
+            speed,
+            reactive == true,
+            fps,
+            CSEncoderVideo.CSEncoderLayoutRead(layout),
+            extras);
 
     // Closing the window cancels the trial still running.
     public void CSEncoderDraftClose()
