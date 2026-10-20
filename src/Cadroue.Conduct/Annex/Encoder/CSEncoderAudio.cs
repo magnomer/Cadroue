@@ -32,7 +32,6 @@ public sealed class CSEncoderAudio
     private CSEncoderAudioState _csEncoderAudioState;
     private IReadOnlyList<CSEncoderRow> _csEncoderAudioRows = [];
     private CancellationTokenSource? _csEncoderAudioSource;
-    private CSEncoderCodec? _csEncoderAudioCodec;
 
     internal CSEncoderAudio(
         string encoder, string rate, LSTrialPort port, LSRepertoirePort repertoire, LSEncoderPort draft)
@@ -66,7 +65,7 @@ public sealed class CSEncoderAudio
             string keptSample, string keptChannel) = _csEncoderAudioDraft.LSEncoderAudioRead();
         (IReadOnlyList<string> layouts, IReadOnlyList<int> samples) =
             _csEncoderAudioDraft.LSEncoderHelpRead(state.CSEncoderAudioEncoder);
-        _csEncoderAudioCodec = CSEncoderCodec.CSEncoderCodecRead(
+        CSEncoderCodec codecRows = CSEncoderCodec.CSEncoderCodecRead(
             codec,
             mode,
             () => (rate, quality, speed, extras),
@@ -75,11 +74,11 @@ public sealed class CSEncoderAudio
             CSEncoderSample.CSEncoderSampleResolve(sample, keptSample, samples);
         (IReadOnlyList<string> channels, int index) =
             _csEncoderAudioChannel.CSEncoderChannelResolve(channel, keptChannel, layouts);
-        string optionKey = string.IsNullOrEmpty(_csEncoderAudioCodec.CSEncoderCodecQuality?.CSEncoderQualityRange)
+        string optionKey = string.IsNullOrEmpty(codecRows.CSEncoderCodecQuality?.CSEncoderQualityRange)
             ? "Encoder.Audio.FFmpegOption"
             : "Encoder.Audio.FFmpegOptionRange";
         return new CSEncoderSound(
-            _csEncoderAudioCodec, optionKey, (ticks, discrete, maximum, kept), (channels, index));
+            codecRows, optionKey, (ticks, discrete, maximum, kept), (channels, index));
     }
 
     public void CSEncoderAudioSave(
@@ -91,13 +90,22 @@ public sealed class CSEncoderAudio
         string? sample,
         double? channel)
     {
-        CSEncoderCodec? codec = _csEncoderAudioCodec;
+        CSEncoderAudioState state = _csEncoderAudioState;
+        (LCapabilityCodec capability, LCapabilityMode selected) = _csEncoderAudioRepertoire.LSRepertoireAudioRead(
+            state.CSEncoderAudioEncoder, state.CSEncoderAudioRate);
+        (_, string rate, _, _, string keptQuality, string keptSpeed,
+            IReadOnlyDictionary<string, string> keptExtras, _, _) = _csEncoderAudioDraft.LSEncoderAudioRead();
+        CSEncoderCodec codec = CSEncoderCodec.CSEncoderCodecRead(
+            capability,
+            selected,
+            () => (rate, keptQuality, keptSpeed, keptExtras),
+            selected.LCapabilityModeLabel);
         _csEncoderAudioDraft.LSEncoderAudioSet(
             stream,
             mode,
             quality?.Trim() ?? string.Empty,
-            codec?.CSEncoderCodecSpeed?.CSEncoderSpeedResolve(speed) ?? string.Empty,
-            codec?.CSEncoderCodecResolve(extras) ?? new Dictionary<string, string>(StringComparer.Ordinal),
+            codec.CSEncoderCodecSpeed?.CSEncoderSpeedResolve(speed) ?? string.Empty,
+            codec.CSEncoderCodecResolve(extras),
             CSEncoderSample.CSEncoderSampleRead(sample),
             _csEncoderAudioChannel.CSEncoderChannelRead(channel));
     }

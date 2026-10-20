@@ -19,6 +19,14 @@ public sealed record CSEncoderState(
         LCapabilityCodec codec =
             repertoire.LSRepertoireCodecRead(repertoire.LSRepertoireTokenResolve(encoder) ?? string.Empty);
         string[] labels = codec.LCapabilityModeLabels;
+        if (labels.Length == 0)
+        {
+            return new CSEncoderState(
+                encoder,
+                string.Empty,
+                new CSEncoderCodec(labels, null, codec.LCapabilityNotice, null, []));
+        }
+
         string resolved = CSEncoder.CSEncoderRateResolve(labels, rate);
         LCapabilityMode mode = codec.LCapabilityModes[Array.IndexOf(labels, resolved)];
         CSEncoderCodec rows = CSEncoderCodec.CSEncoderCodecRead(codec, mode, draft.LSEncoderRateRead, resolved);

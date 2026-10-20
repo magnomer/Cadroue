@@ -226,6 +226,8 @@ public sealed class QSEncoderAudio
         }
         catch (OperationCanceledException)
         {
+            lVerification.Content = QLocalizationCatalog.QLocalizationTextRead("Encoder.Button.Verify");
+            lVerification.IsEnabled = true;
             return;
         }
 

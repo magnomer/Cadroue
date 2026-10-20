@@ -44,10 +44,13 @@ public sealed class CSEncoderSpeed
     public double CSEncoderSpeedOrigin =>
         Math.Clamp(CSEncoderSpeedLabels.Count - 1 - CSEncoderSpeedIndex, 0, CSEncoderSpeedMost);
 
-    public string CSEncoderSpeedShown => CSEncoderSpeedLabels[CSEncoderSpeedIndex];
+    public string CSEncoderSpeedShown =>
+        CSEncoderSpeedLabels.Count == 0 ? string.Empty : CSEncoderSpeedLabels[CSEncoderSpeedIndex];
 
     public string CSEncoderSpeedFormat(double position) =>
-        CSEncoderSpeedLabels[CSEncoderSpeedClamp(position, CSEncoderSpeedLabels.Count - 1)];
+        CSEncoderSpeedLabels.Count == 0
+            ? string.Empty
+            : CSEncoderSpeedLabels[CSEncoderSpeedClamp(position, CSEncoderSpeedLabels.Count - 1)];
 
     public string CSEncoderSpeedRead(double position) =>
         CSEncoderSpeedValues.Count == 0

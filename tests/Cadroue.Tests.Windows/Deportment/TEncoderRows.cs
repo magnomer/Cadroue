@@ -243,4 +243,80 @@ public sealed class TEncoderRows
             TInterface.TPresetSelectionClose(selection);
         }
     }
+
+    [Fact]
+    public void OutputOpen_InvalidContainer_FallsBackToFirstChoice() => TEncoderRun(() =>
+    {
+        _ = TEncoderSurfaceBuild();
+        System.Windows.Application program = System.Windows.Application.Current!;
+        bool lTokenAdded = program.TryFindResource("PToken") is null;
+        if (lTokenAdded)
+        {
+            program.Resources["PToken"] = new Style(typeof(RichTextBox));
+            program.Resources["PTokenDocument"] = new System.Windows.Documents.FlowDocument(
+                new System.Windows.Documents.Paragraph());
+            using FileStream dropdown = File.OpenRead(Path.Combine(
+                TEncoderRootFind(), "src", "Cadroue.UIVeneer", "Kit", "Dropdown", "PDropdown.xaml"));
+            program.Resources.MergedDictionaries.Add((ResourceDictionary)XamlReader.Load(dropdown));
+        }
+
+        UserControl surface = (UserControl)XamlReader.Parse("""
+            <UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                <StackPanel>
+                    <UserControl x:Name="psOutputName">
+                        <StackPanel>
+                            <TextBlock x:Name="psNameCaption" />
+                            <RichTextBox x:Name="psNameBox" />
+                            <TextBlock x:Name="psNameElementsCaption" />
+                            <WrapPanel x:Name="psNameElements" />
+                        </StackPanel>
+                    </UserControl>
+                    <TextBlock x:Name="psOutputLocationCaption" />
+                    <ComboBox x:Name="psOutputLocationMode" />
+                    <TextBlock x:Name="psOutputLocationStatus" />
+                    <Grid x:Name="psOutputFolderRow">
+                        <TextBlock x:Name="psOutputFolderCaption" />
+                        <TextBox x:Name="psOutputFolderBox" />
+                        <Button x:Name="psOutputFolderBrowse" />
+                    </Grid>
+                    <TextBlock x:Name="psOutputContainerCaption" />
+                    <ComboBox x:Name="psOutputContainerSelection" />
+                    <TextBlock x:Name="psOutputExtensionCaption" />
+                    <ComboBox x:Name="psOutputExtensionSelection" />
+                    <TextBlock x:Name="psOutputCollisionCaption" />
+                    <ComboBox x:Name="psOutputCollisionSelection" />
+                    <Grid x:Name="psOutputSuffixRow">
+                        <TextBlock x:Name="psOutputSuffixCaption" />
+                        <TextBox x:Name="psOutputSuffixBox" />
+                    </Grid>
+                </StackPanel>
+            </UserControl>
+            """);
+        LPresetSelection selection = TInterface.TPresetSelectionCreate(string.Empty);
+        LPresetDocument prior = selection.LPresetSelectionValue;
+        LPresetDocument invalid = TInterface.TPresetDocumentCreate(selection.LPresetSelectionName, "export");
+        invalid.LPresetContainer = "Unsupported container";
+        selection.LPresetSelectionValue = invalid;
+        QSEncoder encoder = TInterface.TEncoderCreate(selection, false);
+        try
+        {
+            var output = new QSEncoderOutput(surface, encoder, _ => { });
+
+            Assert.Equal("Same as source", output.QSEncoderOutputRead());
+        }
+        finally
+        {
+            if (lTokenAdded)
+            {
+                program.Resources.Remove("PToken");
+                program.Resources.Remove("PTokenDocument");
+                program.Resources.MergedDictionaries.RemoveAt(program.Resources.MergedDictionaries.Count - 1);
+            }
+            TInterface.TEncoderClose(encoder);
+            selection.LPresetSelectionValue = prior;
+            TInterface.TPresetSelectionClose(selection);
+        }
+    });
+
 }

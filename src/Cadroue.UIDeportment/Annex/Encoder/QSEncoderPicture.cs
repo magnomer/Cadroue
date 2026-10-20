@@ -235,6 +235,8 @@ public sealed class QSEncoderPicture
         lVerification.Content = QLocalizationCatalog.QLocalizationTextRead("Encoder.Verification.Checking");
         if (await QSEncoderPictureScan(lFeed) is not { } lOffer)
         {
+            lVerification.Content = QLocalizationCatalog.QLocalizationTextRead("Encoder.Button.Verify");
+            lVerification.IsEnabled = true;
             return;
         }
 

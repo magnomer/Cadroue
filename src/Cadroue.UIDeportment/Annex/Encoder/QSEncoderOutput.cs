@@ -38,7 +38,8 @@ public sealed class QSEncoderOutput
             new QSEncoderChoice("Ogg", QLocalizationCatalog.QLocalizationTextRead("Encoder.Container.Ogg"))
         };
         QSEncoderOutputContainer.SelectedItem = QSEncoderOutputContainer.Items.Cast<QSEncoderChoice>()
-            .FirstOrDefault(lChoice => lChoice.QSEncoderChoiceToken == lContainer);
+            .FirstOrDefault(lChoice => lChoice.QSEncoderChoiceToken == lContainer)
+            ?? QSEncoderOutputContainer.Items.Cast<QSEncoderChoice>().FirstOrDefault();
         QDropdown.QDropdownAttach(QSEncoderOutputContainer);
 
         QSEncoderOutputCollision.ItemsSource = new[]
@@ -52,14 +53,16 @@ public sealed class QSEncoderOutput
                 QLocalizationCatalog.QLocalizationTextRead("Encoder.Collision.RenameExisting"))
         };
         QSEncoderOutputCollision.SelectedItem = QSEncoderOutputCollision.Items.Cast<QSEncoderChoice>()
-            .FirstOrDefault(lChoice => lChoice.QSEncoderChoiceToken == lCollision);
+            .FirstOrDefault(lChoice => lChoice.QSEncoderChoiceToken == lCollision)
+            ?? QSEncoderOutputCollision.Items.Cast<QSEncoderChoice>().FirstOrDefault();
         QDropdown.QDropdownAttach(QSEncoderOutputCollision);
 
         QSEncoderOutputMode.ItemsSource = qsEncoderOutputLocation.QSEncoderLocationModes
             .Select(lChoice => new QSEncoderChoice(
                 lChoice.Item1, QLocalizationCatalog.QLocalizationTextRead(lChoice.Item2))).ToArray();
         QSEncoderOutputMode.SelectedItem = QSEncoderOutputMode.Items.Cast<QSEncoderChoice>()
-            .FirstOrDefault(lChoice => lChoice.QSEncoderChoiceToken == lLocation);
+            .FirstOrDefault(lChoice => lChoice.QSEncoderChoiceToken == lLocation)
+            ?? QSEncoderOutputMode.Items.Cast<QSEncoderChoice>().FirstOrDefault();
         QDropdown.QDropdownAttach(QSEncoderOutputMode);
         QSEncoderOutputFolder.Text = qsEncoderOutputLocation.QSEncoderLocationRead(lLocation);
         QSOutputSuffixBox.Text = qsEncoderOutputSuffix.QSEncoderSuffixRead(lCollision);
