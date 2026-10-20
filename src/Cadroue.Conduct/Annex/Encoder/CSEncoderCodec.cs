@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cadroue.Core;
-using Cadroue.ShellEngine;
 
 namespace Cadroue.Conduct;
 
@@ -17,7 +16,10 @@ public sealed record CSEncoderCodec(
 {
     // The kept mode leaves open every extra its conflicts do not name.
     internal static CSEncoderCodec CSEncoderCodecRead(
-        LCapabilityCodec codec, LCapabilityMode mode, LSEncoderPort draft, string rate)
+        LCapabilityCodec codec,
+        LCapabilityMode mode,
+        Func<(string, string, string, IReadOnlyDictionary<string, string>)> draft,
+        string rate)
     {
         IReadOnlyList<string> conflicts = mode.LCapabilityModeConflict ?? [];
         LCapabilityQuality? quality = mode.LCapabilityModeQuality;

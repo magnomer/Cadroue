@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cadroue.Core;
-using Cadroue.ShellEngine;
 
 namespace Cadroue.Conduct;
 
@@ -10,12 +9,13 @@ public sealed record CSEncoderChoice(string CSEncoderChoiceValue, string CSEncod
 
 public sealed class CSEncoderExtra
 {
-    private readonly LSEncoderPort _csEncoderExtraPort;
+    private readonly Func<(string, string, string, IReadOnlyDictionary<string, string>)> _csEncoderExtraStored;
     private readonly string _csEncoderExtraDefault;
 
-    internal CSEncoderExtra(LCapabilityExtra codec, LSEncoderPort draft)
+    internal CSEncoderExtra(
+        LCapabilityExtra codec, Func<(string, string, string, IReadOnlyDictionary<string, string>)> stored)
     {
-        _csEncoderExtraPort = draft;
+        _csEncoderExtraStored = stored;
         _csEncoderExtraDefault = codec.LCapabilityExtraDefault;
         CSEncoderExtraLabel = codec.LCapabilityExtraLabel;
         CSEncoderExtraOption = codec.LCapabilityExtraOption;
@@ -39,7 +39,7 @@ public sealed class CSEncoderExtra
     {
         get
         {
-            (_, _, _, IReadOnlyDictionary<string, string> extras) = _csEncoderExtraPort.LSEncoderRateRead();
+            (_, _, _, IReadOnlyDictionary<string, string> extras) = _csEncoderExtraStored();
             string? stored = extras.TryGetValue(CSEncoderExtraOption, out string? value) ? value : null;
             string[] values = CSEncoderExtraChoices.Select(entry => entry.CSEncoderChoiceValue).ToArray();
             string selected = stored is not null && values.Contains(stored) ? stored : _csEncoderExtraDefault;

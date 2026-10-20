@@ -124,8 +124,13 @@ internal sealed class PSDebug : Window
             return;
         }
 
-        var pEncoder = new PSEncoder(
-            lTab.QStripTabWorkspace.QWorkspaceExport.QExportEncoderCreate(new LPreset()), () => { }) { Owner = this };
+        QSEncoder qsEncoder = lTab.QStripTabWorkspace.QWorkspaceExport.QExportEncoderCreate();
+        var pEncoder = new PSEncoder { Owner = this };
+        _ = new QSEncoderWindow(
+            pEncoder,
+            qsEncoder,
+            () => { },
+            pVerdict => PSVerdict.PSVerdictShow(pEncoder, pVerdict));
         pEncoder.ShowDialog();
     }
 

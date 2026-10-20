@@ -93,22 +93,20 @@ internal sealed class PExportPresetCommand
     internal void PExportDialogShow(object sender, RoutedEventArgs e)
     {
         var pButton = (Button)sender;
-        LPreset pWorking = PExportWorkingRead();
-        PSEncoder psEncoder = PExportEncoderBuild(pWorking, pButton);
+        QSEncoder qsEncoder = lExport.QExportEncoderCreate();
+        PSEncoder psEncoder = PExportEncoderBuild(qsEncoder, pButton);
 
-        if (psEncoder.ShowDialog() == true)
-        {
-            PExportWorkingSet(pWorking);
-        }
+        psEncoder.ShowDialog();
     }
 
-    private PSEncoder PExportEncoderBuild(LPreset pWorking, Button pButton) => new(
-        lExport.QExportEncoderCreate(pWorking),
-        () => PExportWorkingSet(pWorking))
+    private static PSEncoder PExportEncoderBuild(QSEncoder qsEncoder, Button pButton)
     {
-        Owner = Window.GetWindow(pButton)
-    };
-
-    private void PExportWorkingSet(LPreset pWorking) =>
-        lPresetOwner.LPresetSelectionValue = pWorking.LPresetRecordCreate();
+        var pEncoder = new PSEncoder { Owner = Window.GetWindow(pButton) };
+        _ = new QSEncoderWindow(
+            pEncoder,
+            qsEncoder,
+            qsEncoder.QSEncoderSave,
+            pVerdict => PSVerdict.PSVerdictShow(pEncoder, pVerdict));
+        return pEncoder;
+    }
 }

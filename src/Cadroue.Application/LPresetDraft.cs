@@ -121,7 +121,7 @@ public static class LPresetDraft
         }
     }
 
-    internal static LPresetDocument LPresetDraftRead(string lPresetName)
+    public static LPresetDocument LPresetDraftRead(string lPresetName)
     {
         lock (LPresetDraftLock)
         {
@@ -142,7 +142,7 @@ public static class LPresetDraft
         return lPresetDraft;
     }
 
-    internal static void LPresetDraftSet(string lPresetName, LPresetDocument lPresetValue)
+    public static void LPresetDraftSet(string lPresetName, LPresetDocument lPresetValue)
     {
         lPresetValue.LPresetName = lPresetName;
         lock (LPresetDraftLock)

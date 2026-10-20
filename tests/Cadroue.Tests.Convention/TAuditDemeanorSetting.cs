@@ -14,8 +14,9 @@ internal static class TAuditDemeanorSetting
                     "CSEncoder", "CSEncoderCodec", "CSEncoderDraft", "CSEncoderChoice", "CSEncoderExtra",
                     "CSEncoderQuality", "CSEncoderSpeed", "CSEncoderRow", "CSEncoderTrial",
                     "CSEncoderState", "CSEncoderVideo", "CSEncoderSize", "CSEncoderDimension",
-                    "CSEncoderAudio", "CSEncoderAudioState",
-                    "CSEncoderAudioCodec", "CSCodecQuality", "CSCodecSpeed", "CSEncoderFramerate", "CSFader",
+                    "CSEncoderAudio", "CSEncoderAudioState", "CSEncoderSound",
+                    "CSEncoderSuffix", "CSEncoderLocation", "CSEncoderOutput",
+                    "CSEncoderFramerate", "CSFader",
                 ],
         };
 }

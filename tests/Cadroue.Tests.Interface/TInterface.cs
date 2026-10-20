@@ -304,6 +304,7 @@ internal static partial class TInterface
         new(id, batch, relay, tab, kind, subject, name, source, ratio, sourceExtension, outputExtension);
     internal static LLineagePort TLineageOutletCreate() => TInterfaceEngine.LEngineLineage;
     internal static LClinicPort TClinicOutletCreate() => new LClinicOutlet();
+    internal static Func<string, LSEncoderPort> TEncoderOpenerCreate() => LSEncoderOutlet.LSEncoderOutletCreate();
     internal static LCheckupPort TClinicResultCreate(string path, string kind, string outcome) =>
         new LCheckupOutlet(new LCheckupResult(
             path, Enum.Parse<LFlawKind>($"LFlawKind{kind}"), Enum.Parse<LCheckupOutcome>($"LCheckupOutcome{outcome}")));

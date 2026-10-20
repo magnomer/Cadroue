@@ -1,17 +1,21 @@
+using System;
+using System.Collections.Generic;
 using Cadroue.Core;
-using Cadroue.ShellEngine;
 
 namespace Cadroue.Conduct;
 
 public sealed class CSEncoderQuality
 {
-    private readonly LSEncoderPort _csEncoderQualityPort;
+    private readonly Func<(string, string, string, IReadOnlyDictionary<string, string>)> _csEncoderQualityStored;
     private readonly string _csEncoderQualityRate;
     private readonly string _csEncoderQualityDefault;
 
-    internal CSEncoderQuality(LCapabilityQuality codec, LSEncoderPort draft, string rate)
+    internal CSEncoderQuality(
+        LCapabilityQuality codec,
+        Func<(string, string, string, IReadOnlyDictionary<string, string>)> stored,
+        string rate)
     {
-        _csEncoderQualityPort = draft;
+        _csEncoderQualityStored = stored;
         _csEncoderQualityRate = rate;
         _csEncoderQualityDefault = codec.LCapabilityQualityDefault;
         CSEncoderQualityLabel = codec.LCapabilityQualityLabel;
@@ -44,7 +48,7 @@ public sealed class CSEncoderQuality
     {
         get
         {
-            (string rate, string quality, _, _) = _csEncoderQualityPort.LSEncoderRateRead();
+            (string rate, string quality, _, _) = _csEncoderQualityStored();
             return CSEncoder.CSEncoderStoredRead(_csEncoderQualityRate, rate, quality, _csEncoderQualityDefault);
         }
     }

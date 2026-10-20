@@ -34,8 +34,13 @@ internal static partial class TInterface
     internal static bool TSpectrumRemove(QSSpectrum spectrum, string name, bool native, string? path) =>
         spectrum.QSSpectrumRemove(name, native, path);
 
-    internal static QSEncoder TEncoderCreate(LPreset source, bool smart) =>
-        TExportCreate(TPresetSelectionCreate(string.Empty), smart ? "Split" : "Convert").QExportEncoderCreate(source);
+    internal static void TPresetSelectionClose(LPresetSelection selection) => selection.LPresetSelectionClose();
+    internal static bool TPresetSelectionCommit(LPresetSelection selection, string oldName, string newName) =>
+        selection.LPresetSelectionCommit(oldName, newName);
+    internal static LPresetDocument TPresetDocumentCreate(string name, string display) =>
+        new() { LPresetName = name, LPresetDisplay = display };
+    internal static QSEncoder TEncoderCreate(LPresetSelection selection, bool smart) =>
+        TExportCreate(selection, smart ? "Split" : "Convert").QExportEncoderCreate();
     internal static void TEncoderVideoAttach(QSEncoder encoder, Action handler) =>
         encoder.QSEncoderVideo.QSEncoderVideoChanged += handler;
     internal static void TEncoderSizeAttach(QSEncoder encoder, Action handler) =>
@@ -61,8 +66,7 @@ internal static partial class TInterface
         return encoder.QSEncoderVideo.QSEncoderNoticeResolve();
     }
     internal static void TEncoderApply(QSEncoder encoder) => encoder.QSEncoderApply();
-    internal static LPreset TPresetCreate() => new();
-    internal static string TPresetSuffixRead(LPreset preset, string policy) => preset.LPresetSuffixRead(policy);
+    internal static void TEncoderClose(QSEncoder encoder) => encoder.QSEncoderClose();
 
     internal static QSKeymap TKeymapCreate(List<LBindingEntry>? records) => new(records);
     internal static void TKeymapAttach(QSKeymap keymap, Action<QSKeymapChord> handler) =>

@@ -11,31 +11,21 @@ public sealed class CSEncoder
 {
     private readonly LSTrialPort _csEncoderPort;
     private readonly LSRepertoirePort _csEncoderRepertoire;
+    private readonly Func<string, LSEncoderPort> _csEncoderOpener;
 
-    internal CSEncoder(LSTrialPort port, LSRepertoirePort repertoire)
+    internal CSEncoder(LSTrialPort port, LSRepertoirePort repertoire, Func<string, LSEncoderPort> opener)
     {
         ArgumentNullException.ThrowIfNull(port);
         ArgumentNullException.ThrowIfNull(repertoire);
+        ArgumentNullException.ThrowIfNull(opener);
         _csEncoderPort = port;
         _csEncoderRepertoire = repertoire;
+        _csEncoderOpener = opener;
     }
 
-    // One window's gates over its own draft, read and saved through the window's read and save; smart says whether
-    // the window's work may cut smart.
-    public CSEncoderDraft CSEncoderDraftCreate(
-        Func<(string, string, string)> read,
-        Action<string, string, string, string, string, string, string> save,
-        Func<(string, string, string, IReadOnlyDictionary<string, string>)> rates,
-        Func<string> size,
-        Func<(string, string)> audio,
-        Func<(string, bool, string, string, string)> video,
-        Action<string, string, string, bool, string, string, IReadOnlyDictionary<string, string>> videoSave,
-        bool smart) =>
-        new(
-            new LSEncoderOutlet(read, save, rates, size, audio, video, videoSave),
-            _csEncoderPort,
-            _csEncoderRepertoire,
-            smart);
+    // One window's gates over its own draft; smart says whether the window's work may cut smart.
+    public CSEncoderDraft CSEncoderDraftCreate(string preset, bool smart) =>
+        new(_csEncoderOpener(preset), _csEncoderPort, _csEncoderRepertoire, smart);
 
     internal static string CSEncoderStoredRead(string rate, string stored, string choice, string fallback) =>
         string.Equals(rate, stored, StringComparison.Ordinal) && !string.IsNullOrWhiteSpace(choice)

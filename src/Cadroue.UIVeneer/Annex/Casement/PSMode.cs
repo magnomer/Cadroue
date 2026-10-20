@@ -49,8 +49,7 @@ internal static class PSMode
     };
 
     private static string PSModeSelectedResolve(string pSelected, LLocalizationChoice[] pChoices) =>
-        pChoices.Any(
-            pChoice => string.Equals(pChoice.LLocalizationChoiceToken, pSelected, StringComparison.Ordinal))
+        pChoices.Any(pChoice => string.Equals(pChoice.LLocalizationChoiceToken, pSelected, StringComparison.Ordinal))
                 ? pSelected
                 : pChoices.FirstOrDefault()?.LLocalizationChoiceToken ?? string.Empty;
 
@@ -60,7 +59,10 @@ internal static class PSMode
     {
         for (int pStyleIndex = 0; pStyleIndex < pSegments.Count; pStyleIndex++)
         {
-            (string pToken, Border pSegment, TextBlock pText) = pSegments[pStyleIndex];
+            PSModeSegment pEntry = pSegments[pStyleIndex];
+            string pToken = pEntry.PSModeSegmentToken;
+            Border pSegment = pEntry.PSModeSegmentBorder;
+            TextBlock pText = pEntry.PSModeSegmentText;
             (bool pActive, bool pOff, bool pFirst, bool pLast) =
                 PSModeStateResolve(pHost, pDisabled, pToken, pStyleIndex, pSegments.Count);
             pSegment.CornerRadius = new CornerRadius(pFirst ? 5 : 0, pLast ? 5 : 0, pLast ? 5 : 0, pFirst ? 5 : 0);

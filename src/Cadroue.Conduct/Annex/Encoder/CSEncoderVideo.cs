@@ -21,7 +21,8 @@ public sealed record CSEncoderState(
         string[] labels = codec.LCapabilityModeLabels;
         string resolved = CSEncoder.CSEncoderRateResolve(labels, rate);
         LCapabilityMode mode = codec.LCapabilityModes[Array.IndexOf(labels, resolved)];
-        return new CSEncoderState(encoder, resolved, CSEncoderCodec.CSEncoderCodecRead(codec, mode, draft, resolved));
+        CSEncoderCodec rows = CSEncoderCodec.CSEncoderCodecRead(codec, mode, draft.LSEncoderRateRead, resolved);
+        return new CSEncoderState(encoder, resolved, rows);
     }
 }
 

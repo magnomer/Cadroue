@@ -60,6 +60,7 @@ public sealed class CAtelier
         ArgumentNullException.ThrowIfNull(port.LAtelierRelay);
         ArgumentNullException.ThrowIfNull(port.LAtelierTrial);
         ArgumentNullException.ThrowIfNull(port.LAtelierRepertoire);
+        ArgumentNullException.ThrowIfNull(port.LAtelierEncoder);
 
         CAtelierUsher = new CUsher(port.LAtelierUsher);
         CAtelierLineage = new CLineage(port.LAtelierLineage);
@@ -90,7 +91,7 @@ public sealed class CAtelier
         _cAtelierScenePort = port.LAtelierScene;
         _cAtelierListPort = port.LAtelierList;
         CAtelierRelay = new CRelay(port.LAtelierRelay, CAtelierUsher);
-        CAtelierEncoder = new CSEncoder(port.LAtelierTrial, port.LAtelierRepertoire);
+        CAtelierEncoder = new CSEncoder(port.LAtelierTrial, port.LAtelierRepertoire, port.LAtelierEncoder);
     }
 
     public CUsher CAtelierUsher { get; }

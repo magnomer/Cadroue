@@ -8,12 +8,6 @@ namespace Cadroue.UIVeneer;
 
 internal static class PSCombo
 {
-    internal static ComboBox PSComboBuild(string pSelected, params string[] pItems) =>
-        PSComboShapeBuild(
-            pItems,
-            pItems.Intersect(Enumerable.Repeat(pSelected, 1)).Concat(pItems).FirstOrDefault(),
-            PSComboIdleHandle);
-
     internal static ComboBox PSComboBuild(int pIndex, Action<int> pChoice, params string[] pItems) =>
         PSComboShapeBuild(pItems, pItems.ElementAtOrDefault(pIndex), pChoice);
 

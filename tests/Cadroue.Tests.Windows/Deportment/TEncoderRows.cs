@@ -4,6 +4,8 @@ using System.Windows.Controls;
 using System.Windows.Markup;
 
 using Cadroue.Application;
+using Cadroue.Core;
+using Cadroue.Tests.Interface;
 using Cadroue.UIDeportment;
 
 using Xunit;
@@ -74,7 +76,7 @@ public sealed class TEncoderRows
     [Fact]
     public void Tier_SelectFromSource_StoresTierSize() => TEncoderRun(() =>
     {
-        QSEncoder encoder = TInterface.TEncoderCreate(TInterface.TPresetCreate(), false);
+        QSEncoder encoder = TInterface.TEncoderCreate(TInterface.TPresetSelectionCreate(string.Empty), false);
         UserControl surface = TEncoderSurfaceBuild();
         QSEncoderResolution resolution = new(surface, encoder.QSEncoderSize, false);
         TInterface.TEncoderSizeAttach(encoder, resolution.QSEncoderResolutionApply);
@@ -101,7 +103,7 @@ public sealed class TEncoderRows
     [Fact]
     public void VideoSet_UnknownRate_ResolvesToFirstMode_RaisesOnce()
     {
-        QSEncoder encoder = TInterface.TEncoderCreate(TInterface.TPresetCreate(), false);
+        QSEncoder encoder = TInterface.TEncoderCreate(TInterface.TPresetSelectionCreate(string.Empty), false);
         int rows = 0;
         TInterface.TEncoderVideoAttach(encoder, () => rows++);
         (IReadOnlyList<string> offered, int kept) = encoder.QSEncoderVideo.QSEncoderVideoOffer;
@@ -120,7 +122,7 @@ public sealed class TEncoderRows
     [Fact]
     public void VideoSet_EncoderChange_KeepsRateWhenOffered()
     {
-        QSEncoder encoder = TInterface.TEncoderCreate(TInterface.TPresetCreate(), false);
+        QSEncoder encoder = TInterface.TEncoderCreate(TInterface.TPresetSelectionCreate(string.Empty), false);
         (IReadOnlyList<string> offered, int kept) = encoder.QSEncoderVideo.QSEncoderVideoOffer;
         string other = offered.First(text => !string.Equals(text, offered[kept], StringComparison.Ordinal));
         string rate = encoder.QSEncoderVideo.QSEncoderVideoRate;
@@ -136,7 +138,7 @@ public sealed class TEncoderRows
     [Fact]
     public void Tier_SelectSetsDimensions_SizeSetMatchesTier()
     {
-        QSEncoder encoder = TInterface.TEncoderCreate(TInterface.TPresetCreate(), false);
+        QSEncoder encoder = TInterface.TEncoderCreate(TInterface.TPresetSelectionCreate(string.Empty), false);
         int sizes = 0;
         TInterface.TEncoderSizeAttach(encoder, () => sizes++);
         Assert.Equal(0, encoder.QSEncoderSize.QSEncoderSizeValue.CSEncoderDimensionTier);
@@ -162,8 +164,8 @@ public sealed class TEncoderRows
     [Fact]
     public void Smart_GatesVideoNotice()
     {
-        QSEncoder plain = TInterface.TEncoderCreate(TInterface.TPresetCreate(), false);
-        QSEncoder smart = TInterface.TEncoderCreate(TInterface.TPresetCreate(), true);
+        QSEncoder plain = TInterface.TEncoderCreate(TInterface.TPresetSelectionCreate(string.Empty), false);
+        QSEncoder smart = TInterface.TEncoderCreate(TInterface.TPresetSelectionCreate(string.Empty), true);
 
         Assert.Equal("Encoder.Video.Notice.SmartFull", TInterface.TEncoderNoticeResolve(plain, 1));
         Assert.Equal("Encoder.Video.Notice.Smart", TInterface.TEncoderNoticeResolve(smart, 1));
@@ -173,27 +175,72 @@ public sealed class TEncoderRows
     [Fact]
     public void Suffix_SelectStoresShownUnderPreviousPolicy()
     {
-        QSEncoder encoder = TInterface.TEncoderCreate(TInterface.TPresetCreate(), false);
+        QSEncoder encoder = TInterface.TEncoderCreate(TInterface.TPresetSelectionCreate(string.Empty), false);
         string first = TInterface.TEncoderSuffixSelect(encoder, "Rename output", "ignored");
-        Assert.Equal(TInterface.TPresetSuffixRead(encoder.QSEncoderDraft, "Rename output"), first);
+        Assert.Equal(encoder.QSEncoderSuffix.QSEncoderSuffixRead("Rename output"), first);
 
         TInterface.TEncoderSuffixSelect(encoder, "Rename existing", "_mine");
-        Assert.Equal("_mine", TInterface.TPresetSuffixRead(encoder.QSEncoderDraft, "Rename output"));
-        Assert.Equal("Rename existing", encoder.QSEncoderSuffix.QSEncoderSuffixMode);
+        Assert.Equal("_mine", encoder.QSEncoderSuffix.QSEncoderSuffixRead("Rename output"));
+        Assert.Equal("_mine", TInterface.TEncoderSuffixSelect(encoder, "Rename output", "_theirs"));
+        Assert.Equal("_theirs", encoder.QSEncoderSuffix.QSEncoderSuffixRead("Rename existing"));
     }
 
     [Fact]
     public void Apply_CopiesDraftIntoSource()
     {
-        LPreset source = TInterface.TPresetCreate();
-        QSEncoder encoder = TInterface.TEncoderCreate(source, false);
-        TInterface.TEncoderTierSelect(encoder, 2);
-        encoder.QSEncoderDraft.LPresetDisplay = "  ";
+        LPresetSelection selection = TInterface.TPresetSelectionCreate(string.Empty);
+        LPresetDocument prior = selection.LPresetSelectionValue;
+        selection.LPresetSelectionValue = TInterface.TPresetDocumentCreate(selection.LPresetSelectionName, "  ");
+        try
+        {
+            QSEncoder encoder = TInterface.TEncoderCreate(selection, false);
+            TInterface.TEncoderTierSelect(encoder, 2);
 
-        TInterface.TEncoderApply(encoder);
+            TInterface.TEncoderApply(encoder);
+            encoder.QSEncoderSave();
 
-        Assert.Equal("1280 × 720", source.LPresetVideo.LPresetSize);
-        Assert.Equal("{OriginalName}_export", source.LPresetDisplay);
-        Assert.Equal("Include", source.LPresetVideo.LPresetStream);
+            LPresetDocument saved = selection.LPresetSelectionValue;
+            Assert.Equal("1280 × 720", saved.LPresetVideo.LPresetSize);
+            Assert.Equal("{OriginalName}_export", saved.LPresetDisplay);
+            Assert.Equal("Include", saved.LPresetVideo.LPresetStream);
+        }
+        finally
+        {
+            selection.LPresetSelectionValue = prior;
+            TInterface.TPresetSelectionClose(selection);
+        }
+    }
+
+    [Fact]
+    public void Apply_AfterRename_CopiesDraftIntoLiveSelection()
+    {
+        using TPreset presets = new();
+        presets.TPresetSeedCreate("Encoder before rename");
+        LPresetSelection selection = TInterface.TPresetSelectionCreate("Encoder before rename");
+        selection.LPresetSelectionValue =
+            TInterface.TPresetDocumentCreate(selection.LPresetSelectionName, "  ");
+        QSEncoder? encoder = null;
+        try
+        {
+            encoder = TInterface.TEncoderCreate(selection, false);
+            Assert.True(TInterface.TPresetSelectionCommit(
+                selection, "Encoder before rename", "Encoder after rename"));
+            TInterface.TEncoderTierSelect(encoder, 2);
+
+            TInterface.TEncoderApply(encoder);
+            encoder.QSEncoderSave();
+
+            LPresetDocument saved = selection.LPresetSelectionValue;
+            Assert.Equal("Encoder after rename", selection.LPresetSelectionName);
+            Assert.Equal("1280 × 720", saved.LPresetVideo.LPresetSize);
+        }
+        finally
+        {
+            if (encoder is not null)
+            {
+                TInterface.TEncoderClose(encoder);
+            }
+            TInterface.TPresetSelectionClose(selection);
+        }
     }
 }

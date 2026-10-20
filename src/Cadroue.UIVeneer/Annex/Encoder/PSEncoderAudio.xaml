@@ -1,0 +1,136 @@
+<UserControl x:Class="Cadroue.UIVeneer.PSEncoderAudio"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Cadroue.UIVeneer">
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="psAudioAccent" Color="#4C86F7" />
+        <SolidColorBrush x:Key="psAudioInactive" Color="#F0F3FA" />
+        <SolidColorBrush x:Key="psAudioInk" Color="#1D2A3D" />
+        <SolidColorBrush x:Key="psAudioBright" Color="#FFFFFF" />
+        <DataTemplate x:Key="psAudioModeFacet">
+            <Border Padding="16,0,16,0"
+                    Cursor="Hand"
+                    BorderBrush="#D9DEE7">
+                <TextBlock FontSize="12"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center" />
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+    <StackPanel Margin="0,0,0,18">
+        <Grid Margin="0,0,0,9" MinHeight="32">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="130" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="psAudioStreamCaption"
+                       Foreground="#626F83"
+                       VerticalAlignment="Center" />
+            <ComboBox x:Name="psAudioStreamSelection"
+                      Grid.Column="1"
+                      MinWidth="260"
+                      MinHeight="32"
+                      Height="32"
+                      HorizontalAlignment="Left" />
+        </Grid>
+        <Grid Margin="0,0,0,9" MinHeight="32">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="130" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="psAudioModeCaption"
+                       Foreground="#626F83"
+                       VerticalAlignment="Center" />
+            <Border Grid.Column="1"
+                    BorderBrush="#D9DEE7"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Background="White"
+                    HorizontalAlignment="Left"
+                    Height="32">
+                <StackPanel x:Name="psAudioModeBar" Orientation="Horizontal" />
+            </Border>
+        </Grid>
+        <StackPanel x:Name="psAudioRows">
+            <Grid Margin="0,0,0,9" MinHeight="32">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="130" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="psAudioCodecCaption"
+                           Foreground="#626F83"
+                           VerticalAlignment="Center" />
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Left">
+                    <ComboBox x:Name="psAudioCodecSelection"
+                              MinWidth="260"
+                              MinHeight="32"
+                              Height="32"
+                              HorizontalAlignment="Left" />
+                    <Button x:Name="psAudioCodecVerification"
+                            Width="84"
+                            Height="32"
+                            Margin="8,0,0,0" />
+                    <Button x:Name="psAudioCodecResult"
+                            Width="64"
+                            Height="32"
+                            Margin="6,0,0,0" />
+                    <ProgressBar x:Name="psAudioCodecProgress"
+                                 Minimum="0"
+                                 Maximum="1"
+                                 Width="140"
+                                 Height="8"
+                                 VerticalAlignment="Center"
+                                 Margin="10,0,0,0"
+                                 Foreground="{x:Null}"
+                                 Background="{x:Null}"
+                                 BorderThickness="0"
+                                 Visibility="Collapsed">
+                        <ProgressBar.Template>
+                            <ControlTemplate TargetType="{x:Type ProgressBar}">
+                                <Border CornerRadius="4" Background="#E4E9F0" ClipToBounds="True">
+                                    <Grid>
+                                        <Rectangle x:Name="PART_Track" />
+                                        <Border x:Name="PART_Indicator"
+                                                HorizontalAlignment="Left"
+                                                CornerRadius="4"
+                                                Background="#4C86F7" />
+                                    </Grid>
+                                </Border>
+                            </ControlTemplate>
+                        </ProgressBar.Template>
+                    </ProgressBar>
+                </StackPanel>
+            </Grid>
+            <TextBlock x:Name="psAudioCodecError"
+                       Foreground="#C02A2A"
+                       TextWrapping="Wrap"
+                       Margin="130,-7,0,9"
+                       Visibility="Collapsed" />
+            <Grid Margin="0,0,0,9" MinHeight="32">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="130" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="psAudioControlCaption"
+                           Foreground="#626F83"
+                           VerticalAlignment="Center" />
+                <ComboBox x:Name="psAudioControlSelection"
+                          Grid.Column="1"
+                          MinWidth="260"
+                          MinHeight="32"
+                          Height="32"
+                          HorizontalAlignment="Left" />
+            </Grid>
+            <local:PSEncoderRate x:Name="psAudioRate" />
+            <local:PSFader x:Name="psAudioSample" />
+            <local:PSFader x:Name="psAudioChannel" />
+        </StackPanel>
+        <TextBlock x:Name="psAudioNotice"
+                   Foreground="#626F83"
+                   TextWrapping="Wrap"
+                   Margin="130,-7,0,9"
+                   Visibility="Collapsed" />
+    </StackPanel>
+</UserControl>

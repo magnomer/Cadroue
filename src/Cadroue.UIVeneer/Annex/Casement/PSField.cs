@@ -16,8 +16,6 @@ internal static class PSField
     internal static readonly Brush PSFieldMuted = PSFieldBrushCreate(0x62, 0x6F, 0x83);
     internal static readonly Brush PSFieldAccent = PSFieldBrushCreate(0x4C, 0x86, 0xF7);
     internal static readonly Brush PSFieldInactive = PSFieldBrushCreate(0xF0, 0xF3, 0xFA);
-    internal static readonly Brush PSFieldSoft = PSFieldBrushCreate(0xF7, 0xF9, 0xFC);
-
     private static Brush PSFieldBrushCreate(byte pRed, byte pGreen, byte pBlue)
     {
         var pBrush = new SolidColorBrush(Color.FromRgb(pRed, pGreen, pBlue));

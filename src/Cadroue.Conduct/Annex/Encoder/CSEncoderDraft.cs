@@ -20,11 +20,17 @@ public sealed class CSEncoderDraft
         CSEncoderDraftVideo = new CSEncoderVideo(encoder, rate, trial, repertoire, draft, smart);
         CSEncoderDraftTrial = new CSEncoderTrial(trial, repertoire, CSEncoderDraftVideo);
         CSEncoderDraftSize = new CSEncoderSize(draft.LSEncoderSizeRead());
-        (string audioEncoder, string audioRate) = draft.LSEncoderAudioRead();
-        CSEncoderDraftAudio = new CSEncoderAudio(audioEncoder, audioRate, trial, repertoire);
+        (string audioEncoder, string audioRate, _, _, _, _, _, _, _) = draft.LSEncoderAudioRead();
+        CSEncoderDraftAudio = new CSEncoderAudio(audioEncoder, audioRate, trial, repertoire, draft);
+        CSEncoderDraftSuffix = new CSEncoderSuffix(draft);
+        CSEncoderDraftLocation = new CSEncoderLocation(draft);
+        CSEncoderDraftOutput = new CSEncoderOutput(draft);
+        draft.LSEncoderHelpAttach(CSEncoderDraftHandle);
     }
 
     public const string CSEncoderDraftSource = "Same as source";
+
+    public event Action? CSEncoderDraftReady;
 
     public CSEncoderVideo CSEncoderDraftVideo { get; }
 
@@ -33,6 +39,12 @@ public sealed class CSEncoderDraft
     public CSEncoderSize CSEncoderDraftSize { get; }
 
     public CSEncoderAudio CSEncoderDraftAudio { get; }
+
+    public CSEncoderSuffix CSEncoderDraftSuffix { get; }
+
+    public CSEncoderLocation CSEncoderDraftLocation { get; }
+
+    public CSEncoderOutput CSEncoderDraftOutput { get; }
 
     // The draft keeps a display name, the video stream, the chosen video encoder and rate, the size its gate formats,
     // and the chosen audio encoder and rate.
@@ -50,6 +62,8 @@ public sealed class CSEncoderDraft
             audio.CSEncoderAudioEncoder,
             audio.CSEncoderAudioRate);
     }
+
+    public void CSEncoderDraftSave() => _csEncoderDraftPort.LSEncoderSave();
 
     public (string, bool, string, string, string) CSEncoderDraftOrigin => _csEncoderDraftPort.LSEncoderVideoRead();
 
@@ -72,9 +86,13 @@ public sealed class CSEncoderDraft
     // Closing the window cancels the trial still running.
     public void CSEncoderDraftClose()
     {
+        _csEncoderDraftPort.LSEncoderHelpDetach(CSEncoderDraftHandle);
         CSEncoderDraftTrial.CSEncoderTrialCancel();
         CSEncoderDraftAudio.CSEncoderAudioCancel();
+        _csEncoderDraftPort.LSEncoderClose();
     }
+
+    private void CSEncoderDraftHandle(string encoder) => CSEncoderDraftReady?.Invoke();
 
     private static string CSEncoderDraftNormalize(string display) =>
         string.IsNullOrWhiteSpace(display) ? "{OriginalName}_export" : display.Trim();

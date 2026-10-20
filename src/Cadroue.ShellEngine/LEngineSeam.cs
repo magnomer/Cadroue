@@ -20,6 +20,10 @@ public static class LEngineSeam
         LDepotEngine.LDepotPassSeam = lRig.LRigDepot.LRigDepotPass;
         LDepotEngine.LDepotRootSeam = lRig.LRigDepot.LRigDepotRoot;
         LInventoryEngine.LInventoryFilterSeam = lRig.LRigInventory.LRigInventoryFilter;
+        LInventoryEngine.LInventoryLayoutSeam = lRig.LRigInventory.LRigInventoryLayout;
+        LInventoryEngine.LInventorySampleSeam = lRig.LRigInventory.LRigInventorySample;
+        LInventoryEngine.LInventoryEnrollmentSeam = lRig.LRigInventory.LRigInventoryEnrollment;
+        LInventoryEngine.LInventoryWithdrawalSeam = lRig.LRigInventory.LRigInventoryWithdrawal;
         LCartographer.LCartographerOwnerSeam = lRig.LRigSentinel.LRigSentinelOwner;
         LRunner.LRunnerAddSeam = lRig.LRigSentinel.LRigSentinelEnrollment;
         LRunner.LRunnerRemoveSeam = lRig.LRigSentinel.LRigSentinelWithdrawal;

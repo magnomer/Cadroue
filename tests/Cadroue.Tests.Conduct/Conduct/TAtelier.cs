@@ -39,6 +39,7 @@ internal static class TAtelier
             LAtelierVideo = Conduct.TInterface.TVideoOutletCreate(),
             LAtelierScene = new TConsoleScenePort(),
             LAtelierList = new TListPort().TListCreate,
+            LAtelierEncoder = Interface.TInterface.TEncoderOpenerCreate(),
             LAtelierRelay = new TRelayPort(),
             LAtelierTrial = new TTrialPort(),
             LAtelierRepertoire = new TRepertoirePort(),

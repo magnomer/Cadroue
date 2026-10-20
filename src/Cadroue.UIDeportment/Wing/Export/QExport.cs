@@ -44,8 +44,8 @@ public sealed class QExport
     public bool QExportSupportCheck(string lPresetName, LPreset lWorking) =>
         qExportOwner.LPresetSupportCheck(lPresetName, lWorking, QExportSelectedCheck(lPresetName));
 
-    public QSEncoder QExportEncoderCreate(LPreset lSource) =>
-        new(qExportUsher, qExportEncoder, lSource, qExportSmartAllowed);
+    public QSEncoder QExportEncoderCreate() =>
+        new(qExportUsher, qExportEncoder, qExportOwner.LPresetSelectionName, qExportSmartAllowed);
 
     public void QExportAttach()
     {

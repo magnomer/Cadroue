@@ -59,6 +59,8 @@ public sealed record LAtelierPort
     // Each list's own port, built for it over the name reader its traces use.
     public required Func<Func<string, string>, LListPort> LAtelierList { get; init; }
 
+    public required Func<string, LSEncoderPort> LAtelierEncoder { get; init; }
+
     public required LRelayPort LAtelierRelay { get; init; }
 
     // The video encoder trial every encoder window reaches.

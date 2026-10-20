@@ -1,62 +1,24 @@
-using Cadroue.Application;
+using Cadroue.Conduct;
 
 namespace Cadroue.UIDeportment;
 
 // The encoder window's name-clash policy: each policy keeps its own suffix in the draft while another is shown.
 public sealed class QSEncoderSuffix
 {
-    private readonly LPreset qsEncoderDraft;
-    private string? qsEncoderSuffixMode;
+    private readonly CSEncoderSuffix qsEncoderSuffixGate;
 
-    internal QSEncoderSuffix(LPreset lDraft)
+    internal QSEncoderSuffix(CSEncoderSuffix lSuffix)
     {
-        qsEncoderDraft = lDraft;
+        qsEncoderSuffixGate = lSuffix;
     }
 
-    public string? QSEncoderSuffixMode => qsEncoderSuffixMode;
+    public static string? QSEncoderSuffixResolve(string lPolicy) => CSEncoderSuffix.CSEncoderSuffixResolve(lPolicy);
 
-    public static bool QSEncoderSuffixCheck(string lPolicy) =>
-        string.Equals(lPolicy, "Rename output", StringComparison.Ordinal)
-        || string.Equals(lPolicy, "Rename existing", StringComparison.Ordinal);
+    public string QSEncoderSuffixRead(string lPolicy) => qsEncoderSuffixGate.CSEncoderSuffixRead(lPolicy);
 
-    public static string QSEncoderSuffixResolve(string lPolicy) =>
-        string.Equals(lPolicy, "Rename existing", StringComparison.Ordinal)
-            ? "Encoder.Field.Output.SuffixSource"
-            : "Encoder.Field.Output.SuffixOutput";
+    public string QSEncoderSuffixSelect(string lPolicy, string lSuffixShown) =>
+        qsEncoderSuffixGate.CSEncoderSuffixSelect(lPolicy, lSuffixShown);
 
-    public string QSEncoderSuffixSelect(string lPolicy, string lSuffixShown)
-    {
-        if (QSEncoderSuffixFind(lPolicy) is { } lPrevious)
-        {
-            qsEncoderDraft.LPresetSuffixSet(lPrevious, lSuffixShown.Trim());
-        }
-
-        QSEncoderSuffixSet(lPolicy);
-        if (!QSEncoderSuffixCheck(lPolicy))
-        {
-            return lSuffixShown;
-        }
-
-        return qsEncoderDraft.LPresetSuffixRead(lPolicy);
-    }
-
-    private string? QSEncoderSuffixFind(string lPolicy) =>
-        qsEncoderSuffixMode is not null
-        && QSEncoderSuffixCheck(qsEncoderSuffixMode)
-        && !string.Equals(qsEncoderSuffixMode, lPolicy, StringComparison.Ordinal)
-            ? qsEncoderSuffixMode
-            : null;
-
-    private void QSEncoderSuffixSet(string lPolicy) => qsEncoderSuffixMode = lPolicy;
-
-    public string QSEncoderSuffixNormalize(string lPolicy, string lSuffixShown)
-    {
-        if (!string.IsNullOrEmpty(lSuffixShown.Trim()))
-        {
-            return lSuffixShown;
-        }
-
-        qsEncoderDraft.LPresetSuffixSet(lPolicy, string.Empty);
-        return qsEncoderDraft.LPresetSuffixRead(lPolicy);
-    }
+    public string QSEncoderSuffixNormalize(string lPolicy, string lSuffixShown) =>
+        qsEncoderSuffixGate.CSEncoderSuffixNormalize(lPolicy, lSuffixShown);
 }

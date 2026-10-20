@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl x:Class="Cadroue.UIVeneer.PSEncoderName"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel>
+        <Grid Margin="0,0,0,9" MinHeight="32">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="130" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="psNameCaption" Foreground="#626F83" VerticalAlignment="Center" />
+            <RichTextBox x:Name="psNameBox" Grid.Column="1" MinWidth="320" Height="32" />
+        </Grid>
+        <Grid Margin="0,8,0,9">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="130" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="psNameElementsCaption" Foreground="#626F83" VerticalAlignment="Top" />
+            <WrapPanel x:Name="psNameElements" Grid.Column="1" />
+        </Grid>
+    </StackPanel>
+</UserControl>

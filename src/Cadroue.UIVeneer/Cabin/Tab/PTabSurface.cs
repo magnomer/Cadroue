@@ -109,9 +109,17 @@ public abstract class PTabSurface : UserControl
         PTabExportSplitter?.SetValue(VisibilityProperty, PLook.PLookVisible[!pHidden]);
     }
 
-    private void PTabCollapseAttach(int pIndex) =>
-        PTabPanel.PTabCollapseRead(PTabPanels[pIndex])?.PTabListener(
+    private void PTabCollapseAttach(int pIndex)
+    {
+        if (PTabPanel.PTabCollapseRead(PTabPanels[pIndex]) is not { } pCollapse)
+        {
+            return;
+        }
+
+        _ = pCollapse.PTabReader;
+        pCollapse.PTabListener(
             pCollapsed => PTabCollapseApply(pIndex, pCollapsed, PTabPanel.PTabStripRead(PTabPanels[pIndex])));
+    }
 
     private void PTabCollapseApply(int pIndex, bool pCollapsed, double pStripWidth)
     {

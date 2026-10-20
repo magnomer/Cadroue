@@ -23,6 +23,7 @@ public sealed class QSEncoderPicture
         qsEncoderPictureSurface = lSurface;
         qsEncoderPictureVideo = lVideo;
         qsEncoderPictureVerdict = lVerdict;
+        QSEncoderChip.QSEncoderChipApply(QSEncoderPictureCodec);
         QSEncoderPictureLoad();
         QSEncoderPictureShow();
         QSEncoderPictureReset(QSEncoderPictureCodec, lVideo.QSEncoderVideoOffer);

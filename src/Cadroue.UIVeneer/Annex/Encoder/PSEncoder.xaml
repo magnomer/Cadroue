@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window x:Class="Cadroue.UIVeneer.PSEncoder"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:Cadroue.UIVeneer"
+        Width="820" Height="770" MinWidth="680" MinHeight="770" Background="White">
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="12">
+            <Button x:Name="psEncoderApplyButton" Width="92" Height="32" Margin="0,0,6,0" />
+            <Button x:Name="psEncoderOkButton" Width="92" Height="32" Margin="0,0,6,0" />
+            <Button x:Name="psEncoderCancelButton" Width="92" Height="32" />
+        </StackPanel>
+        <TabControl x:Name="psEncoderTabs" Margin="18">
+            <TabItem Header="Output">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <local:PSEncoderOutput x:Name="psEncoderOutput" />
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="Video">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <local:PSEncoderPicture x:Name="psEncoderPicture" />
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="Audio">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <local:PSEncoderAudio x:Name="psEncoderAudio" />
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</Window>

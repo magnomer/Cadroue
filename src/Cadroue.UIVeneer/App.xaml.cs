@@ -12,7 +12,7 @@ public partial class PProgram : System.Windows.Application
     }
 
     public static IReadOnlyList<string> PProgramPlacementKeys =>
-        [PSEncoder.PSEncoderPlacementKey, PSOptions.PSOptionsPlacementKey];
+        ["Encoder", PSOptions.PSOptionsPlacementKey];
 
     public void PProgramAttach(Action<string, Exception?> pFault, Action pTick)
     {

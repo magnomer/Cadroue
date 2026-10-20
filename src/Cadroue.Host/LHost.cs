@@ -52,6 +52,7 @@ Func<LEngine, LAtelierPort> port = static engine => new LAtelierPort
         LSceneFile.LSceneStemResolve,
         lMessage => LTraceLog.LTraceLoadingRecord(lMessage))),
     LAtelierList = LListOutlet.LListOutletCreate(LRigFactoryList.LRigListCreate()),
+    LAtelierEncoder = LSEncoderOutlet.LSEncoderOutletCreate(),
     LAtelierRelay = engine.LEngineRelay,
     LAtelierTrial = new LSTrialOutlet(
         LTrial.LTrialVideoRun,

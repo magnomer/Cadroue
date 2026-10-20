@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,20 +15,31 @@ public sealed record CSEncoderAudioState(
     string CSEncoderAudioRate,
     IReadOnlyList<string> CSEncoderAudioModes);
 
+public sealed record CSEncoderSound(
+    CSEncoderCodec CSEncoderSoundCodec,
+    string CSEncoderSoundOption,
+    (IReadOnlyList<int>, bool, double, string) CSEncoderSoundSample,
+    (IReadOnlyList<string>, int) CSEncoderSoundChannel);
+
 // The encoder window's audio codec: the chosen encoder and rate, the encoders a container offers, and whether an
 // encoder is available.
 public sealed class CSEncoderAudio
 {
     private readonly LSTrialPort _csEncoderAudioPort;
     private readonly LSRepertoirePort _csEncoderAudioRepertoire;
+    private readonly LSEncoderPort _csEncoderAudioDraft;
+    private readonly CSEncoderChannel _csEncoderAudioChannel = new();
     private CSEncoderAudioState _csEncoderAudioState;
     private IReadOnlyList<CSEncoderRow> _csEncoderAudioRows = [];
     private CancellationTokenSource? _csEncoderAudioSource;
+    private CSEncoderCodec? _csEncoderAudioCodec;
 
-    internal CSEncoderAudio(string encoder, string rate, LSTrialPort port, LSRepertoirePort repertoire)
+    internal CSEncoderAudio(
+        string encoder, string rate, LSTrialPort port, LSRepertoirePort repertoire, LSEncoderPort draft)
     {
         _csEncoderAudioPort = port;
         _csEncoderAudioRepertoire = repertoire;
+        _csEncoderAudioDraft = draft;
         _csEncoderAudioState = CSEncoderAudioResolve(encoder, rate);
     }
 
@@ -36,23 +48,58 @@ public sealed class CSEncoderAudio
 
     public CSEncoderAudioState CSEncoderAudioState => _csEncoderAudioState;
 
-    public CSEncoderAudioCodec CSEncoderAudioRead()
+    public (CSEncoderAudioState, string, string, string[], bool) CSEncoderAudioOpen()
+    {
+        CSEncoderAudioState state = _csEncoderAudioState;
+        (_, _, string stream, string mode, _, _, _, _, _) = _csEncoderAudioDraft.LSEncoderAudioRead();
+        (string[] offer, _, bool available) = CSEncoderAudioRead(
+            _csEncoderAudioDraft.LSEncoderVideoRead().Item5, state.CSEncoderAudioEncoder);
+        return (state, stream, mode, offer, available);
+    }
+
+    public CSEncoderSound CSEncoderAudioRead(string? sample, double? channel)
     {
         CSEncoderAudioState state = _csEncoderAudioState;
         (LCapabilityCodec codec, LCapabilityMode mode) = _csEncoderAudioRepertoire.LSRepertoireAudioRead(
             state.CSEncoderAudioEncoder, state.CSEncoderAudioRate);
-        return new CSEncoderAudioCodec(
-            mode.LCapabilityModeLabel,
-            mode.LCapabilityModeQuality is { } quality ? CSCodecQuality.CSCodecQualityRead(quality) : null,
-            codec.LCapabilitySpeed is { } speed ? CSCodecSpeed.CSCodecSpeedRead(speed) : null,
-            codec.LCapabilityExtraList.Select(extra => (
-                extra.LCapabilityExtraLabel,
-                extra.LCapabilityExtraOption,
-                extra.LCapabilityExtraDefault,
-                (IReadOnlyList<(string CSEncoderChoiceToken, string CSEncoderChoiceLabel)>)extra.LCapabilityExtraValues
-                    .Select(choice => (choice.LCapabilityChoiceValue, choice.LCapabilityChoiceLabel))
-                    .ToArray())).ToArray(),
-            codec.LCapabilityNotice);
+        (_, string rate, _, _, string quality, string speed, IReadOnlyDictionary<string, string> extras,
+            string keptSample, string keptChannel) = _csEncoderAudioDraft.LSEncoderAudioRead();
+        (IReadOnlyList<string> layouts, IReadOnlyList<int> samples) =
+            _csEncoderAudioDraft.LSEncoderHelpRead(state.CSEncoderAudioEncoder);
+        _csEncoderAudioCodec = CSEncoderCodec.CSEncoderCodecRead(
+            codec,
+            mode,
+            () => (rate, quality, speed, extras),
+            mode.LCapabilityModeLabel);
+        (IReadOnlyList<int> ticks, bool discrete, double maximum, string kept) =
+            CSEncoderSample.CSEncoderSampleResolve(sample, keptSample, samples);
+        (IReadOnlyList<string> channels, int index) =
+            _csEncoderAudioChannel.CSEncoderChannelResolve(channel, keptChannel, layouts);
+        string optionKey = string.IsNullOrEmpty(_csEncoderAudioCodec.CSEncoderCodecQuality?.CSEncoderQualityRange)
+            ? "Encoder.Audio.FFmpegOption"
+            : "Encoder.Audio.FFmpegOptionRange";
+        return new CSEncoderSound(
+            _csEncoderAudioCodec, optionKey, (ticks, discrete, maximum, kept), (channels, index));
+    }
+
+    public void CSEncoderAudioSave(
+        string stream,
+        string mode,
+        string? quality,
+        int speed,
+        IReadOnlyList<int> extras,
+        string? sample,
+        double? channel)
+    {
+        CSEncoderCodec? codec = _csEncoderAudioCodec;
+        _csEncoderAudioDraft.LSEncoderAudioSet(
+            stream,
+            mode,
+            quality?.Trim() ?? string.Empty,
+            codec?.CSEncoderCodecSpeed?.CSEncoderSpeedResolve(speed) ?? string.Empty,
+            codec?.CSEncoderCodecResolve(extras) ?? new Dictionary<string, string>(StringComparer.Ordinal),
+            CSEncoderSample.CSEncoderSampleRead(sample),
+            _csEncoderAudioChannel.CSEncoderChannelRead(channel));
     }
 
     public IReadOnlyList<CSEncoderRow> CSEncoderAudioRows => _csEncoderAudioRows;
@@ -60,6 +107,11 @@ public sealed class CSEncoderAudio
     // Keeps the encoder and its rate resolved against the encoder's codec; answers whether the choice changed.
     public bool CSEncoderAudioSet(string encoder, string rate)
     {
+        if (encoder.Length == 0 || rate.Length == 0)
+        {
+            return false;
+        }
+
         CSEncoderAudioState kept = _csEncoderAudioState;
         bool encoderChanged = !string.Equals(kept.CSEncoderAudioEncoder, encoder, StringComparison.Ordinal);
         CSEncoderAudioState state = CSEncoderAudioResolve(encoder, rate);
@@ -76,7 +128,7 @@ public sealed class CSEncoderAudio
 
     // The available audio encoders a container takes, with the kept one first when it fits the container yet is not
     // offered; an unknown container takes every available encoder.
-    public string[] CSEncoderAudioRead(string container, string keep)
+    public (string[], string, bool) CSEncoderAudioRead(string container, string keep)
     {
         LSRepertoirePort repertoire = _csEncoderAudioRepertoire;
         bool known = repertoire.LSRepertoireContainerNames.Contains(container);
@@ -85,15 +137,17 @@ public sealed class CSEncoderAudio
                 && (!known || repertoire.LSRepertoireAudioCheck(candidate.LRepertoireName, container)))
             .Select(candidate => candidate.LRepertoireText)
             .ToArray();
-        if (string.IsNullOrEmpty(keep) || items.Contains(keep))
+        string[] offer = items;
+        if (!string.IsNullOrEmpty(keep) && !items.Contains(keep))
         {
-            return items;
+            string? name = repertoire.LSRepertoireAudioResolve(keep);
+            bool fits = name is not null
+                && (!known || repertoire.LSRepertoireAudioCheck(name, container));
+            offer = fits ? [keep, .. items] : items;
         }
 
-        string? name = repertoire.LSRepertoireAudioResolve(keep);
-        bool fits = name is not null
-            && (!known || repertoire.LSRepertoireAudioCheck(name, container));
-        return fits ? [keep, .. items] : items;
+        string selected = offer.Contains(keep) ? keep : offer.FirstOrDefault() ?? string.Empty;
+        return (offer, selected, CSEncoderAudioCheck(selected));
     }
 
     // Whether an audio encoder text is available: a repertoire entry asks the audio trial set, any other text is.
@@ -107,7 +161,15 @@ public sealed class CSEncoderAudio
         return _csEncoderAudioPort.LSTrialAudioCheck(name);
     }
 
-    public async Task<IReadOnlyList<string>> CSEncoderAudioRun(IProgress<double> feed)
+    public (bool, string) CSEncoderAudioCheck(string stream, string mode)
+    {
+        bool excluded = stream == "Exclude" || mode == "Exclude";
+        return (
+            !excluded && mode != "Copy",
+            excluded ? "Encoder.Audio.Notice.Excluded" : "Encoder.Audio.Notice.Copied");
+    }
+
+    public async Task<(IReadOnlyList<string>, string, bool)> CSEncoderAudioRun(IProgress<double> feed)
     {
         CancellationToken token = CSEncoderAudioStart();
         IReadOnlyList<LRepertoireAudio> candidates = _csEncoderAudioRepertoire.LSRepertoireAudioCandidates;
@@ -118,7 +180,8 @@ public sealed class CSEncoderAudio
         CSEncoderAudioInsert(available);
         _csEncoderAudioRows = rows;
         CSEncoderTrial.CSEncoderTrialRecord(_csEncoderAudioPort, "audio", rows);
-        return available;
+        string selected = _csEncoderAudioState.CSEncoderAudioEncoder;
+        return (available, selected, CSEncoderAudioCheck(selected));
     }
 
     private CancellationToken CSEncoderAudioStart()
@@ -170,5 +233,63 @@ public sealed class CSEncoderAudio
     {
         string[] modes = _csEncoderAudioRepertoire.LSRepertoireAudioRead(encoder).LCapabilityModeLabels;
         return new CSEncoderAudioState(encoder, CSEncoder.CSEncoderRateResolve(modes, rate), modes);
+    }
+}
+
+internal sealed class CSEncoderSample
+{
+    private static readonly int[] _csEncoderSampleStandard =
+        [8000, 11025, 16000, 22050, 24000, 32000, 44100, 48000, 88200, 96000, 176400, 192000];
+
+    internal static (IReadOnlyList<int>, bool, double, string) CSEncoderSampleResolve(
+        string? shown, string kept, IReadOnlyList<int> rates)
+    {
+        kept = shown is null ? kept : CSEncoderSampleRead(shown);
+        bool discrete = rates.Count > 0;
+        IReadOnlyList<int> ticks = discrete ? rates : _csEncoderSampleStandard;
+        return (ticks, discrete, ticks.Count > 0 ? ticks[^1] : 48000, kept);
+    }
+
+    internal static string CSEncoderSampleRead(string? shown) =>
+        int.TryParse(shown?.Trim() ?? string.Empty, NumberStyles.Integer, CultureInfo.CurrentCulture, out int hertz)
+        && hertz > 0
+            ? hertz.ToString(CultureInfo.CurrentCulture)
+            : CSEncoderDraft.CSEncoderDraftSource;
+}
+
+internal sealed class CSEncoderChannel
+{
+    private static readonly string[] _csEncoderChannelStandard =
+        ["mono", "stereo", "2.1", "3.0", "4.0", "5.0", "5.1", "6.1", "7.1"];
+
+    private IReadOnlyList<string> _csEncoderChannelLayouts = [];
+
+    internal (IReadOnlyList<string>, int) CSEncoderChannelResolve(
+        double? position, string kept, IReadOnlyList<string> layouts)
+    {
+        kept = position is null ? kept : CSEncoderChannelRead(position);
+        _csEncoderChannelLayouts = layouts.Count == 0 ? _csEncoderChannelStandard : layouts;
+        int index = 0;
+        for (int at = 0; at < _csEncoderChannelLayouts.Count; at++)
+        {
+            if (string.Equals(_csEncoderChannelLayouts[at], kept, StringComparison.OrdinalIgnoreCase))
+            {
+                index = at + 1;
+                break;
+            }
+        }
+
+        return (_csEncoderChannelLayouts, index);
+    }
+
+    internal string CSEncoderChannelRead(double? position)
+    {
+        if (position is not { } value)
+        {
+            return CSEncoderDraft.CSEncoderDraftSource;
+        }
+
+        int index = Math.Clamp((int)Math.Round(value), 0, _csEncoderChannelLayouts.Count);
+        return index <= 0 ? CSEncoderDraft.CSEncoderDraftSource : _csEncoderChannelLayouts[index - 1];
     }
 }
