@@ -41,7 +41,7 @@ internal sealed class PInspectorCrop
         {
             Width = 18,
             Height = 18,
-            Source = QIcon.QIconRead(PCropIcon, PInspectorLook.PInspectorIconBrush),
+            Source = QIcon.QIconRead(PCropIcon, QTool.QToolIconRead()),
             Stretch = Stretch.Uniform
         };
         pInspectorCropTool = PInspectorToolBuild();
@@ -158,6 +158,6 @@ internal sealed class PInspectorCrop
         QInspectorCrop lCrop = QInspectorCrop;
         pInspectorCropTool.Background = pInspectorToolFaces[lCrop.QInspectorToolKey];
         pInspectorToolIcon.Source = QIcon.QIconRead(
-            PCropIcon, PInspectorLook.PInspectorPickBrush[lCrop.QInspectorToolActive]);
+            PCropIcon, QTool.QToolPickRead(lCrop.QInspectorToolActive));
     }
 }

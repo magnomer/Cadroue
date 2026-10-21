@@ -10,11 +10,11 @@ internal static class PInspectorChoice
     {
         var pCombo = new ComboBox
         {
-            Height = PInspectorLook.PInspectorFieldHeight,
+            Height = QTool.QToolFieldHeight,
             Width = 140,
             HorizontalAlignment = HorizontalAlignment.Left,
             FontSize = 12,
-            FontFamily = PInspectorLook.PInspectorFontFamily
+            FontFamily = QTool.QToolFontRead()
         };
         QDropdown.QDropdownAttach(pCombo);
         return pCombo;

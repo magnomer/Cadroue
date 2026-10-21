@@ -22,12 +22,12 @@ public sealed class PInspector : PPanel
     private ScrollViewer pInspectorSectionsHost = null!;
 
     private PInspectorCrop pInspectorCrop = null!;
-    private PInspectorCurve pInspectorCurve = null!;
+    private QCurveSection qInspectorCurveSection = null!;
     private QWhitebalance qInspectorWhitebalance = null!;
-    private PInspectorLoudness pInspectorLoudness = null!;
-    private PInspectorNoise pInspectorNoise = null!;
-    private PInspectorPass pInspectorHighPass = null!;
-    private PInspectorPass pInspectorLowPass = null!;
+    private QLoudnessSection qLoudnessSection = null!;
+    private QNoiseSection qNoiseSection = null!;
+    private QFilterSection qFilterSectionHighpass = null!;
+    private QFilterSection qFilterSectionLowpass = null!;
     private PInspectorEqualizer pInspectorEqualizer = null!;
     private PInspectorSkip pInspectorSkip = null!;
     private PBlank pInspectorBlank = null!;
@@ -52,7 +52,7 @@ public sealed class PInspector : PPanel
         {
             Text = QLocalizationCatalog.QLocalizationTextRead("Inspector.Header.Title"),
             FontSize = 12,
-            FontFamily = PInspectorLook.PInspectorFontFamily,
+            FontFamily = QTool.QToolFontRead(),
             FontWeight = FontWeights.SemiBold,
             Foreground = pInspectorTitleBrush,
             VerticalAlignment = VerticalAlignment.Center
@@ -84,8 +84,8 @@ public sealed class PInspector : PPanel
         {
             Text = QLocalizationCatalog.QLocalizationTextRead("Inspector.Empty.Notice"),
             FontSize = 12,
-            FontFamily = PInspectorLook.PInspectorFontFamily,
-            Foreground = PInspectorLook.PInspectorMutedBrush,
+            FontFamily = QTool.QToolFontRead(),
+            Foreground = QTool.QToolMutedRead(),
             TextWrapping = TextWrapping.Wrap,
             HorizontalAlignment = HorizontalAlignment.Center,
             TextAlignment = TextAlignment.Center,
@@ -112,22 +112,20 @@ public sealed class PInspector : PPanel
         pBody.Children.Add(pGamma.QGammaBody);
         var pExposure = new QExposure(QInspector);
         pBody.Children.Add(pExposure.QExposureBody);
-        pInspectorCurve = new PInspectorCurve(QInspector.QInspectorVideo.QInspectorCurve);
-        pBody.Children.Add(pInspectorCurve.PCurveBody);
+        qInspectorCurveSection = new QCurveSection(QInspector.QInspectorVideo.QInspectorCurve);
+        pBody.Children.Add(qInspectorCurveSection.QCurveSectionBody);
         qInspectorWhitebalance = new QWhitebalance(QInspector);
         pBody.Children.Add(qInspectorWhitebalance.QWhitebalanceBody);
         var pVolume = new QVolume(QInspector);
         pBody.Children.Add(pVolume.QVolumeBody);
-        pInspectorLoudness = new PInspectorLoudness(lAudio.QInspectorLoudness);
-        pBody.Children.Add(pInspectorLoudness.PLoudnessBody);
-        pInspectorNoise = new PInspectorNoise(lAudio.QInspectorNoise);
-        pBody.Children.Add(pInspectorNoise.PNoiseBody);
-        pInspectorHighPass = new PInspectorPass(
-            lAudio.QInspectorHighpass, QLocalizationCatalog.QLocalizationTextRead("Inspector.Pass.HighApply"));
-        pBody.Children.Add(pInspectorHighPass.PInspectorPassBody);
-        pInspectorLowPass = new PInspectorPass(
-            lAudio.QInspectorLowpass, QLocalizationCatalog.QLocalizationTextRead("Inspector.Pass.LowApply"));
-        pBody.Children.Add(pInspectorLowPass.PInspectorPassBody);
+        qLoudnessSection = new QLoudnessSection(lAudio.QInspectorLoudness);
+        pBody.Children.Add(qLoudnessSection.QLoudnessSectionBody);
+        qNoiseSection = new QNoiseSection(lAudio.QInspectorNoise);
+        pBody.Children.Add(qNoiseSection.QNoiseSectionBody);
+        qFilterSectionHighpass = new QFilterSection(lAudio.QInspectorHighpass, "Inspector.Pass.HighApply");
+        pBody.Children.Add(qFilterSectionHighpass.QFilterSectionBody);
+        qFilterSectionLowpass = new QFilterSection(lAudio.QInspectorLowpass, "Inspector.Pass.LowApply");
+        pBody.Children.Add(qFilterSectionLowpass.QFilterSectionBody);
         pInspectorEqualizer = new PInspectorEqualizer(lAudio.QInspectorEqualizer);
         pBody.Children.Add(pInspectorEqualizer.PEqualizerBody);
         pInspectorSkip = new PInspectorSkip(QInspector.QInspectorSkip);
@@ -192,24 +190,24 @@ public sealed class PInspector : PPanel
 
     private void PInspectorStepAttach()
     {
-        pInspectorCurve.PCurveChangeAttach();
+        qInspectorCurveSection.QCurveSectionAttach();
         qInspectorWhitebalance.QWhitebalanceChangeAttach();
-        pInspectorLoudness.PLoudnessChangeAttach();
-        pInspectorNoise.PNoiseChangeAttach();
-        pInspectorHighPass.PFilterChangeAttach();
-        pInspectorLowPass.PFilterChangeAttach();
+        qLoudnessSection.QLoudnessSectionAttach();
+        qNoiseSection.QNoiseSectionAttach();
+        qFilterSectionHighpass.QFilterSectionAttach();
+        qFilterSectionLowpass.QFilterSectionAttach();
         pInspectorEqualizer.PEqualizerChangeAttach();
         pInspectorSkip.PSkipChangeAttach();
     }
 
     private void PInspectorStepUpdate()
     {
-        pInspectorCurve.PCurveUpdate();
+        qInspectorCurveSection.QCurveSectionUpdate();
         qInspectorWhitebalance.QWhitebalanceUpdate();
-        pInspectorLoudness.PLoudnessUpdate();
-        pInspectorNoise.PNoiseUpdate();
-        pInspectorHighPass.PFilterUpdate();
-        pInspectorLowPass.PFilterUpdate();
+        qLoudnessSection.QLoudnessSectionUpdate();
+        qNoiseSection.QNoiseSectionUpdate();
+        qFilterSectionHighpass.QFilterSectionUpdate();
+        qFilterSectionLowpass.QFilterSectionUpdate();
         pInspectorEqualizer.PEqualizerUpdate();
         pInspectorSkip.PSkipUpdate();
     }
@@ -256,13 +254,13 @@ public sealed class PInspector : PPanel
         new("Saturation", pTone.PInspectorSaturationBody, pTone.PInspectorSaturationPersistent),
         new("Gamma", pGamma.QGammaBody, pGamma.QGammaPersistent),
         new("Exposure", pExposure.QExposureBody, pExposure.QExposurePersistent),
-        new("Curve", pInspectorCurve.PCurveBody, pInspectorCurve.PCurvePersistent),
+        new("Curve", qInspectorCurveSection.QCurveSectionBody, qInspectorCurveSection.QCurveSectionPersistent),
         new("Whitebalance", qInspectorWhitebalance.QWhitebalanceBody, qInspectorWhitebalance.QWhitebalancePersistent),
         new("Volume", pVolume.QVolumeBody, pVolume.QVolumePersistent),
-        new("Normalize", pInspectorLoudness.PLoudnessBody, pInspectorLoudness.PLoudnessPersistent),
-        new("Noise Reduction", pInspectorNoise.PNoiseBody, pInspectorNoise.PNoisePersistent),
-        new("High Pass", pInspectorHighPass.PInspectorPassBody, pInspectorHighPass.PInspectorPassPersistent),
-        new("Low Pass", pInspectorLowPass.PInspectorPassBody, pInspectorLowPass.PInspectorPassPersistent),
+        new("Normalize", qLoudnessSection.QLoudnessSectionBody, qLoudnessSection.QLoudnessSectionPersistent),
+        new("Noise Reduction", qNoiseSection.QNoiseSectionBody, qNoiseSection.QNoiseSectionPersistent),
+        new("High Pass", qFilterSectionHighpass.QFilterSectionBody, qFilterSectionHighpass.QFilterSectionPersistent),
+        new("Low Pass", qFilterSectionLowpass.QFilterSectionBody, qFilterSectionLowpass.QFilterSectionPersistent),
         new("Equalizer", pInspectorEqualizer.PEqualizerBody, pInspectorEqualizer.PEqualizerPersistent),
         new("No Processing", pInspectorSkip.PSkipBody, pInspectorSkip.PSkipPersistentBox)
     ];

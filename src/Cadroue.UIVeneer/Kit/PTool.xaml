@@ -4,9 +4,14 @@
     <FontFamily x:Key="PToolFont">Segoe UI</FontFamily>
     <SolidColorBrush x:Key="PToolText" Color="#566273" />
     <SolidColorBrush x:Key="PToolMuted" Color="#8A939E" />
+    <SolidColorBrush x:Key="PToolIcon" Color="#1D2A3D" />
+    <SolidColorBrush x:Key="PToolAccent" Color="#2C6CCE" />
     <SolidColorBrush x:Key="PToolLine" Color="#D9DEE7" />
     <SolidColorBrush x:Key="PToolWarn" Color="#C25A1E" />
     <sys:Double x:Key="PToolDimmed">0.4</sys:Double>
+    <sys:Double x:Key="PToolLabelWidth">80</sys:Double>
+    <sys:Double x:Key="PToolFieldHeight">26</sys:Double>
+    <sys:Double x:Key="PToolRowHeight">34</sys:Double>
 
     <Grid x:Key="PField" x:Shared="False" Height="34" Margin="0,0,0,8">
         <Grid.ColumnDefinitions>

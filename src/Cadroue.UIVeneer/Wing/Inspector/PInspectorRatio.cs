@@ -27,10 +27,10 @@ internal sealed class PInspectorRatio
         {
             Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.FixedRatio"),
             FontSize = 12,
-            FontFamily = PInspectorLook.PInspectorFontFamily,
+            FontFamily = QTool.QToolFontRead(),
             Foreground = QPanel.QPanelTextRead(),
             VerticalContentAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(PInspectorLook.PInspectorLabelWidth, 8, 0, 0)
+            Margin = new Thickness(QTool.QToolLabelWidth, 8, 0, 0)
         };
         QInteractionClick.QInteractionClickAttach(PInspectorRatioFixed);
         QCheckbox.QCheckboxAttach(PInspectorRatioFixed);
@@ -40,11 +40,11 @@ internal sealed class PInspectorRatio
             Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.Lenient"),
             ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.LenientTooltip"),
             FontSize = 12,
-            FontFamily = PInspectorLook.PInspectorFontFamily,
+            FontFamily = QTool.QToolFontRead(),
             Foreground = QPanel.QPanelTextRead(),
             VerticalContentAlignment = VerticalAlignment.Center,
             IsEnabled = false,
-            Margin = new Thickness(PInspectorLook.PInspectorLabelWidth, 4, 0, 0)
+            Margin = new Thickness(QTool.QToolLabelWidth, 4, 0, 0)
         };
         QInteractionClick.QInteractionClickAttach(PInspectorRatioLenient);
         QCheckbox.QCheckboxAttach(PInspectorRatioLenient);
@@ -52,17 +52,17 @@ internal sealed class PInspectorRatio
         PInspectorRatioNotice = new TextBlock
         {
             FontSize = 11,
-            FontFamily = PInspectorLook.PInspectorFontFamily,
+            FontFamily = QTool.QToolFontRead(),
             Foreground = pInspectorWarnBrush,
             TextWrapping = TextWrapping.Wrap,
-            Margin = new Thickness(PInspectorLook.PInspectorLabelWidth, 6, 0, 0),
+            Margin = new Thickness(QTool.QToolLabelWidth, 6, 0, 0),
             Visibility = Visibility.Collapsed
         };
 
         pInspectorCustomPanel = new StackPanel
         {
             Orientation = Orientation.Horizontal,
-            Margin = new Thickness(PInspectorLook.PInspectorLabelWidth, 6, 0, 0)
+            Margin = new Thickness(QTool.QToolLabelWidth, 6, 0, 0)
         };
         PInspectorRatioBody = PCropRatioBuild();
         PInspectorRatioAttach();
@@ -133,8 +133,8 @@ internal sealed class PInspectorRatio
         {
             Text = "×",
             FontSize = 12,
-            FontFamily = PInspectorLook.PInspectorFontFamily,
-            Foreground = PInspectorLook.PInspectorMutedBrush,
+            FontFamily = QTool.QToolFontRead(),
+            Foreground = QTool.QToolMutedRead(),
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(7, 0, 7, 0)
         });

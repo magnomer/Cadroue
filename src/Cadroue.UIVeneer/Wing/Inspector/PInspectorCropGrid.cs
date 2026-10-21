@@ -24,8 +24,8 @@ internal sealed class PInspectorCropGrid
         {
             Text = "—",
             FontSize = 11,
-            FontFamily = PInspectorLook.PInspectorFontFamily,
-            Foreground = PInspectorLook.PInspectorMutedBrush,
+            FontFamily = QTool.QToolFontRead(),
+            Foreground = QTool.QToolMutedRead(),
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -102,7 +102,7 @@ internal sealed class PInspectorCropGrid
     private UIElement PInspectorResolutionBuild() => new Border
     {
         MinWidth = 84,
-        Height = PInspectorLook.PInspectorFieldHeight,
+        Height = QTool.QToolFieldHeight,
         Padding = new Thickness(7, 0, 7, 0),
         Background = new SolidColorBrush(Color.FromRgb(0xF7, 0xF9, 0xFC)),
         BorderBrush = QPanel.QPanelLineRead(),
@@ -127,11 +127,11 @@ internal sealed class PInspectorCropGrid
     {
         Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.Reset"),
         ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.ResetTooltip"),
-        Height = PInspectorLook.PInspectorFieldHeight,
+        Height = QTool.QToolFieldHeight,
         MinWidth = 64,
         Padding = new Thickness(8, 0, 8, 0),
         FontSize = 11,
-        FontFamily = PInspectorLook.PInspectorFontFamily,
+        FontFamily = QTool.QToolFontRead(),
         HorizontalAlignment = HorizontalAlignment.Center,
         VerticalAlignment = VerticalAlignment.Bottom,
         Margin = new Thickness(3)
@@ -155,8 +155,8 @@ internal sealed class PInspectorCropGrid
         {
             Text = pCellLabel,
             FontSize = 11,
-            FontFamily = PInspectorLook.PInspectorFontFamily,
-            Foreground = PInspectorLook.PInspectorMutedBrush,
+            FontFamily = QTool.QToolFontRead(),
+            Foreground = QTool.QToolMutedRead(),
             HorizontalAlignment = HorizontalAlignment.Center,
             Margin = new Thickness(0, 0, 0, 3)
         });

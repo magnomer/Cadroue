@@ -1,6 +1,7 @@
 using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.Tests.Interface;
+using System.Windows.Controls;
 
 using Xunit;
 
@@ -111,6 +112,38 @@ public sealed class TCurveCanvas
         Assert.Equal(TCurveSize, area[0].QCurvePointY, 6);
         Assert.Equal(TCurveSize - (TCurveSize * 0.94), area[256].QCurvePointY, 6);
         Assert.Equal(TCurveSize, area[257].QCurvePointX, 6);
+    }
+
+    [Fact]
+    public void Rebuild_SecondCanvas_PreservesFirst()
+    {
+        Exception? failure = null;
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                QCurve curve = TInterface.TCurveCreate();
+                var first = new Canvas();
+                var second = new Canvas();
+
+                curve.QCurveCanvas.QCurveRebuild(first);
+                int firstCount = first.Children.Count;
+                curve.QCurveCanvas.QCurveRebuild(second);
+
+                Assert.True(firstCount > 0);
+                Assert.Equal(firstCount, first.Children.Count);
+                Assert.True(second.Children.Count > 0);
+            }
+            catch (Exception exception)
+            {
+                failure = exception;
+            }
+        });
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        thread.Join();
+
+        Assert.Null(failure);
     }
 
     [Fact]

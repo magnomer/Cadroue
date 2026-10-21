@@ -1,3 +1,8 @@
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Shapes;
 using Cadroue.Application;
 using Cadroue.Core;
 
@@ -5,6 +10,7 @@ namespace Cadroue.UIDeportment;
 
 public sealed class QCurveCanvas
 {
+    private const double QCurveCanvasSize = 150;
     private const int QCurveSampleCount = 96;
     private const int QCurveGridSteps = 4;
     private const double QCurveHistogramHeadroom = 0.94;
@@ -13,12 +19,131 @@ public sealed class QCurveCanvas
     private const double QCurveStrokePlain = 1.4;
     private const double QCurveStrokeSelected = 2;
 
+    private static readonly Brush QCurveGuideBrush =
+        new SolidColorBrush(Color.FromRgb(0xC5, 0xCC, 0xD3));
+
+    private static readonly IReadOnlyDictionary<string, Brush> QCurveLineBrush = new Dictionary<string, Brush>
+    {
+        ["Grid"] = new SolidColorBrush(Color.FromRgb(0xDD, 0xE2, 0xE7)),
+        ["Guide"] = QCurveGuideBrush,
+        ["Identity"] = new SolidColorBrush(Color.FromArgb(0x60, 0x8A, 0x94, 0x9E))
+    };
+
+    private static readonly Brush[] QCurveChannelBrush =
+    {
+        new SolidColorBrush(Color.FromRgb(0x33, 0x3A, 0x41)),
+        new SolidColorBrush(Color.FromRgb(0xD1, 0x3A, 0x3A)),
+        new SolidColorBrush(Color.FromRgb(0x2F, 0x9E, 0x44)),
+        new SolidColorBrush(Color.FromRgb(0x2B, 0x6C, 0xB0))
+    };
+
+    private static readonly IReadOnlyDictionary<string, Brush>[] QCurveDotFill =
+        QCurveChannelBrush.Select(QCurveFillCreate).ToArray();
+
+    private static readonly Brush[] QCurveHistogramBrush =
+    {
+        new SolidColorBrush(Color.FromArgb(0x30, 0x8A, 0x94, 0x9E)),
+        new SolidColorBrush(Color.FromArgb(0x30, 0xD1, 0x3A, 0x3A)),
+        new SolidColorBrush(Color.FromArgb(0x30, 0x2F, 0x9E, 0x44)),
+        new SolidColorBrush(Color.FromArgb(0x30, 0x2B, 0x6C, 0xB0))
+    };
+
     private readonly QCurve qCurve;
 
     public QCurveCanvas(QCurve lOwner)
     {
         qCurve = lOwner;
     }
+
+    private static IReadOnlyDictionary<string, Brush> QCurveFillCreate(Brush lChannel) =>
+        new Dictionary<string, Brush>
+        {
+            ["Selected"] = lChannel,
+            ["Endpoint"] = QCurveGuideBrush,
+            ["Plain"] = Brushes.White
+        };
+
+    public void QCurveAttach(Canvas lCanvas)
+    {
+        lCanvas.MouseLeftButtonDown += QCurvePressHandle;
+        lCanvas.MouseMove += QCurveMoveHandle;
+        lCanvas.MouseLeftButtonUp += QCurveReleaseHandle;
+    }
+
+    private void QCurvePressHandle(object lSender, MouseButtonEventArgs lArgs)
+    {
+        var lCanvas = (Canvas)lSender;
+        Point lPixel = lArgs.GetPosition(lCanvas);
+        qCurve.QCurveDrag.QCurvePressHandle(lPixel.X, lPixel.Y, QCurveCanvasSize);
+        lCanvas.CaptureMouse();
+        lArgs.Handled = true;
+    }
+
+    private void QCurveMoveHandle(object lSender, MouseEventArgs lArgs)
+    {
+        var lCanvas = (Canvas)lSender;
+        Point lPixel = lArgs.GetPosition(lCanvas);
+        lArgs.Handled = qCurve.QCurveDrag.QCurveMoveHandle(lPixel.X, lPixel.Y, QCurveCanvasSize);
+    }
+
+    private void QCurveReleaseHandle(object lSender, MouseButtonEventArgs lArgs)
+    {
+        lArgs.Handled = qCurve.QCurveDrag.QCurveReleaseHandle();
+        ((Canvas)lSender).ReleaseMouseCapture();
+    }
+
+    public void QCurveRebuild(Canvas lCanvas)
+    {
+        lCanvas.Children.Clear();
+        lCanvas.Children.Add(QCurveHistogramBuild(QCurveHistogramRead(QCurveCanvasSize)));
+        QCurveGridRead(QCurveCanvasSize).ToList().ForEach(lLine => QCurveLineDraw(lCanvas, lLine));
+        lCanvas.Children.Add(QCurveTrackBuild(QCurveTrackRead(QCurveCanvasSize)));
+        QCurveDotsRead(QCurveCanvasSize).ToList().ForEach(lDot => QCurveDotDraw(lCanvas, lDot));
+    }
+
+    private Polygon QCurveHistogramBuild(IReadOnlyList<QCurvePoint> lArea) => new()
+    {
+        Fill = QCurveHistogramBrush[qCurve.QCurveChannel],
+        IsHitTestVisible = false,
+        Points = new PointCollection(lArea.Select(QCurvePointBuild))
+    };
+
+    private static void QCurveLineDraw(Canvas lCanvas, QCurveLine lLine) => lCanvas.Children.Add(new Line
+    {
+        X1 = lLine.QCurveLineFrom.QCurvePointX,
+        Y1 = lLine.QCurveLineFrom.QCurvePointY,
+        X2 = lLine.QCurveLineTo.QCurvePointX,
+        Y2 = lLine.QCurveLineTo.QCurvePointY,
+        Stroke = QCurveLineBrush[lLine.QCurveLineKey],
+        StrokeThickness = 1,
+        SnapsToDevicePixels = true
+    });
+
+    private Polyline QCurveTrackBuild(IReadOnlyList<QCurvePoint> lTrack) => new()
+    {
+        Stroke = QCurveChannelBrush[qCurve.QCurveChannel],
+        StrokeThickness = 1.6,
+        StrokeLineJoin = PenLineJoin.Round,
+        Points = new PointCollection(lTrack.Select(QCurvePointBuild))
+    };
+
+    private void QCurveDotDraw(Canvas lCanvas, QCurveDot lDot)
+    {
+        var lEllipse = new Ellipse
+        {
+            Width = lDot.QCurveDotSize,
+            Height = lDot.QCurveDotSize,
+            Stroke = QCurveChannelBrush[qCurve.QCurveChannel],
+            StrokeThickness = lDot.QCurveDotThickness,
+            Fill = QCurveDotFill[qCurve.QCurveChannel][lDot.QCurveDotFill]
+        };
+        Canvas.SetLeft(lEllipse, lDot.QCurveDotLeft);
+        Canvas.SetTop(lEllipse, lDot.QCurveDotTop);
+        lCanvas.Children.Add(lEllipse);
+    }
+
+    private static Point QCurvePointBuild(QCurvePoint lPoint) =>
+        new(lPoint.QCurvePointX, lPoint.QCurvePointY);
 
     public IReadOnlyList<QCurveLine> QCurveGridRead(double lSize)
     {

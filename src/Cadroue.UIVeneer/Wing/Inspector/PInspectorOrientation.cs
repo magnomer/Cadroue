@@ -61,7 +61,7 @@ internal sealed class PInspectorOrientation
         {
             Content = pFlipLabel,
             FontSize = 12,
-            FontFamily = PInspectorLook.PInspectorFontFamily,
+            FontFamily = QTool.QToolFontRead(),
             Foreground = QPanel.QPanelTextRead(),
             VerticalAlignment = VerticalAlignment.Center,
             VerticalContentAlignment = VerticalAlignment.Center,

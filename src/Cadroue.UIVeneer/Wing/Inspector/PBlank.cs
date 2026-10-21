@@ -157,7 +157,7 @@ internal sealed class PBlank
         {
             Width = 18,
             Height = 18,
-            Source = QIcon.QIconRead(PPickerIcon, PInspectorLook.PInspectorIconBrush),
+            Source = QIcon.QIconRead(PPickerIcon, QTool.QToolIconRead()),
             Stretch = Stretch.Uniform
         };
         pBlankPicker = new ToggleButton
@@ -246,7 +246,7 @@ internal sealed class PBlank
     private void PBlankPickerSet(bool pPicking) => pBlankPicker.IsChecked = PLook.PLookChecked[pPicking];
 
     private void PBlankIconApply(bool pPicking) =>
-        pBlankPickerIcon.Source = QIcon.QIconRead(PPickerIcon, PInspectorLook.PInspectorPickBrush[pPicking]);
+        pBlankPickerIcon.Source = QIcon.QIconRead(PPickerIcon, QTool.QToolPickRead(pPicking));
 
     private void PBlankUpdate()
     {

@@ -117,7 +117,7 @@ internal sealed class PSensor
         Content = pText,
         GroupName = pGroup,
         FontSize = 12,
-        FontFamily = PInspectorLook.PInspectorFontFamily,
+        FontFamily = QTool.QToolFontRead(),
         VerticalContentAlignment = VerticalAlignment.Center
     };
 

@@ -27,17 +27,17 @@ public sealed class QFilter
 
     public IReadOnlyList<double> QFilterMosts => qFilterGate.CFilterMosts;
 
-    // Each preset row shows its wording; the custom row's wording takes the preset it drifted from.
-    public IReadOnlyList<string> QFilterChoiceNames =>
-        qFilterGate.CFilterChoices.Select(QChoice.QChoiceTextRead).ToList();
+    public IReadOnlyList<CChoice> QFilterChoices => qFilterGate.CFilterChoices;
+
+    public IReadOnlyList<double> QFilterValues => qFilterGate.CFilterValues;
+
+    public IReadOnlyList<double> QFilterDefaults => Enumerable.Range(0, qFilterGate.CFilterValues.Count)
+        .Select(qFilterGate.CFilterDefaultRead)
+        .ToList();
 
     public IReadOnlyList<string> QFilterPoleNames => qFilterGate.CFilterPoleChoices
         .Select(static lRow => QLocalizationCatalog.QLocalizationTextRead(lRow.CChoiceKey))
         .ToList();
-
-    public double QFilterValueRead(int lSlot) => qFilterGate.CFilterValueRead(lSlot);
-
-    public double QFilterDefaultRead(int lSlot) => qFilterGate.CFilterDefaultRead(lSlot);
 
     public void QFilterValueSet(int lSlot, double lValue) => qFilterGate.CFilterValueSet(lSlot, lValue);
 
@@ -70,7 +70,7 @@ public sealed class QFilter
 
         lPoles.SelectedIndex = qFilterGate.CFilterPoleChoices.ToList().FindIndex(lRow => lRow.CChoiceChosen);
         QTool.QToolStackUpdate(lResonanceRow, qFilterGate.CFilterResonanceActive);
-        lPreset.Items[lPreset.Items.Count - 1] = QFilterChoiceNames[^1];
+        lPreset.Items[lPreset.Items.Count - 1] = QChoice.QChoiceTextRead(qFilterGate.CFilterChoices[^1]);
         lPreset.SelectedIndex = qFilterGate.CFilterChoices.ToList().FindIndex(lRow => lRow.CChoiceChosen);
         QTool.QToolStackUpdate(lStack, qFilterGate.CFilterActive);
     }

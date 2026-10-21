@@ -23,8 +23,8 @@ internal sealed class PInspectorSkip
         {
             Text = QLocalizationCatalog.QLocalizationTextRead("Inspector.Skip.Note"),
             FontSize = 12,
-            FontFamily = PInspectorLook.PInspectorFontFamily,
-            Foreground = PInspectorLook.PInspectorMutedBrush,
+            FontFamily = QTool.QToolFontRead(),
+            Foreground = QTool.QToolMutedRead(),
             TextWrapping = TextWrapping.Wrap,
             Margin = new Thickness(0, 4, 0, 0)
         };

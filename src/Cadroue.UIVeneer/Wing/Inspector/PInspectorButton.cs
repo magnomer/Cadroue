@@ -20,7 +20,7 @@ internal static class PInspectorButton
         {
             Width = 20,
             Height = 20,
-            Source = QIcon.QIconRead(pIconPath, PInspectorLook.PInspectorIconBrush),
+            Source = QIcon.QIconRead(pIconPath, QTool.QToolIconRead()),
             Stretch = Stretch.Uniform
         },
         ToolTip = pTooltip,

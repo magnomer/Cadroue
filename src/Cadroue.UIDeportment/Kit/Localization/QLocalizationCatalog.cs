@@ -89,7 +89,7 @@ public sealed class QLocalizationCatalog : INotifyPropertyChanged
         QLocalizationCatalogCurrent.qLocalizationCatalogTrace = trace;
     }
 
-    private static string? QLocalizationFallbackFind(string key)
+    internal static string? QLocalizationFallbackFind(string key)
     {
         return QLocalizationCatalogCurrent.qLocalizationCatalogFallback.TryGetValue(key, out string? text)
             ? text

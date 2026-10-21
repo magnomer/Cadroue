@@ -30,9 +30,9 @@ internal static class PInspectorNumber
     {
         Text = pText,
         Width = PInspectorInsetWidth,
-        Height = PInspectorLook.PInspectorFieldHeight,
+        Height = QTool.QToolFieldHeight,
         FontSize = 12,
-        FontFamily = PInspectorLook.PInspectorFontFamily
+        FontFamily = QTool.QToolFontRead()
     };
 
     private static void PInspectorPaddingApply(TextBox pEntryBox)

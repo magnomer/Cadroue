@@ -191,7 +191,8 @@ internal static partial class TInterface
     internal static QInspectorChoice TNoiseChoiceRead(CNoise noise) => new QNoise(noise).QNoiseChoiceRead();
     internal static void TNoiseChoiceSelect(CNoise noise, int index) => noise.CNoiseChoiceSelect(index);
 
-    internal static IReadOnlyList<string> TFilterNamesRead(CFilter filter) => new QFilter(filter).QFilterChoiceNames;
+    internal static IReadOnlyList<string> TFilterNamesRead(CFilter filter) =>
+        new QFilter(filter).QFilterChoices.Select(QChoice.QChoiceTextRead).ToList();
     internal static int TFilterChosenRead(CFilter filter) =>
         filter.CFilterChoices.ToList().FindIndex(row => row.CChoiceChosen);
     internal static int TFilterPoleRead(CFilter filter) =>

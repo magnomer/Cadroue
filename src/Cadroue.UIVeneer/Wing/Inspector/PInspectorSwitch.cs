@@ -13,7 +13,7 @@ internal static class PInspectorSwitch
             Content = pSwitchLabel,
             ToolTip = pSwitchTip,
             FontSize = 12,
-            FontFamily = PInspectorLook.PInspectorFontFamily,
+            FontFamily = QTool.QToolFontRead(),
             Foreground = QPanel.QPanelTextRead(),
             VerticalContentAlignment = VerticalAlignment.Center
         };

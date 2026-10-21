@@ -142,11 +142,11 @@ internal sealed class PInspectorEqualizer
             {
                 Width = 16,
                 Height = 16,
-                Source = QIcon.QIconRead(pEqualizerRemoveIcon, PInspectorLook.PInspectorIconBrush),
+                Source = QIcon.QIconRead(pEqualizerRemoveIcon, QTool.QToolIconRead()),
                 Stretch = Stretch.Uniform
             },
             Width = 26,
-            Height = PInspectorLook.PInspectorFieldHeight,
+            Height = QTool.QToolFieldHeight,
             Margin = new Thickness(6, 0, 0, 8),
             VerticalAlignment = VerticalAlignment.Center,
             ToolTip = QEqualizer.QEqualizerRemoveTip
@@ -155,7 +155,7 @@ internal sealed class PInspectorEqualizer
 
         var pRow = new Grid
         {
-            Height = PInspectorLook.PInspectorRowHeight,
+            Height = QTool.QToolRowHeight,
             Margin = new Thickness(0, 0, 0, 8)
         };
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -227,8 +227,8 @@ internal sealed class PInspectorEqualizer
     {
         Text = pUnit,
         FontSize = 11,
-        FontFamily = PInspectorLook.PInspectorFontFamily,
-        Foreground = PInspectorLook.PInspectorMutedBrush,
+        FontFamily = QTool.QToolFontRead(),
+        Foreground = QTool.QToolMutedRead(),
         VerticalAlignment = VerticalAlignment.Center,
         Margin = new Thickness(6, 0, 6, 0)
     };

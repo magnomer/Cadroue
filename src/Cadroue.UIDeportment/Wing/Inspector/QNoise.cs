@@ -40,6 +40,14 @@ public sealed class QNoise
         .Select(static lRow => QLocalizationCatalog.QLocalizationTextRead(lRow.CChoiceKey))
         .ToList();
 
+    public IReadOnlyList<double> QNoiseValues => Enumerable.Range(0, qNoiseLabelKeys.Length)
+        .Select(qNoiseGate.CNoiseValueRead)
+        .ToList();
+
+    public IReadOnlyList<double> QNoiseDefaults => Enumerable.Range(0, qNoiseLabelKeys.Length)
+        .Select(qNoiseGate.CNoiseDefaultRead)
+        .ToList();
+
     public IReadOnlyList<QInspectorRow> QNoiseRows => Enumerable.Range(0, qNoiseLabelKeys.Length)
         .Select(lSlot => QInspectorPlan.QInspectorRowCreate(
             lSlot,
@@ -52,10 +60,6 @@ public sealed class QNoise
 
     // The combo shows each row's wording and selects the row the gate marked chosen.
     public QInspectorChoice QNoiseChoiceRead() => QInspectorPlan.QInspectorChoiceBuild(qNoiseGate.CNoiseChoices);
-
-    public double QNoiseValueRead(int lRow) => qNoiseGate.CNoiseValueRead(lRow);
-
-    public double QNoiseDefaultRead(int lRow) => qNoiseGate.CNoiseDefaultRead(lRow);
 
     public void QNoiseValueSet(int lRow, double lValue) => qNoiseGate.CNoiseValueSet(lRow, lValue);
 

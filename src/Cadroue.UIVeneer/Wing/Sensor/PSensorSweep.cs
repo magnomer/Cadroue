@@ -25,7 +25,7 @@ public sealed class PSensorSweep
             Height = 28,
             MinWidth = 90,
             FontSize = 12,
-            FontFamily = PInspectorLook.PInspectorFontFamily,
+            FontFamily = QTool.QToolFontRead(),
             VerticalAlignment = VerticalAlignment.Center
         };
         QButton.QButtonAttach(pSensorRunButton, QButtonLook.QButtonLookWhite);

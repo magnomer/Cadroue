@@ -61,8 +61,6 @@ public sealed class QLoudness
     public QInspectorChoice QLoudnessChoiceRead(bool lDynamic) =>
         QInspectorPlan.QInspectorChoiceBuild(qLoudnessGate.CLoudnessChoicesRead(lDynamic));
 
-    public double QLoudnessValueRead(bool lDynamic, int lIndex) => qLoudnessGate.CLoudnessValueRead(lDynamic, lIndex);
-
     public double QLoudnessDefaultRead(bool lDynamic, int lIndex) =>
         qLoudnessGate.CLoudnessDefaultRead(lDynamic, lIndex);
 

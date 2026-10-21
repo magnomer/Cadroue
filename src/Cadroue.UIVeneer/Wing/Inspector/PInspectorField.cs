@@ -18,7 +18,7 @@ internal static class PInspectorField
         var pFieldPanel = new StackPanel
         {
             Orientation = Orientation.Horizontal,
-            Height = PInspectorLook.PInspectorRowHeight,
+            Height = QTool.QToolRowHeight,
             Margin = new Thickness(0, 0, 0, 8)
         };
         pFieldPanel.Children.Add(PInspectorLabelBuild(pFieldLabel));
@@ -31,7 +31,7 @@ internal static class PInspectorField
     {
         var pFieldGrid = new Grid
         {
-            Height = PInspectorLook.PInspectorRowHeight,
+            Height = QTool.QToolRowHeight,
             Margin = new Thickness(0, 0, 0, 8)
         };
         TextBlock pFieldTag = PInspectorLabelBuild(pFieldLabel);
@@ -45,9 +45,9 @@ internal static class PInspectorField
     internal static TextBlock PInspectorLabelBuild(string pFieldLabel) => new()
     {
         Text = pFieldLabel,
-        Width = PInspectorLook.PInspectorLabelWidth,
+        Width = QTool.QToolLabelWidth,
         FontSize = 12,
-        FontFamily = PInspectorLook.PInspectorFontFamily,
+        FontFamily = QTool.QToolFontRead(),
         Foreground = QPanel.QPanelTextRead(),
         VerticalAlignment = VerticalAlignment.Center
     };
@@ -76,8 +76,8 @@ internal static class PInspectorField
     {
         Text = pUnit,
         FontSize = 11,
-        FontFamily = PInspectorLook.PInspectorFontFamily,
-        Foreground = PInspectorLook.PInspectorMutedBrush,
+        FontFamily = QTool.QToolFontRead(),
+        Foreground = QTool.QToolMutedRead(),
         VerticalAlignment = VerticalAlignment.Center,
         Margin = new Thickness(8, 0, 8, 0)
     };
@@ -89,7 +89,7 @@ internal static class PInspectorField
     {
         var pRow = new Grid
         {
-            Height = PInspectorLook.PInspectorRowHeight,
+            Height = QTool.QToolRowHeight,
             Margin = new Thickness(0, 0, 0, 8)
         };
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
