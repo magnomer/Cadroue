@@ -5,7 +5,6 @@ namespace Cadroue.UIDeportment;
 
 public sealed class QCurveCanvas
 {
-    private const double QCurveHitRadius = 9;
     private const int QCurveSampleCount = 96;
     private const int QCurveGridSteps = 4;
     private const double QCurveHistogramHeadroom = 0.94;
@@ -42,15 +41,10 @@ public sealed class QCurveCanvas
 
     public IReadOnlyList<QCurvePoint> QCurveTrackRead(double lSize)
     {
-        IReadOnlyList<LWorkCurvePoint> lPoints = qCurve.QCurvePoints;
-        double[] lXs = lPoints.Select(lPoint => lPoint.LWorkCurveInput).ToArray();
-        double[] lYs = lPoints.Select(lPoint => lPoint.LWorkCurveOutput).ToArray();
-        double[] lSlopes = LColorCurve.LColorSlopeResolve(lXs, lYs);
+        IReadOnlyList<(double, double)> lSamples = qCurve.QCurveTrackRead(QCurveSampleCount);
         var lTrack = new List<QCurvePoint>();
-        for (int lSample = 0; lSample <= QCurveSampleCount; lSample++)
+        foreach ((double lInput, double lOutput) in lSamples)
         {
-            double lInput = (double)lSample / QCurveSampleCount;
-            double lOutput = LColorCurve.LColorCurveResolve(lXs, lYs, lSlopes, lInput);
             lTrack.Add(QCurvePixelResolve(lInput, lOutput, lSize));
         }
 
@@ -109,27 +103,6 @@ public sealed class QCurveCanvas
 
         lArea.Add(new QCurvePoint(lSize, lSize));
         return lArea;
-    }
-
-    public int QCurveHitFind(double lX, double lY, double lSize)
-    {
-        IReadOnlyList<LWorkCurvePoint> lPoints = qCurve.QCurvePoints;
-        int lBest = -1;
-        double lBestDistance = QCurveHitRadius;
-        for (int lIndex = 0; lIndex < lPoints.Count; lIndex++)
-        {
-            QCurvePoint lCenter = QCurvePixelResolve(
-                lPoints[lIndex].LWorkCurveInput, lPoints[lIndex].LWorkCurveOutput, lSize);
-            double lDistance = Math.Sqrt(
-                Math.Pow(lCenter.QCurvePointX - lX, 2) + Math.Pow(lCenter.QCurvePointY - lY, 2));
-            if (lDistance <= lBestDistance)
-            {
-                lBest = lIndex;
-                lBestDistance = lDistance;
-            }
-        }
-
-        return lBest;
     }
 
     public static (double, double) QCurveValueResolve(double lX, double lY, double lSize) =>

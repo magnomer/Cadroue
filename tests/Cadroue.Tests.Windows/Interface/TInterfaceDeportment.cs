@@ -69,10 +69,6 @@ internal static partial class TInterface
     internal static QCurve TCurveCreate() => new(TAtelierCreate().CAtelierInspectorCreate().CInspectorCurve);
     internal static void TCurveAttach(QCurve curve, Action handler) => curve.QCurveChanged += handler;
     internal static void TCurveChannelSelect(QCurve curve, int channel) => curve.QCurveChannelSelect(channel);
-    internal static void TCurvePointAdd(QCurve curve, double input, double output) =>
-        curve.QCurvePointAdd(input, output);
-    internal static void TCurvePointSet(QCurve curve, double input, double output) =>
-        curve.QCurvePointSet(input, output);
     internal static void TCurvePointDelete(QCurve curve) => curve.QCurvePointDelete();
     internal static void TCurveChannelReset(QCurve curve) => curve.QCurveChannelReset();
     internal static int TCurveChannelRead(QCurve curve) => curve.QCurveChannel;
@@ -80,7 +76,6 @@ internal static partial class TInterface
     internal static IReadOnlyList<LWorkCurvePoint> TCurvePointsRead(QCurve curve) => curve.QCurvePoints;
     internal static LWorkVideoStep TCurveStepRead(QCurve curve) => curve.QCurveStepRead();
     internal static void TCurveStepSet(QCurve curve, LWorkVideoStep step) => curve.QCurveStepSet(step);
-    internal static void TCurvePointSelect(QCurve curve, int index) => curve.QCurvePointSelect(index);
 
     internal static QBlank TBlankCreate() => new();
     internal static void TBlankStepSet(QBlank blank, LDetectorBlank step) => blank.QBlankStepSet(step);

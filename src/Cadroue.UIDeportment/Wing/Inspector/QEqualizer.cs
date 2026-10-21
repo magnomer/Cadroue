@@ -1,4 +1,3 @@
-using System.Globalization;
 using Cadroue.Conduct;
 
 namespace Cadroue.UIDeportment;
@@ -8,8 +7,6 @@ public sealed record QEqualizerBand(int QEqualizerBandIndex, string QEqualizerBa
 // The equalizer tool's wiring: paints the gate's bands and preset rows, and hands every input to the gate.
 public sealed class QEqualizer
 {
-    private const string QEqualizerFrequencyPattern = "0.###";
-
     private readonly CEqualizer qEqualizerGate;
 
     public QEqualizer(CEqualizer lGate)
@@ -41,31 +38,23 @@ public sealed class QEqualizer
 
     public string QEqualizerRemoveTip => QLocalizationCatalog.QLocalizationTextRead("Inspector.Equalizer.Remove");
 
-    public IReadOnlyList<QEqualizerBand> QEqualizerRows => qEqualizerGate.CEqualizerBands
-        .Select((lBand, lIndex) => new QEqualizerBand(
-            lIndex,
-            lBand.CEqualizerFrequency.ToString(QEqualizerFrequencyPattern, CultureInfo.InvariantCulture),
-            lBand.CEqualizerGain))
+    public IReadOnlyList<QEqualizerBand> QEqualizerRows => qEqualizerGate.CEqualizerRows
+        .Select(lRow => new QEqualizerBand(
+            lRow.CEqualizerRowIndex,
+            lRow.CEqualizerRowFrequency,
+            lRow.CEqualizerRowGain))
         .ToList();
 
     // The combo shows each row's wording and selects the row the gate marked chosen.
-    public QInspectorChoice QEqualizerChoiceRead()
-    {
-        IReadOnlyList<CChoice> lRows = qEqualizerGate.CEqualizerChoices;
-        List<string> lNames = lRows.Select(QChoice.QChoiceTextRead).ToList();
-        int lCustom = lRows.Count - 1;
-        int lChosen = lRows.ToList().FindIndex(lRow => lRow.CChoiceChosen);
-        return new QInspectorChoice(lNames, lChosen, lCustom, lNames[lCustom]);
-    }
+    public QInspectorChoice QEqualizerChoiceRead() =>
+        QInspectorPlan.QInspectorChoiceBuild(qEqualizerGate.CEqualizerChoices);
 
     public double QEqualizerGainRead(int lIndex) => qEqualizerGate.CEqualizerGainRead(lIndex);
 
-    public string QEqualizerFrequencyRead(int lIndex) => qEqualizerGate.CEqualizerFrequencyRead(lIndex)
-        .ToString(QEqualizerFrequencyPattern, CultureInfo.InvariantCulture);
+    public string QEqualizerFrequencyRead(int lIndex) => qEqualizerGate.CEqualizerFrequencyRead(lIndex);
 
     public string QEqualizerFrequencyCommit(int lIndex, string lText) =>
-        QInspectorField.QInspectorValueFormat(
-            lText, qEqualizerGate.CEqualizerFrequencyCommit(lIndex, lText), QEqualizerFrequencyPattern);
+        qEqualizerGate.CEqualizerFrequencyCommit(lIndex, lText);
 
     public void QEqualizerGainSet(int lIndex, double lGain) => qEqualizerGate.CEqualizerGainSet(lIndex, lGain);
 

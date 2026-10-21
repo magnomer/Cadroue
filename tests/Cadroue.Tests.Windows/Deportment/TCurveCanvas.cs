@@ -72,7 +72,8 @@ public sealed class TCurveCanvas
         Assert.Contains(TInterface.TCurveGridRead(curve, TCurveSize), line => line.QCurveLineKey == "Identity");
         Assert.Equal(6, TInterface.TCurveGridRead(curve, TCurveSize).Count(line => line.QCurveLineKey != "Identity"));
 
-        TInterface.TCurvePointAdd(curve, 0.5, 0.7);
+        TInterface.TCurvePressHandle(curve, TCurveSize / 2, TCurveSize * 0.3, TCurveSize);
+        TInterface.TCurveReleaseHandle(curve);
 
         Assert.DoesNotContain(TInterface.TCurveGridRead(curve, TCurveSize), line => line.QCurveLineKey == "Identity");
     }
@@ -81,7 +82,8 @@ public sealed class TCurveCanvas
     public void DotsRead_SelectedIsLarger_EndpointsFilledAsGuide()
     {
         QCurve curve = TInterface.TCurveCreate();
-        TInterface.TCurvePointAdd(curve, 0.5, 0.5);
+        TInterface.TCurvePressHandle(curve, TCurveSize / 2, TCurveSize / 2, TCurveSize);
+        TInterface.TCurveReleaseHandle(curve);
 
         IReadOnlyList<QCurveDot> dots = TInterface.TCurveDotsRead(curve, TCurveSize);
 
@@ -115,7 +117,8 @@ public sealed class TCurveCanvas
     public void PointCommit_ReadsPercentText_ClampsToUnit()
     {
         QCurve curve = TInterface.TCurveCreate();
-        TInterface.TCurvePointAdd(curve, 0.5, 0.5);
+        TInterface.TCurvePressHandle(curve, TCurveSize / 2, TCurveSize / 2, TCurveSize);
+        TInterface.TCurveReleaseHandle(curve);
 
         TInterface.TCurvePointCommit(curve, "60", "250");
 

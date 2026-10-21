@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using Cadroue.ShellEngine;
 
@@ -44,6 +43,16 @@ public sealed class CEqualizer
 
     public IReadOnlyList<(double CEqualizerFrequency, double CEqualizerGain)> CEqualizerBands => _cEqualizerBands;
 
+    public IReadOnlyList<(
+        int CEqualizerRowIndex,
+        string CEqualizerRowFrequency,
+        double CEqualizerRowGain)> CEqualizerRows => _cEqualizerBands
+        .Select((band, index) => (
+            index,
+            CInspectorField.CInspectorValueFormat(string.Empty, band.CEqualizerFrequency, "0.###"),
+            band.CEqualizerGain))
+        .ToList();
+
     public string? CEqualizerToken => _cEqualizerToken;
 
     public string? CEqualizerPreset => _cEqualizerPreset;
@@ -61,10 +70,12 @@ public sealed class CEqualizer
     public double CEqualizerGainRead(int index) =>
         index >= 0 && index < _cEqualizerBands.Count ? _cEqualizerBands[index].CEqualizerGain : 0;
 
-    public double CEqualizerFrequencyRead(int index) =>
+    public string CEqualizerFrequencyRead(int index) => CInspectorField.CInspectorValueFormat(
+        string.Empty,
         index >= 0 && index < _cEqualizerBands.Count
             ? _cEqualizerBands[index].CEqualizerFrequency
-            : _cEqualizerFrequencyOrigin;
+            : _cEqualizerFrequencyOrigin,
+        "0.###");
 
     // A plan's step; it carries its own match, and a step without one drops the chosen token.
     internal void CEqualizerStepSet(bool active, IReadOnlyList<(double, double)> bands, string? preset)
@@ -113,17 +124,25 @@ public sealed class CEqualizer
         CEqualizerApply(_cEqualizerActive, bands, preset, _cEqualizerToken);
     }
 
-    public void CEqualizerGainSet(int index, double gain) =>
-        CEqualizerBandSet(index, CEqualizerFrequencyRead(index), gain);
+    public void CEqualizerGainSet(int index, double gain) => CEqualizerBandSet(
+        index,
+        index >= 0 && index < _cEqualizerBands.Count
+            ? _cEqualizerBands[index].CEqualizerFrequency
+            : _cEqualizerFrequencyOrigin,
+        gain);
 
     // Text that is not a number keeps the held frequency. The answer is the band's frequency after the commit.
-    public double CEqualizerFrequencyCommit(int index, string text)
+    public string CEqualizerFrequencyCommit(int index, string text)
     {
-        double frequency = double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsed)
-            ? parsed
-            : CEqualizerFrequencyRead(index);
+        double current = index >= 0 && index < _cEqualizerBands.Count
+            ? _cEqualizerBands[index].CEqualizerFrequency
+            : _cEqualizerFrequencyOrigin;
+        double frequency = CInspectorField.CInspectorValueCommit(text, current, null, null);
         CEqualizerBandSet(index, frequency, CEqualizerGainRead(index));
-        return CEqualizerFrequencyRead(index);
+        double committed = index >= 0 && index < _cEqualizerBands.Count
+            ? _cEqualizerBands[index].CEqualizerFrequency
+            : _cEqualizerFrequencyOrigin;
+        return CInspectorField.CInspectorValueFormat(text, committed, "0.###");
     }
 
     public void CEqualizerBandAdd()

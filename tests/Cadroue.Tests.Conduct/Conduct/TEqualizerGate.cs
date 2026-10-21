@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using Cadroue.Conduct;
 using Xunit;
 
@@ -32,6 +34,34 @@ public sealed class TEqualizerGate
         Assert.Equal("Flat", Assert.Single(choices, row => row.CChoiceChosen).CChoiceToken);
         Assert.Equal("Inspector.Equalizer.Preset.Flat", choices[0].CChoiceKey);
         Assert.Equal(new CChoice(null, "Inspector.Common.Custom", null, false), choices[^1]);
+    }
+
+    [Fact]
+    public void Origin_RowsCarryInvariantFrequencyAndStableIndex()
+    {
+        CultureInfo culture = CultureInfo.CurrentCulture;
+        try
+        {
+            tEqualizerGate.CEqualizerBandSet(0, 31.5, 0);
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("fr-FR");
+            IReadOnlyList<(int CEqualizerRowIndex, string CEqualizerRowFrequency, double CEqualizerRowGain)> rows =
+                tEqualizerGate.CEqualizerRows;
+
+            Assert.Equal(tEqualizerGate.CEqualizerBands.Count, rows.Count);
+            Assert.Equal(Enumerable.Range(0, rows.Count), rows.Select(row => row.CEqualizerRowIndex));
+            Assert.Equal("31.5", rows[0].CEqualizerRowFrequency);
+            Assert.All(rows, row => Assert.Equal(
+                tEqualizerGate.CEqualizerBands[row.CEqualizerRowIndex].CEqualizerFrequency
+                    .ToString("0.###", CultureInfo.InvariantCulture),
+                row.CEqualizerRowFrequency));
+            Assert.All(rows, row => Assert.Equal(
+                tEqualizerGate.CEqualizerBands[row.CEqualizerRowIndex].CEqualizerGain,
+                row.CEqualizerRowGain));
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = culture;
+        }
     }
 
     [Fact]
@@ -73,14 +103,52 @@ public sealed class TEqualizerGate
     }
 
     [Fact]
-    public void FrequencyCommit_ParsesText_KeepsOnGarbage()
+    public void FrequencyCommit_ValidTextReturnsFormattedValue()
     {
-        Assert.Equal(2500, tEqualizerGate.CEqualizerFrequencyCommit(1, "2500"));
+        Assert.Equal("2500.0", tEqualizerGate.CEqualizerFrequencyCommit(1, "2500.0"));
+        Assert.Equal(1, tEqualizerChanges);
+        Assert.Equal(2500, tEqualizerGate.CEqualizerBands[1].CEqualizerFrequency);
+
+        Assert.Equal("2500.0", tEqualizerGate.CEqualizerFrequencyCommit(1, "2500.0"));
+        Assert.Equal(1, tEqualizerChanges);
+    }
+
+    [Fact]
+    public void FrequencyCommit_InvalidTextKeepsFormattedValue()
+    {
+        string frequency = tEqualizerGate.CEqualizerFrequencyRead(1);
+
+        Assert.Equal(frequency, tEqualizerGate.CEqualizerFrequencyCommit(1, "abc"));
+        Assert.Equal(0, tEqualizerChanges);
+    }
+
+    [Fact]
+    public void FrequencyCommit_OutOfRangeKeepsFormattedValue()
+    {
+        Assert.Equal("20", tEqualizerGate.CEqualizerFrequencyCommit(0, "5"));
         Assert.Equal(1, tEqualizerChanges);
 
-        Assert.Equal(2500, tEqualizerGate.CEqualizerFrequencyCommit(1, "abc"));
+        Assert.Equal(
+            tEqualizerGate.CEqualizerFrequencyRead(99),
+            tEqualizerGate.CEqualizerFrequencyCommit(99, "50"));
         Assert.Equal(1, tEqualizerChanges);
-        Assert.Equal(1000, tEqualizerGate.CEqualizerFrequencyCommit(99, "50"));
+    }
+
+    [Fact]
+    public void BandAddRemove_RowsKeepStableIndices()
+    {
+        tEqualizerGate.CEqualizerBandAdd();
+        Assert.Equal(
+            Enumerable.Range(0, tEqualizerGate.CEqualizerRows.Count),
+            tEqualizerGate.CEqualizerRows.Select(row => row.CEqualizerRowIndex));
+
+        tEqualizerGate.CEqualizerBandRemove(5);
+
+        Assert.Equal(
+            Enumerable.Range(0, tEqualizerGate.CEqualizerRows.Count),
+            tEqualizerGate.CEqualizerRows.Select(row => row.CEqualizerRowIndex));
+        Assert.Equal(2, tEqualizerRows);
+        Assert.Equal(2, tEqualizerChanges);
     }
 
     [Fact]

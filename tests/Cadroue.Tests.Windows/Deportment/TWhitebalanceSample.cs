@@ -83,13 +83,16 @@ public sealed class TWhitebalanceSample
         QCurve curve = TInterface.TCurveCreate();
 
         TInterface.TCurveChannelSelect(curve, 1);
-        TInterface.TCurvePointAdd(curve, 0.5, 0.7);
+        TInterface.TCurvePressHandle(curve, 75, 45, 150);
+        TInterface.TCurveReleaseHandle(curve);
 
         Assert.Equal(1, TInterface.TCurveChannelRead(curve));
         Assert.Equal(1, TInterface.TCurveSelectedRead(curve));
         Assert.Equal(3, TInterface.TCurvePointsRead(curve).Count);
 
-        TInterface.TCurvePointSet(curve, 0.9, 0.2);
+        TInterface.TCurvePressHandle(curve, 75, 45, 150);
+        TInterface.TCurveMoveHandle(curve, 135, 120, 150);
+        TInterface.TCurveReleaseHandle(curve);
         Assert.True(TInterface.TCurvePointsRead(curve)[1].LWorkCurveInput < 1);
 
         LWorkCurveSettings settings = TInterface.TCurveSettingsRead(TInterface.TCurveStepRead(curve));
@@ -106,8 +109,10 @@ public sealed class TWhitebalanceSample
     public void CurveStepSet_ActiveOnly_KeepsSelection()
     {
         QCurve curve = TInterface.TCurveCreate();
-        TInterface.TCurvePointAdd(curve, 0.5, 0.6);
-        TInterface.TCurvePointSelect(curve, 0);
+        TInterface.TCurvePressHandle(curve, 75, 60, 150);
+        TInterface.TCurveReleaseHandle(curve);
+        TInterface.TCurvePressHandle(curve, 0, 150, 150);
+        TInterface.TCurveReleaseHandle(curve);
         int notices = 0;
         TInterface.TCurveAttach(curve, () => notices++);
 
@@ -124,9 +129,12 @@ public sealed class TWhitebalanceSample
     public void CurveStepSet_PointsChanged_ClampsSelection()
     {
         QCurve curve = TInterface.TCurveCreate();
-        TInterface.TCurvePointAdd(curve, 0.3, 0.3);
-        TInterface.TCurvePointAdd(curve, 0.6, 0.6);
-        TInterface.TCurvePointSelect(curve, 3);
+        TInterface.TCurvePressHandle(curve, 45, 105, 150);
+        TInterface.TCurveReleaseHandle(curve);
+        TInterface.TCurvePressHandle(curve, 90, 60, 150);
+        TInterface.TCurveReleaseHandle(curve);
+        TInterface.TCurvePressHandle(curve, 150, 0, 150);
+        TInterface.TCurveReleaseHandle(curve);
 
         TInterface.TCurveStepSet(curve, Interface.TInterface.TWorkCurveCreate(false));
 

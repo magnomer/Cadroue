@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
 
@@ -37,12 +38,12 @@ internal static class TInterfaceInspector
     internal static bool TInspectorSectionCheck(QInspector inspector, string key) =>
         inspector.QInspectorSectionCheck(key);
     internal static double TInspectorValueCommit(string text, double current, double? least, double? most) =>
-        QInspectorField.QInspectorValueCommit(text, current, least, most);
+        CInspectorField.CInspectorValueCommit(text, current, least, most);
     internal static string TInspectorValueFormat(string text, double number, string format) =>
-        QInspectorField.QInspectorValueFormat(text, number, format);
+        CInspectorField.CInspectorValueFormat(text, number, format);
     internal static void TInspectorSlideCommit(
         double slider, double current, double least, double most, Action<double> set) =>
-        QInspectorField.QInspectorSlideCommit(slider, current, least, most, set);
+        CInspectorField.CInspectorSlideCommit(slider, current, least, most, set);
     internal static QInspectorTip TInspectorTipResolve(
         QInspector inspector, bool active, bool capable, bool preview, string disabled, string previewKey) =>
         QInspectorTip.QInspectorTipResolve(

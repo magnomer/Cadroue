@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Cadroue.Conduct;
 using Cadroue.Tests.Interface;
 using Xunit;
@@ -81,5 +82,244 @@ public sealed class TInspectorGate
         Assert.False(tInspectorGate.CInspectorTone.CToneCapable);
         Assert.True(tInspectorGate.CInspectorExposure.CExposureCapable);
         Assert.True(tInspectorGate.CInspectorExposure.CExposurePreview);
+    }
+
+    [Fact]
+    public void CurveChannel_SelectAndEdit_KeepsOtherChannelsIdentity()
+    {
+        CCurve curve = tInspectorGate.CInspectorCurve;
+
+        curve.CCurveChannelSelect(-1);
+        curve.CCurveChannelSelect(1);
+        curve.CCurvePointAdd(0.5, 0.7);
+
+        Assert.Equal(1, curve.CCurveChannel);
+        Assert.Equal(1, curve.CCurveSelected);
+        Assert.Equal(3, curve.CCurvePoints.Count);
+
+        curve.CCurvePointSet(0.9, 0.2);
+        Assert.True(curve.CCurvePoints[1].Item1 < 1);
+        Assert.Equal(2, curve.CCurveChannels[0].Count);
+        Assert.Equal(3, curve.CCurveChannels[1].Count);
+
+        curve.CCurvePointDelete();
+        Assert.Equal(2, curve.CCurvePoints.Count);
+        curve.CCurveChannelReset(1);
+        Assert.Equal(1, curve.CCurveSelected);
+
+        curve.CCurvePointAdd(0.5, 0.5);
+        curve.CCurveReset();
+        Assert.All(curve.CCurveChannels, points => Assert.Equal(2, points.Count));
+        curve.CCurveChannelSelect(9);
+        curve.CCurvePointSelect(-5);
+        Assert.Equal(3, curve.CCurveChannel);
+        Assert.Equal(0, curve.CCurveSelected);
+        curve.CCurvePointDelete();
+        Assert.Equal(2, curve.CCurvePoints.Count);
+    }
+
+    [Fact]
+    public void CurveReset_ReusesIdentityReference()
+    {
+        CCurve curve = tInspectorGate.CInspectorCurve;
+        IReadOnlyList<(double, double)> identity = curve.CCurveChannels[0];
+
+        Assert.Same(identity, curve.CCurveChannels[1]);
+        curve.CCurvePointAdd(0.5, 0.5);
+        curve.CCurveChannelReset(0);
+        Assert.Same(identity, curve.CCurveChannels[0]);
+
+        curve.CCurveChannelSelect(1);
+        curve.CCurvePointAdd(0.5, 0.5);
+        curve.CCurveReset();
+        Assert.All(curve.CCurveChannels, points => Assert.Same(identity, points));
+    }
+
+    [Fact]
+    public void CurveStepSet_ActiveOnly_KeepsSelection()
+    {
+        CCurve curve = tInspectorGate.CInspectorCurve;
+        curve.CCurvePointAdd(0.5, 0.6);
+        curve.CCurvePointSelect(0);
+        int notices = 0;
+        curve.CCurveChanged += () => notices++;
+
+        curve.CCurveStepSet(true, curve.CCurveChannels);
+
+        Assert.Equal(1, notices);
+        Assert.Equal(0, curve.CCurveSelected);
+        Assert.True(curve.CCurveStepRead().CCurveActive);
+        Assert.Equal(3, curve.CCurvePoints.Count);
+    }
+
+    [Fact]
+    public void CurveStepSet_PointsChanged_ClampsSelection()
+    {
+        CCurve curve = tInspectorGate.CInspectorCurve;
+        curve.CCurvePointAdd(0.3, 0.3);
+        curve.CCurvePointAdd(0.6, 0.6);
+        curve.CCurvePointSelect(3);
+        IReadOnlyList<(double, double)> identity = new[] { (0d, 0d), (1d, 1d) };
+
+        curve.CCurveStepSet(false, new[] { identity, identity, identity, identity });
+
+        Assert.Equal(1, curve.CCurveSelected);
+        Assert.Equal(2, curve.CCurvePoints.Count);
+        Assert.False(curve.CCurveStepRead().CCurveActive);
+    }
+
+    [Fact]
+    public void CurvePointSet_RepeatedNaN_IsSilent()
+    {
+        CCurve curve = tInspectorGate.CInspectorCurve;
+        curve.CCurvePointAdd(0.5, 0.5);
+        int notices = 0;
+        curve.CCurveChanged += () => notices++;
+
+        curve.CCurvePointSet(0.5, double.NaN);
+        curve.CCurvePointSet(0.5, double.NaN);
+
+        Assert.Equal(1, notices);
+    }
+
+    [Fact]
+    public void CurveTrackRead_CubicInterpolationMatchesExistingCurve()
+    {
+        CCurve curve = tInspectorGate.CInspectorCurve;
+        curve.CCurvePointAdd(0.5, 1);
+        curve.CCurvePointSelect(2);
+        curve.CCurvePointSet(1, 0);
+
+        IReadOnlyList<(double, double)> track = curve.CCurveTrackRead(4);
+
+        Assert.Equal(5, track.Count);
+        Assert.Equal(0, track[0].Item2, 6);
+        Assert.Equal(0.625, track[1].Item2, 6);
+        Assert.Equal(1, track[2].Item2, 6);
+        Assert.Equal(0.625, track[3].Item2, 6);
+        Assert.Equal(0, track[4].Item2, 6);
+    }
+
+    [Fact]
+    public void CurvePress_OnPointSelectsIt()
+    {
+        CCurve curve = tInspectorGate.CInspectorCurve;
+
+        curve.CCurvePressHandle(3, 147, 150);
+
+        Assert.Equal(0, curve.CCurveSelected);
+        Assert.Equal(2, curve.CCurvePoints.Count);
+    }
+
+    [Fact]
+    public void CurvePress_OffPointAddsAndSelects()
+    {
+        CCurve curve = tInspectorGate.CInspectorCurve;
+
+        curve.CCurvePressHandle(75, 60, 150);
+
+        Assert.Equal(1, curve.CCurveSelected);
+        Assert.Equal((0.5, 0.6), curve.CCurvePointRead());
+    }
+
+    [Fact]
+    public void CurvePress_AtPixelThresholdSelectsPoint()
+    {
+        CCurve curve = tInspectorGate.CInspectorCurve;
+
+        curve.CCurvePointSelect(0);
+        curve.CCurvePressHandle(141, 0, 150);
+
+        Assert.Equal(1, curve.CCurveSelected);
+        Assert.Equal(2, curve.CCurvePoints.Count);
+
+        curve.CCurvePressHandle(140, 0, 150);
+        Assert.Equal(3, curve.CCurvePoints.Count);
+    }
+
+    [Fact]
+    public void CurvePress_OutsideCanvasMissesThenAddsClampedPoint()
+    {
+        CCurve curve = tInspectorGate.CInspectorCurve;
+
+        curve.CCurvePressHandle(-30, 150, 150);
+
+        Assert.Equal(3, curve.CCurvePoints.Count);
+        Assert.Equal((1.0 / 150, 0), curve.CCurvePointRead());
+    }
+
+    [Fact]
+    public void CurveMove_WhenInactiveDoesNotEdit()
+    {
+        CCurve curve = tInspectorGate.CInspectorCurve;
+        curve.CCurvePointAdd(0.5, 0.5);
+
+        bool moved = curve.CCurveMove(0.7, 0.8, false);
+
+        Assert.False(moved);
+        Assert.Equal((0.5, 0.5), curve.CCurvePointRead());
+    }
+
+    [Fact]
+    public void CurveMove_WhenActiveEditsSelectedPoint()
+    {
+        CCurve curve = tInspectorGate.CInspectorCurve;
+        curve.CCurvePointAdd(0.5, 0.5);
+
+        bool moved = curve.CCurveMove(0.7, 0.8, true);
+
+        Assert.True(moved);
+        Assert.Equal((0.7, 0.8), curve.CCurvePointRead());
+    }
+
+    [Fact]
+    public void PointCommit_ReadsPercentText_ClampsToUnit()
+    {
+        CCurve curve = tInspectorGate.CInspectorCurve;
+        curve.CCurvePointAdd(0.5, 0.5);
+
+        curve.CCurvePointCommit("60", "250");
+
+        Assert.Equal(60, curve.CCurveInputPercent, 6);
+        Assert.Equal(1, curve.CCurvePoints[1].Item2, 6);
+    }
+
+    [Fact]
+    public void ValueCommit_AboveFloor_KeepsTypedNumber() =>
+        Assert.Equal(2000, CInspectorField.CInspectorValueCommit("2000", 100, 20, 20000));
+
+    [Fact]
+    public void ValueCommit_Clamps_FallsBackWhenUnparsable()
+    {
+        Assert.True(CInspectorField.CInspectorDigitCheck("123"));
+        Assert.False(CInspectorField.CInspectorDigitCheck("1.2"));
+        Assert.True(CInspectorField.CInspectorDecimalCheck("-1.2"));
+        Assert.False(CInspectorField.CInspectorDecimalCheck("1,2"));
+        Assert.Equal(20, CInspectorField.CInspectorValueCommit("2", 100, 20, 20000));
+        Assert.Equal(20000, CInspectorField.CInspectorValueCommit("99999", 100, 20, 20000));
+        Assert.Equal(100, CInspectorField.CInspectorValueCommit("abc", 100, 20, 20000));
+        Assert.Equal(-7.5, CInspectorField.CInspectorValueCommit("-7.5", 100, null, null));
+    }
+
+    [Fact]
+    public void ValueFormat_EchoesEquivalentText_ElseFormats()
+    {
+        Assert.Equal("2000", CInspectorField.CInspectorValueFormat("2000", 2000, "0"));
+        Assert.Equal("2000.0", CInspectorField.CInspectorValueFormat("2000.0", 2000, "0"));
+        Assert.Equal("1.5", CInspectorField.CInspectorValueFormat("x", 1.5, "0.###"));
+        Assert.Equal("3", CInspectorField.CInspectorValueFormat(string.Empty, 3, "0"));
+        Assert.Equal(string.Empty, CInspectorField.CInspectorWholeFormat(string.Empty, 0));
+        Assert.Equal("12", CInspectorField.CInspectorWholeFormat("x", 12.4));
+    }
+
+    [Fact]
+    public void SlideCommit_OnlyWhenSliderLeavesClampedCurrent()
+    {
+        var set = new List<double>();
+
+        CInspectorField.CInspectorSlideCommit(1000, 2000, 0, 1000, set.Add);
+        CInspectorField.CInspectorSlideCommit(500, 2000, 0, 1000, set.Add);
+
+        Assert.Equal(new[] { 500.0 }, set);
     }
 }

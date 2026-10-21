@@ -1,7 +1,6 @@
 namespace Cadroue.UIDeportment;
 
-// The curve canvas's drag: a press picks the point under the pointer or adds one there, and while the drag lasts each
-// move sets the shown point to the pointer.
+// The curve canvas's GUI-only drag lifecycle: each press and move relays one request to Conduct.
 public sealed class QCurveDrag
 {
     private readonly QCurve qCurve;
@@ -16,17 +15,7 @@ public sealed class QCurveDrag
 
     public void QCurvePressHandle(double lX, double lY, double lSize)
     {
-        int lHit = qCurve.QCurveCanvas.QCurveHitFind(lX, lY, lSize);
-        if (lHit < 0)
-        {
-            (double lInput, double lOutput) = QCurveCanvas.QCurveValueResolve(lX, lY, lSize);
-            qCurve.QCurvePointAdd(lInput, lOutput);
-        }
-        else
-        {
-            qCurve.QCurvePointSelect(lHit);
-        }
-
+        qCurve.QCurvePressHandle(lX, lY, lSize);
         QCurveDragSet(true);
     }
 
@@ -34,14 +23,8 @@ public sealed class QCurveDrag
 
     public bool QCurveMoveHandle(double lX, double lY, double lSize)
     {
-        if (!qCurveDragActive)
-        {
-            return false;
-        }
-
         (double lInput, double lOutput) = QCurveCanvas.QCurveValueResolve(lX, lY, lSize);
-        qCurve.QCurvePointSet(lInput, lOutput);
-        return true;
+        return qCurve.QCurveMoveHandle(lInput, lOutput, qCurveDragActive);
     }
 
     public bool QCurveReleaseHandle()
