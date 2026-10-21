@@ -1,4 +1,5 @@
 using Cadroue.Conduct;
+using System.Windows.Controls;
 
 namespace Cadroue.UIDeportment;
 
@@ -36,8 +37,6 @@ public sealed class QEqualizer
 
     public double QEqualizerGainOrigin => qEqualizerGate.CEqualizerGainOrigin;
 
-    public string QEqualizerRemoveTip => QLocalizationCatalog.QLocalizationTextRead("Inspector.Equalizer.Remove");
-
     public IReadOnlyList<QEqualizerBand> QEqualizerRows => qEqualizerGate.CEqualizerRows
         .Select(lRow => new QEqualizerBand(
             lRow.CEqualizerRowIndex,
@@ -49,7 +48,19 @@ public sealed class QEqualizer
     public QInspectorChoice QEqualizerChoiceRead() =>
         QInspectorPlan.QInspectorChoiceBuild(qEqualizerGate.CEqualizerChoices);
 
-    public double QEqualizerGainRead(int lIndex) => qEqualizerGate.CEqualizerGainRead(lIndex);
+    internal void QEqualizerBandUpdate(IReadOnlyList<(TextBox, Slider, TextBox)> lRows)
+    {
+        IReadOnlyList<QEqualizerBand> lBands = QEqualizerRows;
+        for (int lIndex = 0; lIndex < lRows.Count; lIndex++)
+        {
+            (TextBox lFrequency, Slider lSlider, TextBox lValue) = lRows[lIndex];
+            QEqualizerBand lBand = lBands[lIndex];
+            lFrequency.Text = lBand.QEqualizerBandFrequency;
+            lSlider.Minimum = qEqualizerGate.CEqualizerGainLeast;
+            lSlider.Maximum = qEqualizerGate.CEqualizerGainMost;
+            QInspectorField.QInspectorFieldUpdate(lSlider, lValue, lBand.QEqualizerBandGain, "0.#");
+        }
+    }
 
     public string QEqualizerFrequencyRead(int lIndex) => qEqualizerGate.CEqualizerFrequencyRead(lIndex);
 

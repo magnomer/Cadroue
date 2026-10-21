@@ -30,6 +30,7 @@
                 <ResourceDictionary Source="Wing/Inspector/Whitebalance/PWhitebalanceWheel.xaml" />
                 <ResourceDictionary Source="Wing/Inspector/PVolume.xaml" />
                 <ResourceDictionary Source="Wing/Inspector/PLoudness.xaml" />
+                <ResourceDictionary Source="Wing/Inspector/PEqualizer.xaml" />
                 <ResourceDictionary Source="Wing/Inspector/PNoise.xaml" />
                 <ResourceDictionary Source="Wing/Inspector/PFilter.xaml" />
             </ResourceDictionary.MergedDictionaries>

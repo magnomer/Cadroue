@@ -28,7 +28,7 @@ public sealed class PInspector : PPanel
     private QNoiseSection qNoiseSection = null!;
     private QFilterSection qFilterSectionHighpass = null!;
     private QFilterSection qFilterSectionLowpass = null!;
-    private PInspectorEqualizer pInspectorEqualizer = null!;
+    private QEqualizerSection qEqualizerSection = null!;
     private PInspectorSkip pInspectorSkip = null!;
     private PBlank pInspectorBlank = null!;
     private readonly PSensor pInspectorSensor;
@@ -126,8 +126,8 @@ public sealed class PInspector : PPanel
         pBody.Children.Add(qFilterSectionHighpass.QFilterSectionBody);
         qFilterSectionLowpass = new QFilterSection(lAudio.QInspectorLowpass, "Inspector.Pass.LowApply");
         pBody.Children.Add(qFilterSectionLowpass.QFilterSectionBody);
-        pInspectorEqualizer = new PInspectorEqualizer(lAudio.QInspectorEqualizer);
-        pBody.Children.Add(pInspectorEqualizer.PEqualizerBody);
+        qEqualizerSection = new QEqualizerSection(lAudio.QInspectorEqualizer);
+        pBody.Children.Add(qEqualizerSection.QEqualizerSectionBody);
         pInspectorSkip = new PInspectorSkip(QInspector.QInspectorSkip);
         pBody.Children.Add(pInspectorSkip.PSkipBody);
         pInspectorBlank = new PBlank(
@@ -196,7 +196,7 @@ public sealed class PInspector : PPanel
         qNoiseSection.QNoiseSectionAttach();
         qFilterSectionHighpass.QFilterSectionAttach();
         qFilterSectionLowpass.QFilterSectionAttach();
-        pInspectorEqualizer.PEqualizerChangeAttach();
+        qEqualizerSection.QEqualizerSectionAttach();
         pInspectorSkip.PSkipChangeAttach();
     }
 
@@ -208,7 +208,7 @@ public sealed class PInspector : PPanel
         qNoiseSection.QNoiseSectionUpdate();
         qFilterSectionHighpass.QFilterSectionUpdate();
         qFilterSectionLowpass.QFilterSectionUpdate();
-        pInspectorEqualizer.PEqualizerUpdate();
+        qEqualizerSection.QEqualizerSectionUpdate();
         pInspectorSkip.PSkipUpdate();
     }
 
@@ -261,7 +261,7 @@ public sealed class PInspector : PPanel
         new("Noise Reduction", qNoiseSection.QNoiseSectionBody, qNoiseSection.QNoiseSectionPersistent),
         new("High Pass", qFilterSectionHighpass.QFilterSectionBody, qFilterSectionHighpass.QFilterSectionPersistent),
         new("Low Pass", qFilterSectionLowpass.QFilterSectionBody, qFilterSectionLowpass.QFilterSectionPersistent),
-        new("Equalizer", pInspectorEqualizer.PEqualizerBody, pInspectorEqualizer.PEqualizerPersistent),
+        new("Equalizer", qEqualizerSection.QEqualizerSectionBody, qEqualizerSection.QEqualizerSectionPersistent),
         new("No Processing", pInspectorSkip.PSkipBody, pInspectorSkip.PSkipPersistentBox)
     ];
 
