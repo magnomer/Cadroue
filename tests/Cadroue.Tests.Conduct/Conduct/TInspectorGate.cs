@@ -87,17 +87,22 @@ public sealed class TInspectorGate
     [Fact]
     public void CurveChannel_SelectAndEdit_KeepsOtherChannelsIdentity()
     {
+        Assert.Null(typeof(CCurve).GetMethod("CCurvePointRead"));
+        Assert.Null(typeof(CCurve).GetMethod("CCurvePointSelect"));
+        Assert.Null(typeof(CCurve).GetMethod("CCurvePointSet"));
+        Assert.Null(typeof(CCurve).GetMethod("CCurvePointAdd"));
+
         CCurve curve = tInspectorGate.CInspectorCurve;
 
         curve.CCurveChannelSelect(-1);
         curve.CCurveChannelSelect(1);
-        curve.CCurvePointAdd(0.5, 0.7);
+        curve.CCurvePressHandle(75, 45, 150);
 
         Assert.Equal(1, curve.CCurveChannel);
         Assert.Equal(1, curve.CCurveSelected);
         Assert.Equal(3, curve.CCurvePoints.Count);
 
-        curve.CCurvePointSet(0.9, 0.2);
+        curve.CCurveMove(0.9, 0.2, true);
         Assert.True(curve.CCurvePoints[1].Item1 < 1);
         Assert.Equal(2, curve.CCurveChannels[0].Count);
         Assert.Equal(3, curve.CCurveChannels[1].Count);
@@ -107,11 +112,11 @@ public sealed class TInspectorGate
         curve.CCurveChannelReset(1);
         Assert.Equal(1, curve.CCurveSelected);
 
-        curve.CCurvePointAdd(0.5, 0.5);
+        curve.CCurvePressHandle(75, 75, 150);
         curve.CCurveReset();
         Assert.All(curve.CCurveChannels, points => Assert.Equal(2, points.Count));
         curve.CCurveChannelSelect(9);
-        curve.CCurvePointSelect(-5);
+        curve.CCurvePressHandle(0, 150, 150);
         Assert.Equal(3, curve.CCurveChannel);
         Assert.Equal(0, curve.CCurveSelected);
         curve.CCurvePointDelete();
@@ -125,12 +130,12 @@ public sealed class TInspectorGate
         IReadOnlyList<(double, double)> identity = curve.CCurveChannels[0];
 
         Assert.Same(identity, curve.CCurveChannels[1]);
-        curve.CCurvePointAdd(0.5, 0.5);
+        curve.CCurvePressHandle(75, 75, 150);
         curve.CCurveChannelReset(0);
         Assert.Same(identity, curve.CCurveChannels[0]);
 
         curve.CCurveChannelSelect(1);
-        curve.CCurvePointAdd(0.5, 0.5);
+        curve.CCurvePressHandle(75, 75, 150);
         curve.CCurveReset();
         Assert.All(curve.CCurveChannels, points => Assert.Same(identity, points));
     }
@@ -139,8 +144,8 @@ public sealed class TInspectorGate
     public void CurveStepSet_ActiveOnly_KeepsSelection()
     {
         CCurve curve = tInspectorGate.CInspectorCurve;
-        curve.CCurvePointAdd(0.5, 0.6);
-        curve.CCurvePointSelect(0);
+        curve.CCurvePressHandle(75, 60, 150);
+        curve.CCurvePressHandle(0, 150, 150);
         int notices = 0;
         curve.CCurveChanged += () => notices++;
 
@@ -156,9 +161,9 @@ public sealed class TInspectorGate
     public void CurveStepSet_PointsChanged_ClampsSelection()
     {
         CCurve curve = tInspectorGate.CInspectorCurve;
-        curve.CCurvePointAdd(0.3, 0.3);
-        curve.CCurvePointAdd(0.6, 0.6);
-        curve.CCurvePointSelect(3);
+        curve.CCurvePressHandle(45, 105, 150);
+        curve.CCurvePressHandle(90, 60, 150);
+        curve.CCurvePressHandle(150, 0, 150);
         IReadOnlyList<(double, double)> identity = new[] { (0d, 0d), (1d, 1d) };
 
         curve.CCurveStepSet(false, new[] { identity, identity, identity, identity });
@@ -172,12 +177,12 @@ public sealed class TInspectorGate
     public void CurvePointSet_RepeatedNaN_IsSilent()
     {
         CCurve curve = tInspectorGate.CInspectorCurve;
-        curve.CCurvePointAdd(0.5, 0.5);
+        curve.CCurvePressHandle(75, 75, 150);
         int notices = 0;
         curve.CCurveChanged += () => notices++;
 
-        curve.CCurvePointSet(0.5, double.NaN);
-        curve.CCurvePointSet(0.5, double.NaN);
+        curve.CCurveMove(0.5, double.NaN, true);
+        curve.CCurveMove(0.5, double.NaN, true);
 
         Assert.Equal(1, notices);
     }
@@ -186,9 +191,9 @@ public sealed class TInspectorGate
     public void CurveTrackRead_CubicInterpolationMatchesExistingCurve()
     {
         CCurve curve = tInspectorGate.CInspectorCurve;
-        curve.CCurvePointAdd(0.5, 1);
-        curve.CCurvePointSelect(2);
-        curve.CCurvePointSet(1, 0);
+        curve.CCurvePressHandle(75, 0, 150);
+        curve.CCurvePressHandle(150, 0, 150);
+        curve.CCurveMove(1, 0, true);
 
         IReadOnlyList<(double, double)> track = curve.CCurveTrackRead(4);
 
@@ -219,7 +224,7 @@ public sealed class TInspectorGate
         curve.CCurvePressHandle(75, 60, 150);
 
         Assert.Equal(1, curve.CCurveSelected);
-        Assert.Equal((0.5, 0.6), curve.CCurvePointRead());
+        Assert.Equal((0.5, 0.6), curve.CCurvePoints[curve.CCurveSelected]);
     }
 
     [Fact]
@@ -227,7 +232,7 @@ public sealed class TInspectorGate
     {
         CCurve curve = tInspectorGate.CInspectorCurve;
 
-        curve.CCurvePointSelect(0);
+        curve.CCurvePressHandle(0, 150, 150);
         curve.CCurvePressHandle(141, 0, 150);
 
         Assert.Equal(1, curve.CCurveSelected);
@@ -245,38 +250,38 @@ public sealed class TInspectorGate
         curve.CCurvePressHandle(-30, 150, 150);
 
         Assert.Equal(3, curve.CCurvePoints.Count);
-        Assert.Equal((1.0 / 150, 0), curve.CCurvePointRead());
+        Assert.Equal((1.0 / 150, 0), curve.CCurvePoints[curve.CCurveSelected]);
     }
 
     [Fact]
     public void CurveMove_WhenInactiveDoesNotEdit()
     {
         CCurve curve = tInspectorGate.CInspectorCurve;
-        curve.CCurvePointAdd(0.5, 0.5);
+        curve.CCurvePressHandle(75, 75, 150);
 
         bool moved = curve.CCurveMove(0.7, 0.8, false);
 
         Assert.False(moved);
-        Assert.Equal((0.5, 0.5), curve.CCurvePointRead());
+        Assert.Equal((0.5, 0.5), curve.CCurvePoints[curve.CCurveSelected]);
     }
 
     [Fact]
     public void CurveMove_WhenActiveEditsSelectedPoint()
     {
         CCurve curve = tInspectorGate.CInspectorCurve;
-        curve.CCurvePointAdd(0.5, 0.5);
+        curve.CCurvePressHandle(75, 75, 150);
 
         bool moved = curve.CCurveMove(0.7, 0.8, true);
 
         Assert.True(moved);
-        Assert.Equal((0.7, 0.8), curve.CCurvePointRead());
+        Assert.Equal((0.7, 0.8), curve.CCurvePoints[curve.CCurveSelected]);
     }
 
     [Fact]
     public void PointCommit_ReadsPercentText_ClampsToUnit()
     {
         CCurve curve = tInspectorGate.CInspectorCurve;
-        curve.CCurvePointAdd(0.5, 0.5);
+        curve.CCurvePressHandle(75, 75, 150);
 
         curve.CCurvePointCommit("60", "250");
 

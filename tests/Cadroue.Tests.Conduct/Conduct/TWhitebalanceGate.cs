@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Cadroue.Application;
 using Cadroue.Conduct;
 using Cadroue.ShellEngine;
 using Xunit;
@@ -46,6 +47,25 @@ public sealed class TWhitebalanceGate
         Assert.Equal(string.Empty, tWhitebalanceGate.CWhitebalanceGuideKey);
         Assert.False(tWhitebalanceGate.CWhitebalanceGuideShown);
         Assert.Equal(["create"], tWhitebalancePort.TWhitebalanceCalls);
+    }
+
+    [Fact]
+    public void WhitebalanceSetupRead_Fresh_HoldsMethodAndFieldFacts()
+    {
+        var setup = tWhitebalanceGate.CWhitebalanceSetupRead();
+
+        Assert.Equal(
+            [
+                "Inspector.Video.WhitebalanceMethodAverage",
+                "Inspector.Video.WhitebalanceMethodMinmax",
+                "Inspector.Video.WhitebalanceMethodMedian",
+                "Inspector.Video.WhitebalanceMethodCustom"
+            ],
+            setup.CWhitebalanceMethodKeys);
+        Assert.Equal(2, setup.CWhitebalanceMethodIndex);
+        Assert.Equal(0, setup.CWhitebalanceSaturationLeast);
+        Assert.Equal(300, setup.CWhitebalanceSaturationMost);
+        Assert.Equal(100, setup.CWhitebalanceSaturationOrigin);
     }
 
     [Fact]
@@ -115,6 +135,22 @@ public sealed class TWhitebalanceGate
         Assert.True(tWhitebalanceGate.CWhitebalanceGreyArmed);
         Assert.Equal("Inspector.Video.WhitebalanceGuide", tWhitebalanceGate.CWhitebalanceGuideKey);
         Assert.Equal([(true, true), (true, false)], tWhitebalanceTools);
+    }
+
+    [Fact]
+    public void WhitebalanceToolSet_Target_MapsWhiteAndGrey()
+    {
+        tWhitebalanceGate.CWhitebalanceCapableSet(true, true);
+
+        tWhitebalanceGate.CWhitebalanceToolSet(true, LNeutralTarget.LNeutralTargetWhite);
+        Assert.True(tWhitebalanceGate.CWhitebalanceWhiteArmed);
+
+        tWhitebalanceGate.CWhitebalanceToolSet(true, LNeutralTarget.LNeutralTargetGrey);
+        Assert.True(tWhitebalanceGate.CWhitebalanceGreyArmed);
+
+        tWhitebalanceGate.CWhitebalanceToolSet(true, LNeutralTarget.LNeutralTargetWhite);
+        tWhitebalanceGate.CWhitebalanceToolSet(true, (LNeutralTarget)int.MaxValue);
+        Assert.True(tWhitebalanceGate.CWhitebalanceGreyArmed);
     }
 
     [Fact]

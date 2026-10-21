@@ -1,0 +1,82 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="../../../Kit/PTool.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <SolidColorBrush x:Key="PWhitebalanceNeutralInk" Color="#1D2A3D" />
+    <SolidColorBrush x:Key="PWhitebalanceNeutralAccent" Color="#2C6CCE" />
+
+    <StackPanel x:Key="PWhitebalanceNeutral" x:Shared="False" Margin="0,0,0,8">
+        <StackPanel.Resources>
+            <Style TargetType="{x:Type ToggleButton}">
+                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Padding" Value="0" />
+            </Style>
+        </StackPanel.Resources>
+
+        <Grid Height="34" Margin="0,0,0,8">
+            <TextBlock x:Name="PWhitebalanceNeutralLabel"
+                       Width="80"
+                       FontSize="12"
+                       FontFamily="{StaticResource PToolFont}"
+                       Foreground="{StaticResource PToolText}"
+                       HorizontalAlignment="Left"
+                       VerticalAlignment="Center" />
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                <ToggleButton x:Name="PWhitebalanceNeutralTool"
+                              Width="32"
+                              Height="32"
+                              VerticalAlignment="Center">
+                    <Image x:Name="PWhitebalanceNeutralIcon"
+                           Width="18"
+                           Height="18"
+                           Stretch="Uniform" />
+                </ToggleButton>
+                <ToggleButton x:Name="PWhitebalanceWhiteTool"
+                              Width="32"
+                              Height="32"
+                              Margin="6,0,0,0"
+                              VerticalAlignment="Center">
+                    <Image x:Name="PWhitebalanceWhiteIcon"
+                           Width="18"
+                           Height="18"
+                           Stretch="Uniform" />
+                </ToggleButton>
+            </StackPanel>
+        </Grid>
+
+        <StackPanel x:Name="PWhitebalanceNeutralGroup"
+                    Orientation="Horizontal"
+                    Margin="0,2,0,0">
+            <Rectangle x:Name="PWhitebalanceNeutralSwatch"
+                       Width="20"
+                       Height="20"
+                       RadiusX="3"
+                       RadiusY="3"
+                       Stroke="#9AA6B8"
+                       StrokeThickness="1"
+                       Fill="Transparent"
+                       VerticalAlignment="Center"
+                       Margin="8,0,6,0" />
+            <TextBlock x:Name="PWhitebalanceNeutralReadout"
+                       FontSize="11"
+                       FontFamily="{StaticResource PToolFont}"
+                       Foreground="#647082"
+                       VerticalAlignment="Center" />
+        </StackPanel>
+
+        <TextBlock x:Name="PWhitebalanceNeutralStatus"
+                   FontSize="11"
+                   FontFamily="{StaticResource PToolFont}"
+                   Foreground="#647082"
+                   TextWrapping="Wrap"
+                   Visibility="Collapsed"
+                   Margin="0,0,0,4" />
+    </StackPanel>
+</ResourceDictionary>

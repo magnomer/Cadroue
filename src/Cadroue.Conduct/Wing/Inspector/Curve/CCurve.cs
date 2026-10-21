@@ -41,7 +41,7 @@ public sealed class CCurve
 
     public IReadOnlyList<(double, double)> CCurvePoints => _cCurveChannels[_cCurveChannel];
 
-    public (double, double) CCurvePointRead() => CCurvePoints[_cCurveSelected];
+    private (double, double) CCurvePointRead() => CCurvePoints[_cCurveSelected];
 
     public double CCurveInputPercent => CCurvePointRead().Item1 * 100;
 
@@ -202,7 +202,7 @@ public sealed class CCurve
         CCurveChanged?.Invoke();
     }
 
-    public void CCurvePointSelect(int index)
+    private void CCurvePointSelect(int index)
     {
         int clamped = Math.Clamp(index, 0, CCurvePoints.Count - 1);
         if (_cCurveSelected == clamped)
@@ -246,7 +246,7 @@ public sealed class CCurve
         return best;
     }
 
-    public void CCurvePointSet(double input, double output)
+    private void CCurvePointSet(double input, double output)
     {
         double clampedInput = Math.Clamp(input, 0, 1);
         if (_cCurveSelected <= 0)
@@ -296,7 +296,7 @@ public sealed class CCurve
             CInspectorField.CInspectorValueCommit(outputText, output * 100, null, null) / 100);
     }
 
-    public void CCurvePointAdd(double input, double output)
+    private void CCurvePointAdd(double input, double output)
     {
         var point = (
             Input: Math.Clamp(Math.Clamp(input, 0, 1), CCurveGap, 1 - CCurveGap),

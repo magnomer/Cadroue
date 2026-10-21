@@ -23,7 +23,7 @@ public sealed class PInspector : PPanel
 
     private PInspectorCrop pInspectorCrop = null!;
     private PInspectorCurve pInspectorCurve = null!;
-    private PInspectorWhitebalance pInspectorWhitebalance = null!;
+    private QWhitebalance qInspectorWhitebalance = null!;
     private PInspectorLoudness pInspectorLoudness = null!;
     private PInspectorNoise pInspectorNoise = null!;
     private PInspectorPass pInspectorHighPass = null!;
@@ -102,7 +102,7 @@ public sealed class PInspector : PPanel
         var pBody = new Grid();
         pBody.Children.Add(pInspectorEmptyNotice);
         pInspectorCrop = new PInspectorCrop(
-            QInspector, () => pInspectorWhitebalance.QWhitebalance.QWhitebalanceToolCancel());
+            QInspector, () => qInspectorWhitebalance.QWhitebalanceToolCancel());
         pBody.Children.Add(pInspectorCrop.PInspectorCropBody);
         var pTone = new PInspectorTone(QInspector);
         pBody.Children.Add(pTone.PInspectorBrightnessBody);
@@ -114,8 +114,8 @@ public sealed class PInspector : PPanel
         pBody.Children.Add(pExposure.QExposureBody);
         pInspectorCurve = new PInspectorCurve(QInspector.QInspectorVideo.QInspectorCurve);
         pBody.Children.Add(pInspectorCurve.PCurveBody);
-        pInspectorWhitebalance = new PInspectorWhitebalance(QInspector);
-        pBody.Children.Add(pInspectorWhitebalance.PWhitebalanceBody);
+        qInspectorWhitebalance = new QWhitebalance(QInspector);
+        pBody.Children.Add(qInspectorWhitebalance.QWhitebalanceBody);
         var pVolume = new QVolume(QInspector);
         pBody.Children.Add(pVolume.QVolumeBody);
         pInspectorLoudness = new PInspectorLoudness(lAudio.QInspectorLoudness);
@@ -133,7 +133,7 @@ public sealed class PInspector : PPanel
         pInspectorSkip = new PInspectorSkip(QInspector.QInspectorSkip);
         pBody.Children.Add(pInspectorSkip.PSkipBody);
         pInspectorBlank = new PBlank(
-            QInspector.QInspectorBlank, pInspectorWhitebalance.QWhitebalance.QWhitebalanceWheel);
+            QInspector.QInspectorBlank, qInspectorWhitebalance.QWhitebalanceWheel);
         pBody.Children.Add(pInspectorBlank.PBlankBody);
         pInspectorSections = PInspectorSectionsCreate(pTone, pGamma, pExposure, pVolume);
         return pBody;
@@ -193,7 +193,7 @@ public sealed class PInspector : PPanel
     private void PInspectorStepAttach()
     {
         pInspectorCurve.PCurveChangeAttach();
-        pInspectorWhitebalance.PWhitebalanceChangeAttach();
+        qInspectorWhitebalance.QWhitebalanceChangeAttach();
         pInspectorLoudness.PLoudnessChangeAttach();
         pInspectorNoise.PNoiseChangeAttach();
         pInspectorHighPass.PFilterChangeAttach();
@@ -205,7 +205,7 @@ public sealed class PInspector : PPanel
     private void PInspectorStepUpdate()
     {
         pInspectorCurve.PCurveUpdate();
-        pInspectorWhitebalance.PWhitebalanceUpdate();
+        qInspectorWhitebalance.QWhitebalanceUpdate();
         pInspectorLoudness.PLoudnessUpdate();
         pInspectorNoise.PNoiseUpdate();
         pInspectorHighPass.PFilterUpdate();
@@ -257,7 +257,7 @@ public sealed class PInspector : PPanel
         new("Gamma", pGamma.QGammaBody, pGamma.QGammaPersistent),
         new("Exposure", pExposure.QExposureBody, pExposure.QExposurePersistent),
         new("Curve", pInspectorCurve.PCurveBody, pInspectorCurve.PCurvePersistent),
-        new("Whitebalance", pInspectorWhitebalance.PWhitebalanceBody, pInspectorWhitebalance.PWhitebalancePersistent),
+        new("Whitebalance", qInspectorWhitebalance.QWhitebalanceBody, qInspectorWhitebalance.QWhitebalancePersistent),
         new("Volume", pVolume.QVolumeBody, pVolume.QVolumePersistent),
         new("Normalize", pInspectorLoudness.PLoudnessBody, pInspectorLoudness.PLoudnessPersistent),
         new("Noise Reduction", pInspectorNoise.PNoiseBody, pInspectorNoise.PNoisePersistent),

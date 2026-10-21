@@ -12,8 +12,8 @@ namespace Cadroue.UIVeneer;
 
 internal sealed class PBlank
 {
-    private const int PBlankWheelSize = PInspectorWhitebalanceWheel.PWhitebalanceWheelSize;
-    private const string PPickerIcon = PInspectorWhitebalanceNeutral.PPickerIcon;
+    private const int PBlankWheelSize = QWhitebalanceWheel.QWhitebalanceWheelSize;
+    private const string PPickerIcon = "/PAsset/PPanel/PProcessingPicker.svg";
 
     private readonly QWhitebalanceWheel qBlankWheel;
     private RadioButton pBlankBlack = null!;
@@ -214,7 +214,7 @@ internal sealed class PBlank
 
     private void PBlankWheelUpdate() =>
         pBlankWheelImage.Source =
-            PInspectorWhitebalanceWheel.PWhitebalanceWheelDraw(qBlankWheel, pBlankBrightnessSlider.Value);
+            qBlankWheel.QWhitebalanceWheelDraw(PBlankWheelSize, pBlankBrightnessSlider.Value);
 
     private void PBlankPressHandle(object pSender, MouseButtonEventArgs pBlankMouse)
     {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Cadroue.Application;
 using Cadroue.ShellEngine;
 
 namespace Cadroue.Conduct;
@@ -97,6 +98,20 @@ public sealed class CWhitebalance
         : _cWhitebalanceStatus;
 
     public bool CWhitebalanceGuideShown => CWhitebalanceGuideKey.Length > 0;
+
+    // The construction facts a driver needs, answered together so it does not discover the gate field by field.
+    public (
+        IReadOnlyList<string> CWhitebalanceMethodKeys,
+        int CWhitebalanceMethodIndex,
+        double CWhitebalanceSaturationLeast,
+        double CWhitebalanceSaturationMost,
+        double CWhitebalanceSaturationOrigin) CWhitebalanceSetupRead() =>
+        (
+            CWhitebalanceMethodKeys,
+            CWhitebalanceMethodIndex,
+            CWhitebalanceSaturationLeast,
+            CWhitebalanceSaturationMost,
+            CWhitebalanceSaturationOrigin);
 
     // The wheel point: the sample's colour under Manual, the last estimate otherwise.
     public (double CWhitebalanceX, double CWhitebalanceY, bool CWhitebalancePresent) CWhitebalanceWheelRead() =>
@@ -200,6 +215,10 @@ public sealed class CWhitebalance
     // The picker arms only while the editor can apply white balance.
     public void CWhitebalanceToolSet(bool armed, bool white) =>
         CWhitebalanceRaise(CWhitebalanceToolApply(armed && _cWhitebalanceCapable, white));
+
+    // A viewer target maps at the gate boundary; every non-white value keeps the viewer's grey fallback.
+    public void CWhitebalanceToolSet(bool armed, LNeutralTarget target) =>
+        CWhitebalanceToolSet(armed, target == LNeutralTarget.LNeutralTargetWhite);
 
     // A picker button's check arms its target; its uncheck disarms only while that target is the armed one.
     public void CWhitebalanceToolToggle(bool white, bool armed)

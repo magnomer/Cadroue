@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Shapes;
 using Cadroue.Conduct;
 
 namespace Cadroue.UIDeportment;
@@ -12,54 +11,80 @@ namespace Cadroue.UIDeportment;
 public sealed class QWhitebalance
 {
     private const string QWhitebalancePattern = "0.#";
+    private const string QWhitebalanceSheet = "PWhitebalance";
+    private const string QWhitebalancePersistentSheet = "PWhitebalancePersistent";
+    private const string QWhitebalanceActive = "PWhitebalanceActive";
+    private const string QWhitebalanceStack = "PWhitebalanceStack";
+    private const string QWhitebalanceMethod = "PWhitebalanceMethod";
+    private const string QWhitebalanceMethodLabel = "PWhitebalanceMethodLabel";
+    private const string QWhitebalanceWarning = "PWhitebalanceWarning";
+    private const string QWhitebalanceResetButton = "PWhitebalanceResetButton";
 
     private readonly CWhitebalance qWhitebalanceGate;
+    private readonly QWhitebalanceNeutral qWhitebalanceNeutral;
     private readonly CheckBox qWhitebalanceSwitch;
-    private readonly CheckBox qWhitebalancePersistent;
     private readonly ComboBox qWhitebalanceMethod;
     private readonly StackPanel qWhitebalanceStack;
-    private readonly StackPanel qWhitebalanceBody;
     private readonly Grid qWhitebalanceField;
 
-    // The section's parts: its switches, the method combo whose field row the saturation field follows, the stack
-    // and body the tip lands on, the grey and white picker buttons in that order, and the dot on a wheel that size.
-    public QWhitebalance(
-        QInspector lInspector,
-        CheckBox lSwitch,
-        CheckBox lPersistent,
-        ComboBox lMethod,
-        StackPanel lStack,
-        StackPanel lBody,
-        IReadOnlyList<ToggleButton> lPickers,
-        Ellipse lDot,
-        int lSize)
+    public QWhitebalance(QInspector lInspector)
     {
         qWhitebalanceGate = lInspector.QInspectorVideo.QInspectorWhitebalance;
-        qWhitebalanceSwitch = lSwitch;
-        qWhitebalancePersistent = lPersistent;
-        qWhitebalanceMethod = lMethod;
-        qWhitebalanceStack = lStack;
-        qWhitebalanceBody = lBody;
-        QWhitebalanceWheel = new QWhitebalanceWheel(qWhitebalanceGate, lDot, lSize);
+        QWhitebalanceBody = QContract.QContractSheetFind<StackPanel>(QWhitebalanceSheet);
+        QWhitebalancePersistent = QContract.QContractSheetFind<CheckBox>(QWhitebalancePersistentSheet);
+        qWhitebalanceSwitch = QContract.QContractFind<CheckBox>(QWhitebalanceBody, QWhitebalanceActive);
+        qWhitebalanceStack = QContract.QContractFind<StackPanel>(QWhitebalanceBody, QWhitebalanceStack);
+        qWhitebalanceMethod = QContract.QContractFind<ComboBox>(QWhitebalanceBody, QWhitebalanceMethod);
+        qWhitebalanceNeutral = new QWhitebalanceNeutral();
+        QWhitebalanceWheel = new QWhitebalanceWheel(lInspector);
+        qWhitebalanceStack.Children.Insert(0, qWhitebalanceNeutral.QWhitebalanceNeutralBody);
+        qWhitebalanceStack.Children.Insert(1, QWhitebalanceWheel.QWhitebalanceWheelBody);
 
-        QWhitebalanceMethodBuild();
-        qWhitebalanceField = QWhitebalanceFieldBuild();
-        QWhitebalanceActiveAttach();
-        QWhitebalancePersistentAttach();
-        QWhitebalancePickerAttach(lPickers[0], false);
-        QWhitebalancePickerAttach(lPickers[1], true);
+        qWhitebalanceSwitch.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply");
+        qWhitebalanceSwitch.ToolTip =
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.ApplyWhitebalance");
+        QWhitebalancePersistent.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent");
+        QWhitebalancePersistent.ToolTip =
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.PersistWhitebalance");
+        QContract.QContractFind<TextBlock>(QWhitebalanceBody, QWhitebalanceMethodLabel).Text =
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceMethod");
+        QContract.QContractFind<TextBlock>(QWhitebalanceBody, QWhitebalanceWarning).Text =
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceWarning");
+        QDropdown.QDropdownAttach(qWhitebalanceMethod);
+        Button lReset = QContract.QContractFind<Button>(QWhitebalanceBody, QWhitebalanceResetButton);
+        lReset.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceReset");
+        lReset.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceResetTooltip");
+        QWhitebalanceAttach(lReset, qWhitebalanceGate.CWhitebalanceReset);
+        QButton.QButtonAttach(lReset, QButtonLook.QButtonLookPanel);
 
-        qWhitebalanceGate.CWhitebalanceChanged += QWhitebalanceUpdate;
-        QWhitebalanceUpdate();
+        var lSetup = qWhitebalanceGate.CWhitebalanceSetupRead();
+        QWhitebalanceMethodBuild(
+            lSetup.CWhitebalanceMethodKeys,
+            lSetup.CWhitebalanceMethodIndex,
+            qWhitebalanceGate.CWhitebalanceMethodSelect);
+        qWhitebalanceField = QWhitebalanceFieldBuild(
+            lSetup.CWhitebalanceSaturationLeast,
+            lSetup.CWhitebalanceSaturationMost,
+            lSetup.CWhitebalanceSaturationOrigin);
+        QCheckbox.QCheckboxAttach(qWhitebalanceSwitch);
+        QWhitebalanceActiveAttach(qWhitebalanceGate.CWhitebalanceActiveSet);
+        QCheckbox.QCheckboxAttach(QWhitebalancePersistent);
+        QWhitebalancePersistentAttach(qWhitebalanceGate.CWhitebalancePersistentSet);
+        qWhitebalanceGate.CWhitebalanceChanged += QWhitebalanceStateUpdate;
+        QWhitebalanceStateUpdate();
+        qWhitebalanceNeutral.QWhitebalanceNeutralAttach(this);
+        QWhitebalanceWheel.QWhitebalanceWheelAttach();
     }
+
+    public StackPanel QWhitebalanceBody { get; }
+
+    public CheckBox QWhitebalancePersistent { get; }
 
     public QWhitebalanceWheel QWhitebalanceWheel { get; }
 
-    public event Action? QWhitebalanceChanged
-    {
-        add => qWhitebalanceGate.CWhitebalanceChanged += value;
-        remove => qWhitebalanceGate.CWhitebalanceChanged -= value;
-    }
+    public void QWhitebalanceChangeAttach() => qWhitebalanceGate.CWhitebalanceChanged += QWhitebalanceUpdate;
+
+    public void QWhitebalanceUpdate() => qWhitebalanceNeutral.QWhitebalanceNeutralUpdate(this);
 
     public bool QWhitebalanceCapable => qWhitebalanceGate.CWhitebalanceCapable;
 
@@ -100,68 +125,74 @@ public sealed class QWhitebalance
                 : string.Empty);
     }
 
-    public void QWhitebalanceReset() => qWhitebalanceGate.CWhitebalanceReset();
-
     public void QWhitebalanceToolCancel() => qWhitebalanceGate.CWhitebalanceToolCancel();
 
-    // The combo shows each method row's wording in the gate's order and selects the gate's method.
-    private void QWhitebalanceMethodBuild()
+    public void QWhitebalanceToolToggle(bool lWhite, bool lArmed) =>
+        qWhitebalanceGate.CWhitebalanceToolToggle(lWhite, lArmed);
+
+    // The combo shows each method row's wording in the gate's order and selects through the supplied gate operation.
+    private void QWhitebalanceMethodBuild(
+        IReadOnlyList<string> lMethodKeys,
+        int lMethodIndex,
+        Action<int> lSelect)
     {
-        foreach (string lKey in qWhitebalanceGate.CWhitebalanceMethodKeys)
+        foreach (string lKey in lMethodKeys)
         {
             qWhitebalanceMethod.Items.Add(QLocalizationCatalog.QLocalizationTextRead(lKey));
         }
 
-        qWhitebalanceMethod.SelectedIndex = qWhitebalanceGate.CWhitebalanceMethodIndex;
-        qWhitebalanceMethod.SelectionChanged += (_, _) =>
-            qWhitebalanceGate.CWhitebalanceMethodSelect(qWhitebalanceMethod.SelectedIndex);
+        qWhitebalanceMethod.SelectedIndex = lMethodIndex;
+        qWhitebalanceMethod.SelectionChanged += (_, _) => lSelect(qWhitebalanceMethod.SelectedIndex);
     }
 
     // The saturation field row, placed right after the method combo's field row.
-    private Grid QWhitebalanceFieldBuild()
+    private Grid QWhitebalanceFieldBuild(double lLeast, double lMost, double lOrigin)
     {
         Grid lField = QField.QFieldBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceSaturation"),
             "%",
-            qWhitebalanceGate.CWhitebalanceSaturationLeast,
-            qWhitebalanceGate.CWhitebalanceSaturationMost,
-            qWhitebalanceGate.CWhitebalanceSaturationOrigin);
+            lLeast,
+            lMost,
+            lOrigin);
         int lRow = qWhitebalanceStack.Children.IndexOf((UIElement)qWhitebalanceMethod.Parent);
         qWhitebalanceStack.Children.Insert(lRow + 1, lField);
         QField.QFieldAttach(
             lField,
-            qWhitebalanceGate.CWhitebalanceSaturationLeast,
-            qWhitebalanceGate.CWhitebalanceSaturationMost,
+            lLeast,
+            lMost,
             () => qWhitebalanceGate.CWhitebalanceSaturation,
             qWhitebalanceGate.CWhitebalanceSaturationSet);
         return lField;
     }
 
-    private void QWhitebalanceActiveAttach() =>
-        QWhitebalanceSwitchAttach(qWhitebalanceSwitch, lActive => qWhitebalanceGate.CWhitebalanceActiveSet(lActive));
+    private void QWhitebalanceActiveAttach(Action<bool> lSet) =>
+        QWhitebalanceSwitchAttach(qWhitebalanceSwitch, lSet);
 
-    private void QWhitebalancePersistentAttach() =>
-        QWhitebalanceSwitchAttach(
-            qWhitebalancePersistent, lFlag => qWhitebalanceGate.CWhitebalancePersistentSet(lFlag));
+    private void QWhitebalancePersistentAttach(Action<bool> lSet) =>
+        QWhitebalanceSwitchAttach(QWhitebalancePersistent, lSet);
 
-    private void QWhitebalancePickerAttach(ToggleButton lPicker, bool lWhite) =>
-        QWhitebalanceSwitchAttach(lPicker, lArmed => qWhitebalanceGate.CWhitebalanceToolToggle(lWhite, lArmed));
+    private static void QWhitebalanceAttach(Button lButton, Action lSet) =>
+        lButton.Click += (_, _) => lSet();
 
-    // A switch or picker button hands its check and uncheck to the gate.
+    // A switch hands its check and uncheck to the gate.
     private static void QWhitebalanceSwitchAttach(ToggleButton lSwitch, Action<bool> lSet)
     {
         lSwitch.Checked += (_, _) => lSet(true);
         lSwitch.Unchecked += (_, _) => lSet(false);
     }
 
-    private void QWhitebalanceUpdate()
+    private void QWhitebalanceStateUpdate()
     {
         QTool.QToolSwitchUpdate(qWhitebalanceSwitch, qWhitebalanceGate.CWhitebalanceActive);
-        QTool.QToolSwitchUpdate(qWhitebalancePersistent, qWhitebalanceGate.CWhitebalancePersistent);
+        QTool.QToolSwitchUpdate(QWhitebalancePersistent, qWhitebalanceGate.CWhitebalancePersistent);
         qWhitebalanceMethod.SelectedIndex = qWhitebalanceGate.CWhitebalanceMethodIndex;
         QField.QFieldUpdate(qWhitebalanceField, qWhitebalanceGate.CWhitebalanceSaturation, QWhitebalancePattern);
         QTool.QToolTipApply(
-            qWhitebalanceSwitch, qWhitebalancePersistent, qWhitebalanceStack, qWhitebalanceBody, QWhitebalanceTip);
+            qWhitebalanceSwitch,
+            QWhitebalancePersistent,
+            qWhitebalanceStack,
+            QWhitebalanceBody,
+            QWhitebalanceTip);
         QWhitebalanceWheel.QWhitebalanceWheelPlace();
     }
 }

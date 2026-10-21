@@ -51,10 +51,9 @@ public sealed class QEditTabWhitebalance
     public void QEditEstimateHandle(string lToken) =>
         qEditViewer.QViewerNeutral.QViewerEstimateStart(LWhitebalancePort.LWhitebalanceMethodRead(lToken));
 
-    // The viewer's picker and the gate's picker follow each other; the gate holds the target as whether it is white.
+    // The viewer's picker and the gate's picker follow each other; the gate owns the viewer-target mapping.
     public void QEditTargetHandle(bool lArmed, LNeutralTarget lTarget) =>
-        qEditInspector.QInspectorVideo.QInspectorWhitebalance.CWhitebalanceToolSet(
-            lArmed, lTarget == LNeutralTarget.LNeutralTargetWhite);
+        qEditInspector.QInspectorVideo.QInspectorWhitebalance.CWhitebalanceToolSet(lArmed, lTarget);
 
     public void QEditTargetApply(bool lArmed, bool lWhite) =>
         qEditViewer.QViewerNeutral.QViewerToolSet(
