@@ -33,6 +33,19 @@ public sealed class TInspectorGate
     }
 
     [Fact]
+    public void GammaValueSet_Requests_MapSlotsAndClamp()
+    {
+        CGamma gamma = tInspectorGate.CInspectorGamma;
+        gamma.CGammaMidtoneSet(-200);
+        gamma.CGammaRedSet(-20);
+        gamma.CGammaGreenSet(30);
+        gamma.CGammaBlueSet(120);
+        gamma.CGammaHighlightSet(150);
+
+        Assert.Equal([-100d, -20d, 30d, 100d, 100d], gamma.CGammaValues);
+    }
+
+    [Fact]
     public void InspectorAudioAccept_Plan_SetsEveryAudioToolFromItsRead()
     {
         TInspectorPort plan = new()
@@ -82,6 +95,56 @@ public sealed class TInspectorGate
         Assert.False(tInspectorGate.CInspectorTone.CToneCapable);
         Assert.True(tInspectorGate.CInspectorExposure.CExposureCapable);
         Assert.True(tInspectorGate.CInspectorExposure.CExposurePreview);
+    }
+
+    [Fact]
+    public void InspectorPersistentChange_OnlyChangedKeptStateIsTold()
+    {
+        int notices = 0;
+        tInspectorGate.CInspectorPersistentChanged += () => notices++;
+
+        tInspectorGate.CInspectorGamma.CGammaActiveSet(true);
+        tInspectorGate.CInspectorGamma.CGammaCapableSet(true, true);
+        tInspectorGate.CInspectorGamma.CGammaPersistentSet(true);
+        tInspectorGate.CInspectorGamma.CGammaPersistentSet(true);
+        tInspectorGate.CInspectorExposure.CExposurePersistentSet(true);
+        tInspectorGate.CInspectorCurve.CCurvePersistentSet(true);
+        tInspectorGate.CInspectorWhitebalance.CWhitebalancePersistentSet(true);
+        tInspectorGate.CInspectorVolume.CVolumePersistentSet(true);
+        tInspectorGate.CInspectorLoudness.CLoudnessPersistentSet(true);
+        tInspectorGate.CInspectorNoise.CNoisePersistentSet(true);
+        tInspectorGate.CInspectorHighpass.CFilterPersistentSet(true);
+        tInspectorGate.CInspectorLowpass.CFilterPersistentSet(true);
+        tInspectorGate.CInspectorEqualizer.CEqualizerPersistentSet(true);
+        tInspectorGate.CInspectorTone.CTonePersistentSet(0, true);
+        tInspectorGate.CInspectorTone.CTonePersistentSet(1, true);
+        tInspectorGate.CInspectorTone.CTonePersistentSet(2, true);
+        tInspectorGate.CInspectorSkip.CSkipPersistentSet(true);
+        tInspectorGate.CInspectorGamma.CGammaPersistentSet(false);
+
+        Assert.Equal(15, notices);
+    }
+
+    [Fact]
+    public void InspectorFrame_RequestsCoordinateToolsAndStaySilent()
+    {
+        int changes = 0;
+        int tools = 0;
+        tInspectorGate.CInspectorFrame.CInspectorChanged += () => changes++;
+        tInspectorGate.CInspectorFrame.CInspectorToolChanged += _ => tools++;
+
+        tInspectorGate.CInspectorFrame.CInspectorStepSet("Crop");
+        tInspectorGate.CInspectorFrame.CInspectorToolSet(true);
+        tInspectorGate.CInspectorFrame.CInspectorStepSet("Crop");
+        tInspectorGate.CInspectorWhitebalance.CWhitebalanceCapableSet(true, true);
+        tInspectorGate.CInspectorWhitebalance.CWhitebalanceToolSet(true, true);
+        tInspectorGate.CInspectorFrame.CInspectorMinimizedSet(true);
+        tInspectorGate.CInspectorFrame.CInspectorMinimizedSet(true);
+
+        Assert.Equal(4, changes);
+        Assert.Equal(2, tools);
+        Assert.True(tInspectorGate.CInspectorFrame.CInspectorMinimized);
+        Assert.False(tInspectorGate.CInspectorFrame.CInspectorToolArmed);
     }
 
     [Fact]

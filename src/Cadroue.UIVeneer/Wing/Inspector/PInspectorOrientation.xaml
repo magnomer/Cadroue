@@ -1,0 +1,27 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="../../Kit/PTool.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <StackPanel x:Key="PInspectorOrientation" x:Shared="False">
+        <StackPanel Orientation="Horizontal" Height="34" Margin="0,0,0,8">
+            <TextBlock x:Name="PInspectorFlipLabel" Width="80" FontSize="12"
+                       FontFamily="{StaticResource PToolFont}" Foreground="{StaticResource PToolText}"
+                       VerticalAlignment="Center" />
+            <CheckBox x:Name="PInspectorHorizontal" FontSize="12"
+                      FontFamily="{StaticResource PToolFont}" Foreground="{StaticResource PToolText}"
+                      VerticalAlignment="Center" VerticalContentAlignment="Center" Margin="0,0,14,0" />
+            <CheckBox x:Name="PInspectorVertical" FontSize="12"
+                      FontFamily="{StaticResource PToolFont}" Foreground="{StaticResource PToolText}"
+                      VerticalAlignment="Center" VerticalContentAlignment="Center" Margin="0,0,14,0" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Height="34" Margin="0,0,0,8">
+            <TextBlock x:Name="PInspectorRotateLabel" Width="80" FontSize="12"
+                       FontFamily="{StaticResource PToolFont}" Foreground="{StaticResource PToolText}"
+                       VerticalAlignment="Center" />
+            <ComboBox x:Name="PInspectorRotate" Height="26" Width="140"
+                      HorizontalAlignment="Left" FontSize="12" FontFamily="{StaticResource PToolFont}" />
+        </StackPanel>
+    </StackPanel>
+</ResourceDictionary>

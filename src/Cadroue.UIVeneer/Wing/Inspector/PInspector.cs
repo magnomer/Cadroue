@@ -29,7 +29,7 @@ public sealed class PInspector : PPanel
     private QFilterSection qFilterSectionHighpass = null!;
     private QFilterSection qFilterSectionLowpass = null!;
     private QEqualizerSection qEqualizerSection = null!;
-    private PInspectorSkip pInspectorSkip = null!;
+    private QSkipSection qSkipSection = null!;
     private PBlank pInspectorBlank = null!;
     private readonly PSensor pInspectorSensor;
 
@@ -104,10 +104,10 @@ public sealed class PInspector : PPanel
         pInspectorCrop = new PInspectorCrop(
             QInspector, () => qInspectorWhitebalance.QWhitebalanceToolCancel());
         pBody.Children.Add(pInspectorCrop.PInspectorCropBody);
-        var pTone = new PInspectorTone(QInspector);
-        pBody.Children.Add(pTone.PInspectorBrightnessBody);
-        pBody.Children.Add(pTone.PInspectorContrastBody);
-        pBody.Children.Add(pTone.PInspectorSaturationBody);
+        var qTone = new QTone(QInspector);
+        pBody.Children.Add(qTone.QToneBrightnessBody);
+        pBody.Children.Add(qTone.QToneContrastBody);
+        pBody.Children.Add(qTone.QToneSaturationBody);
         var pGamma = new QGamma(QInspector);
         pBody.Children.Add(pGamma.QGammaBody);
         var pExposure = new QExposure(QInspector);
@@ -128,12 +128,12 @@ public sealed class PInspector : PPanel
         pBody.Children.Add(qFilterSectionLowpass.QFilterSectionBody);
         qEqualizerSection = new QEqualizerSection(lAudio.QInspectorEqualizer);
         pBody.Children.Add(qEqualizerSection.QEqualizerSectionBody);
-        pInspectorSkip = new PInspectorSkip(QInspector.QInspectorSkip);
-        pBody.Children.Add(pInspectorSkip.PSkipBody);
+        qSkipSection = new QSkipSection(QInspector.QInspectorSkip);
+        pBody.Children.Add(qSkipSection.QSkipSectionBody);
         pInspectorBlank = new PBlank(
             QInspector.QInspectorBlank, qInspectorWhitebalance.QWhitebalanceWheel);
         pBody.Children.Add(pInspectorBlank.PBlankBody);
-        pInspectorSections = PInspectorSectionsCreate(pTone, pGamma, pExposure, pVolume);
+        pInspectorSections = PInspectorSectionsCreate(qTone, pGamma, pExposure, pVolume);
         return pBody;
     }
 
@@ -197,7 +197,7 @@ public sealed class PInspector : PPanel
         qFilterSectionHighpass.QFilterSectionAttach();
         qFilterSectionLowpass.QFilterSectionAttach();
         qEqualizerSection.QEqualizerSectionAttach();
-        pInspectorSkip.PSkipChangeAttach();
+        qSkipSection.QSkipSectionAttach();
     }
 
     private void PInspectorStepUpdate()
@@ -209,7 +209,7 @@ public sealed class PInspector : PPanel
         qFilterSectionHighpass.QFilterSectionUpdate();
         qFilterSectionLowpass.QFilterSectionUpdate();
         qEqualizerSection.QEqualizerSectionUpdate();
-        pInspectorSkip.PSkipUpdate();
+        qSkipSection.QSkipSectionUpdate();
     }
 
     public bool PInspectorMinimizedCheck() => QInspector.QInspectorMinimized;
@@ -246,12 +246,12 @@ public sealed class PInspector : PPanel
     }
 
     private List<PInspectorSection> PInspectorSectionsCreate(
-        PInspectorTone pTone, QGamma pGamma, QExposure pExposure, QVolume pVolume) =>
+        QTone qTone, QGamma pGamma, QExposure pExposure, QVolume pVolume) =>
     [
         new("Crop", pInspectorCrop.PInspectorCropBody, pInspectorCrop.PInspectorPersistentBox),
-        new("Brightness", pTone.PInspectorBrightnessBody, pTone.PInspectorBrightnessPersistent),
-        new("Contrast", pTone.PInspectorContrastBody, pTone.PInspectorContrastPersistent),
-        new("Saturation", pTone.PInspectorSaturationBody, pTone.PInspectorSaturationPersistent),
+        new("Brightness", qTone.QToneBrightnessBody, qTone.QToneBrightnessPersistent),
+        new("Contrast", qTone.QToneContrastBody, qTone.QToneContrastPersistent),
+        new("Saturation", qTone.QToneSaturationBody, qTone.QToneSaturationPersistent),
         new("Gamma", pGamma.QGammaBody, pGamma.QGammaPersistent),
         new("Exposure", pExposure.QExposureBody, pExposure.QExposurePersistent),
         new("Curve", qInspectorCurveSection.QCurveSectionBody, qInspectorCurveSection.QCurveSectionPersistent),
@@ -262,7 +262,7 @@ public sealed class PInspector : PPanel
         new("High Pass", qFilterSectionHighpass.QFilterSectionBody, qFilterSectionHighpass.QFilterSectionPersistent),
         new("Low Pass", qFilterSectionLowpass.QFilterSectionBody, qFilterSectionLowpass.QFilterSectionPersistent),
         new("Equalizer", qEqualizerSection.QEqualizerSectionBody, qEqualizerSection.QEqualizerSectionPersistent),
-        new("No Processing", pInspectorSkip.PSkipBody, pInspectorSkip.PSkipPersistentBox)
+        new("No Processing", qSkipSection.QSkipSectionBody, qSkipSection.QSkipSectionPersistent)
     ];
 
     private UIElement PInspectorPersistentBuild()

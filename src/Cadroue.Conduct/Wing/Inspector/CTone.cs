@@ -76,6 +76,12 @@ public sealed class CTone
     public void CToneValueSet(int slot, double value) =>
         CToneRaise(CToneApply(slot, _cToneActive[slot], CToneNormalize(slot, value)));
 
+    public void CToneBrightnessSet(double value) => CToneValueSet(0, value);
+
+    public void CToneContrastSet(double value) => CToneValueSet(1, value);
+
+    public void CToneSaturationSet(double value) => CToneValueSet(2, value);
+
     public void CTonePersistentSet(int slot, bool persistent)
     {
         if (_cTonePersistent[slot] == persistent)

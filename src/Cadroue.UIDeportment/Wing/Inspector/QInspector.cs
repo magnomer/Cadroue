@@ -7,46 +7,12 @@ namespace Cadroue.UIDeportment;
 
 public sealed class QInspector
 {
-    private static readonly IReadOnlyDictionary<string, string> qInspectorTitles = new Dictionary<string, string>
-    {
-        ["Crop"] = "Inspector.Step.Crop",
-        ["Brightness"] = "Inspector.Step.Brightness",
-        ["Contrast"] = "Inspector.Step.Contrast",
-        ["Saturation"] = "Inspector.Step.Saturation",
-        ["Gamma"] = "Inspector.Step.Gamma",
-        ["Exposure"] = "Inspector.Step.Exposure",
-        ["Curve"] = "Inspector.Step.Curve",
-        ["Whitebalance"] = "Inspector.Step.Whitebalance",
-        ["Volume"] = "Inspector.Step.Volume",
-        ["Normalize"] = "Inspector.Step.Normalize",
-        ["Noise Reduction"] = "Inspector.Step.NoiseReduction",
-        ["High Pass"] = "Inspector.Step.HighPass",
-        ["Low Pass"] = "Inspector.Step.LowPass",
-        ["Equalizer"] = "Inspector.Step.Equalizer",
-        ["No Processing"] = "Inspector.Step.NoProcessing"
-    };
-
-    private static readonly IReadOnlyDictionary<LDetectorKind, string> qInspectorSensorTitles =
-        new Dictionary<LDetectorKind, string>
-        {
-            [LDetectorKind.LDetectorKindBlank] = "Inspector.Step.Blank",
-            [LDetectorKind.LDetectorKindScene] = "Inspector.Step.Scene",
-            [LDetectorKind.LDetectorKindStill] = "Inspector.Step.Still",
-            [LDetectorKind.LDetectorKindLuminance] = "Inspector.Step.Luminance",
-            [LDetectorKind.LDetectorKindSilence] = "Inspector.Step.Silence",
-            [LDetectorKind.LDetectorKindVolume] = "Inspector.Step.Volume"
-        };
-
-    private bool qInspectorMinimized;
-    private string? qInspectorStep;
     private double qInspectorSourceWidth = 1920;
     private double qInspectorSourceHeight = 1080;
     private bool qInspectorSourcePresent;
     private bool qInspectorCropCapable = true;
     private bool qInspectorOrientationCapable = true;
-    private bool qInspectorToolArmed;
     private int qInspectorSaveDepth;
-    private readonly QInspectorPersistence qInspectorPersistence;
     private string? qInspectorOwnerPath;
     private string? qInspectorFailurePath;
 
@@ -60,20 +26,28 @@ public sealed class QInspector
         QInspectorSkip = new QSkip(QInspectorGate.CInspectorSkip);
         QInspectorAudio = new QInspectorAudio(QInspectorGate);
         QInspectorAttach();
-        qInspectorPersistence = new QInspectorPersistence(this);
     }
 
     public event Action? QInspectorChanged;
 
-    // Raised once when the set of kept tools changes; the persistence watch decides it.
+    // Raised once when the set of kept tools changes; Conduct decides it.
     public event Action? QInspectorPersistentChanged
     {
-        add => qInspectorPersistence.QInspectorPersistenceChanged += value;
-        remove => qInspectorPersistence.QInspectorPersistenceChanged -= value;
+        add => QInspectorGate.CInspectorPersistentChanged += value;
+        remove => QInspectorGate.CInspectorPersistentChanged -= value;
     }
 
-    public event Action<bool>? QInspectorToolChanged;
-    public event Action<bool>? QInspectorMinimizeChanged;
+    public event Action<bool>? QInspectorToolChanged
+    {
+        add => QInspectorGate.CInspectorFrame.CInspectorToolChanged += value;
+        remove => QInspectorGate.CInspectorFrame.CInspectorToolChanged -= value;
+    }
+
+    public event Action<bool>? QInspectorMinimizeChanged
+    {
+        add => QInspectorGate.CInspectorFrame.CInspectorMinimizeChanged += value;
+        remove => QInspectorGate.CInspectorFrame.CInspectorMinimizeChanged -= value;
+    }
 
     public QInspectorCrop QInspectorCrop { get; }
 
@@ -93,9 +67,7 @@ public sealed class QInspector
 
     public QBlank QInspectorBlank { get; } = new();
 
-    public bool QInspectorMinimized => qInspectorMinimized;
-
-    public string? QInspectorStep => qInspectorStep;
+    public bool QInspectorMinimized => QInspectorGate.CInspectorFrame.CInspectorMinimized;
 
     public double QInspectorSourceWidth => qInspectorSourceWidth;
 
@@ -107,55 +79,32 @@ public sealed class QInspector
 
     public bool QInspectorOrientationCapable => qInspectorOrientationCapable;
 
-    public bool QInspectorToolArmed => qInspectorToolArmed;
+    public bool QInspectorToolArmed => QInspectorGate.CInspectorFrame.CInspectorToolArmed;
 
     public bool QInspectorSaveSuspended => qInspectorSaveDepth > 0;
 
     public string? QInspectorOwnerPath => qInspectorOwnerPath;
 
-    public bool QInspectorPersistentShown => qInspectorTitles.Keys.Any(QInspectorSectionCheck);
+    public bool QInspectorPersistentShown => QInspectorGate.CInspectorFrame.CInspectorPersistentShown;
 
-    public bool QInspectorEmptyShown =>
-        !QInspectorPersistentShown && QSensorName.QSensorKindRead(qInspectorStep) is null;
+    public bool QInspectorEmptyShown => QInspectorGate.CInspectorFrame.CInspectorEmptyShown;
 
-    public bool QInspectorSectionCheck(string lKey) =>
-        qInspectorStep == lKey && !(lKey == "Volume" && QSensorName.QSensorKindRead(qInspectorStep) is not null);
+    public bool QInspectorSectionCheck(string lKey) => QInspectorGate.CInspectorFrame.CInspectorSectionCheck(lKey);
 
-    public bool QInspectorSensorCheck(LDetectorKind lKind) => QSensorName.QSensorKindRead(qInspectorStep) == lKind;
+    public bool QInspectorSensorCheck(LDetectorKind lKind) =>
+        QInspectorGate.CInspectorFrame.CInspectorSensorCheck(QSensorName.QSensorNameRead(lKind));
 
-    public string QInspectorTitleRead() => QLocalizationCatalog.QLocalizationTextRead(
-        QSensorName.QSensorKindRead(qInspectorStep) is { } lKind
-            ? qInspectorSensorTitles[lKind]
-            : qInspectorTitles.GetValueOrDefault(qInspectorStep ?? string.Empty, "Inspector.Header.Title"));
+    public string QInspectorTitleRead() =>
+        QLocalizationCatalog.QLocalizationTextRead(QInspectorGate.CInspectorFrame.CInspectorTitleKey);
 
     public void QInspectorSaveSuspend() => qInspectorSaveDepth++;
 
     public void QInspectorSaveResume() => qInspectorSaveDepth = QInspectorDepthClamp(qInspectorSaveDepth - 1);
 
-    public void QInspectorMinimizedSet(bool lMinimized)
-    {
-        if (qInspectorMinimized == lMinimized)
-        {
-            return;
-        }
+    public void QInspectorMinimizedSet(bool lMinimized) =>
+        QInspectorGate.CInspectorFrame.CInspectorMinimizedSet(lMinimized);
 
-        qInspectorMinimized = lMinimized;
-        QInspectorToolsNormalize();
-        QInspectorChanged?.Invoke();
-        QInspectorMinimizeChanged?.Invoke(lMinimized);
-    }
-
-    public void QInspectorStepSet(string? lStep)
-    {
-        if (qInspectorStep == lStep)
-        {
-            return;
-        }
-
-        qInspectorStep = lStep;
-        QInspectorToolsNormalize();
-        QInspectorChanged?.Invoke();
-    }
+    public void QInspectorStepSet(string? lStep) => QInspectorGate.CInspectorFrame.CInspectorStepSet(lStep);
 
     public void QInspectorSourceSet(double lSourceWidth, double lSourceHeight)
     {
@@ -196,17 +145,7 @@ public sealed class QInspector
         QInspectorChanged?.Invoke();
     }
 
-    public void QInspectorToolSet(bool lToolArmed)
-    {
-        if (qInspectorToolArmed == lToolArmed)
-        {
-            return;
-        }
-
-        qInspectorToolArmed = lToolArmed;
-        QInspectorChanged?.Invoke();
-        QInspectorToolChanged?.Invoke(lToolArmed);
-    }
+    public void QInspectorToolSet(bool lToolArmed) => QInspectorGate.CInspectorFrame.CInspectorToolSet(lToolArmed);
 
     public bool QInspectorOwnerSet(string lOwnerPath)
     {
@@ -254,29 +193,10 @@ public sealed class QInspector
         }
     }
 
-    private void QInspectorToolsNormalize()
-    {
-        if (qInspectorMinimized || qInspectorStep != "Whitebalance")
-        {
-            QInspectorVideo.QInspectorWhitebalance.CWhitebalanceToolCancel();
-        }
-
-        if (qInspectorStep != "Crop")
-        {
-            QInspectorToolSet(false);
-        }
-    }
-
     private static int QInspectorDepthClamp(int lDepth) => Math.Max(0, lDepth);
 
     private void QInspectorAttach() =>
-        QInspectorVideo.QInspectorWhitebalance.CWhitebalanceToolChanged += QInspectorNeutralHandle;
+        QInspectorGate.CInspectorFrame.CInspectorChanged += QInspectorChangeHandle;
 
-    private void QInspectorNeutralHandle(bool lArmed, bool lWhite)
-    {
-        if (lArmed)
-        {
-            QInspectorToolSet(false);
-        }
-    }
+    private void QInspectorChangeHandle() => QInspectorChanged?.Invoke();
 }

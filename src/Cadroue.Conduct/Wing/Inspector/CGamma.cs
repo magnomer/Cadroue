@@ -60,6 +60,16 @@ public sealed class CGamma
         CGammaApply(_cGammaActive, normal);
     }
 
+    public void CGammaMidtoneSet(double value) => CGammaValueSet(0, value);
+
+    public void CGammaRedSet(double value) => CGammaValueSet(1, value);
+
+    public void CGammaGreenSet(double value) => CGammaValueSet(2, value);
+
+    public void CGammaBlueSet(double value) => CGammaValueSet(3, value);
+
+    public void CGammaHighlightSet(double value) => CGammaValueSet(4, value);
+
     public void CGammaReset() => CGammaApply(_cGammaActive, new double[_cGammaValues.Length]);
 
     private void CGammaApply(bool active, double[] normal)

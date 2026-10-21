@@ -23,7 +23,6 @@ internal sealed class PInspectorCrop
     private readonly Action pInspectorCancelHandler;
     private readonly PInspectorCropGrid pInspectorCropGrid;
     private readonly PInspectorRatio pInspectorRatio;
-    private readonly PInspectorOrientation pInspectorOrientation;
     private readonly Image pInspectorToolIcon;
     private readonly ToggleButton pInspectorCropTool;
     private readonly CheckBox pInspectorApplyBox;
@@ -36,7 +35,7 @@ internal sealed class PInspectorCrop
         pInspectorCancelHandler = pToolCancel;
         pInspectorCropGrid = new PInspectorCropGrid(QInspectorCrop);
         pInspectorRatio = new PInspectorRatio(QInspector.QInspectorRatio, QInspectorCrop);
-        pInspectorOrientation = new PInspectorOrientation(QInspector.QInspectorOrientation);
+        QInspector.QInspectorOrientation.QInspectorOrientationBuild();
         pInspectorToolIcon = new Image
         {
             Width = 18,
@@ -57,8 +56,7 @@ internal sealed class PInspectorCrop
         pInspectorCropStack.Children.Add(
             PInspectorField.PInspectorFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.Tool"),
                 pInspectorCropTool));
-        pInspectorCropStack.Children.Add(pInspectorOrientation.PInspectorFlipField);
-        pInspectorCropStack.Children.Add(pInspectorOrientation.PInspectorRotateField);
+        pInspectorCropStack.Children.Add(QInspector.QInspectorOrientation.QInspectorOrientationBody);
         pInspectorCropStack.Children.Add(pInspectorCropGrid.PInspectorGridBody);
         pInspectorCropStack.Children.Add(pInspectorRatio.PInspectorRatioBody);
         pInspectorCropStack.Children.Add(pInspectorRatio.PInspectorRatioFixed);
@@ -110,7 +108,7 @@ internal sealed class PInspectorCrop
         pInspectorApplyBox.IsChecked = PLook.PLookChecked[lCrop.QInspectorActive];
         PInspectorPersistentBox.IsChecked = PLook.PLookChecked[lCrop.QInspectorPersistent];
         pInspectorCropGrid.PInspectorGridApply();
-        pInspectorOrientation.PInspectorOrientationApply(QInspector.QInspectorOrientationCapable);
+        QInspector.QInspectorOrientation.QInspectorOrientationUpdate(QInspector.QInspectorOrientationCapable);
         pInspectorApplyBox.IsEnabled = QInspector.QInspectorCropCapable;
         pInspectorApplyBox.ToolTip = lCrop.QInspectorApplyTip;
     }

@@ -59,19 +59,6 @@ internal static class PInspectorField
         Margin = new Thickness(0, 12, 0, 12)
     };
 
-    internal static StackPanel PToneBodyBuild(CheckBox pApply, StackPanel pStack)
-    {
-        var pBody = new StackPanel
-        {
-            Margin = new Thickness(12, 12, 12, 12),
-            Visibility = Visibility.Collapsed
-        };
-        pBody.Children.Add(pApply);
-        pBody.Children.Add(PInspectorSeparatorBuild());
-        pBody.Children.Add(pStack);
-        return pBody;
-    }
-
     internal static TextBlock PInspectorUnitBuild(string pUnit) => new()
     {
         Text = pUnit,

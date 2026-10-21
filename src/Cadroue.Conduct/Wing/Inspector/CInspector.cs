@@ -8,6 +8,8 @@ namespace Cadroue.Conduct;
 // clinic is the fix tab's inspector, so it is one more tool here. The audio and video plans are each one object.
 public sealed class CInspector
 {
+    private int _cInspectorPersistentMask;
+
     internal CInspector(
         LTonePort tone,
         LEqualizerPort equalizer,
@@ -31,7 +33,12 @@ public sealed class CInspector
         CInspectorHighpass = new CFilter(filter, true);
         CInspectorLowpass = new CFilter(filter, false);
         CInspectorLoudness = new CLoudness(loudness);
+        CInspectorFrame = new CInspectorFrame(this);
+        CInspectorPersistentAttach();
     }
+
+    public event Action? CInspectorPersistentChanged;
+
 
     public CInspectorAudio CInspectorAudio { get; }
 
@@ -64,6 +71,50 @@ public sealed class CInspector
     public CLoudness CInspectorLoudness { get; }
 
     public CSkip CInspectorSkip { get; } = new();
+
+    public CInspectorFrame CInspectorFrame { get; }
+
+    private void CInspectorPersistentAttach()
+    {
+        CInspectorCrop.CCropChanged += () => CInspectorPersistentApply(0, CInspectorCrop.CCropPersistent);
+        CInspectorTone.CToneChanged += () =>
+        {
+            CInspectorPersistentApply(1, CInspectorTone.CTonePersistents[0]);
+            CInspectorPersistentApply(2, CInspectorTone.CTonePersistents[1]);
+            CInspectorPersistentApply(3, CInspectorTone.CTonePersistents[2]);
+        };
+        CInspectorGamma.CGammaChanged += () => CInspectorPersistentApply(4, CInspectorGamma.CGammaPersistent);
+        CInspectorExposure.CExposureChanged += () =>
+            CInspectorPersistentApply(5, CInspectorExposure.CExposurePersistent);
+        CInspectorCurve.CCurveChanged += () => CInspectorPersistentApply(6, CInspectorCurve.CCurvePersistent);
+        CInspectorWhitebalance.CWhitebalanceChanged += () =>
+            CInspectorPersistentApply(7, CInspectorWhitebalance.CWhitebalancePersistent);
+        CInspectorVolume.CVolumeChanged += () => CInspectorPersistentApply(8, CInspectorVolume.CVolumePersistent);
+        CInspectorLoudness.CLoudnessChanged += () =>
+            CInspectorPersistentApply(9, CInspectorLoudness.CLoudnessPersistent);
+        CInspectorNoise.CNoiseChanged += () => CInspectorPersistentApply(10, CInspectorNoise.CNoisePersistent);
+        CInspectorHighpass.CFilterChanged += () =>
+            CInspectorPersistentApply(11, CInspectorHighpass.CFilterPersistent);
+        CInspectorLowpass.CFilterChanged += () =>
+            CInspectorPersistentApply(12, CInspectorLowpass.CFilterPersistent);
+        CInspectorEqualizer.CEqualizerChanged += () =>
+            CInspectorPersistentApply(13, CInspectorEqualizer.CEqualizerPersistent);
+        CInspectorSkip.CSkipChanged += () => CInspectorPersistentApply(14, CInspectorSkip.CSkipPersistent);
+    }
+
+    private void CInspectorPersistentApply(int slot, bool persistent)
+    {
+        int bit = 1 << slot;
+        if (((_cInspectorPersistentMask & bit) != 0) == persistent)
+        {
+            return;
+        }
+
+        _cInspectorPersistentMask = persistent
+            ? _cInspectorPersistentMask | bit
+            : _cInspectorPersistentMask & ~bit;
+        CInspectorPersistentChanged?.Invoke();
+    }
 
     // The owner reports which filters the editor has and whether the preview runs on mpv; each tool takes its fact.
     public void CInspectorCapableSet(bool eq, bool exposure, bool whitebalance, bool preview)

@@ -16,8 +16,8 @@ public sealed class TInspectorNotice
         int notices = 0;
         TInterface.TToneAttach(tone, () => notices++);
 
-        TInterface.TToneValueSet(tone, LColorKind.LColorKindBrightness, 12.5);
-        TInterface.TToneValueSet(tone, LColorKind.LColorKindBrightness, 12.5);
+        tone.CToneBrightnessSet(12.5);
+        tone.CToneBrightnessSet(12.5);
 
         Assert.Equal(1, notices);
         Assert.Equal(12.5, TInterface.TToneStepRead(tone, LColorKind.LColorKindBrightness).LWorkStepValue);
@@ -30,8 +30,8 @@ public sealed class TInspectorNotice
         int notices = 0;
         TInterface.TToneAttach(tone, () => notices++);
 
-        TInterface.TToneValueSet(tone, LColorKind.LColorKindContrast, 250);
-        TInterface.TToneValueSet(tone, LColorKind.LColorKindContrast, 200);
+        tone.CToneContrastSet(250);
+        tone.CToneContrastSet(200);
 
         Assert.Equal(1, notices);
         Assert.Equal(200, TInterface.TToneStepRead(tone, LColorKind.LColorKindContrast).LWorkStepValue);
@@ -44,19 +44,24 @@ public sealed class TInspectorNotice
         int notices = 0;
         TInterface.TGammaAttach(gamma, () => notices++);
 
-        TInterface.TGammaValueSet(gamma, 2, 40);
-        TInterface.TGammaValueSet(gamma, 4, 15);
+        gamma.CGammaMidtoneSet(10);
+        gamma.CGammaRedSet(20);
+        gamma.CGammaGreenSet(40);
+        gamma.CGammaBlueSet(60);
+        gamma.CGammaHighlightSet(15);
         LWorkGammaSettings value = TInterface.TGammaValueRead(gamma);
 
-        Assert.Equal(0, value.LWorkGammaGlobal);
+        Assert.Equal(10, value.LWorkGammaGlobal);
+        Assert.Equal(20, value.LWorkGammaRed);
         Assert.Equal(40, value.LWorkGammaGreen);
+        Assert.Equal(60, value.LWorkGammaBlue);
         Assert.Equal(15, value.LWorkGammaHighlight);
-        Assert.Equal(2, notices);
+        Assert.Equal(5, notices);
 
         TInterface.TGammaReset(gamma);
         TInterface.TGammaReset(gamma);
 
-        Assert.Equal(3, notices);
+        Assert.Equal(6, notices);
         Assert.Equal(TInterface.TGammaSettingsCreate(0, 0, 0, 0, 0), TInterface.TGammaValueRead(gamma));
     }
 

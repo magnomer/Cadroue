@@ -9,6 +9,14 @@ namespace Cadroue.UIDeportment;
 // gate and shows its state. Slots follow the gate: 0 brightness, 1 contrast, 2 saturation.
 public sealed class QTone
 {
+    private const string QToneSheet = "PTone";
+
+    private const string QTonePersistentSheet = "PTonePersistent";
+
+    private const string QToneActivePart = "PToneActive";
+
+    private const string QToneStackPart = "PToneStack";
+
     private const string QTonePattern = "0.#";
 
     private static readonly string[] qToneUnits = { string.Empty, "%", "%" };
@@ -42,27 +50,59 @@ public sealed class QTone
     private readonly Grid[] qToneFields = new Grid[3];
     private readonly List<int> qToneSlots = [0, 1, 2];
 
-    // Each section's parts in slot order: its switches, the stack the field row heads, and the body the tip lands on.
-    public QTone(
-        QInspector lInspector,
-        IReadOnlyList<CheckBox> lSwitches,
-        IReadOnlyList<CheckBox> lPersistent,
-        IReadOnlyList<StackPanel> lStacks,
-        IReadOnlyList<StackPanel> lBodies)
+    public QTone(QInspector lInspector)
     {
         qToneGate = lInspector.QInspectorVideo.QInspectorTone;
-        qToneSwitches = lSwitches;
-        qTonePersistent = lPersistent;
-        qToneStacks = lStacks;
-        qToneBodies = lBodies;
+        qToneBodies =
+        [
+            QContract.QContractSheetFind<StackPanel>(QToneSheet),
+            QContract.QContractSheetFind<StackPanel>(QToneSheet),
+            QContract.QContractSheetFind<StackPanel>(QToneSheet)
+        ];
+        qTonePersistent =
+        [
+            QContract.QContractSheetFind<CheckBox>(QTonePersistentSheet),
+            QContract.QContractSheetFind<CheckBox>(QTonePersistentSheet),
+            QContract.QContractSheetFind<CheckBox>(QTonePersistentSheet)
+        ];
+        qToneSwitches = qToneBodies
+            .Select(lBody => QContract.QContractFind<CheckBox>(lBody, QToneActivePart))
+            .ToList();
+        qToneStacks = qToneBodies
+            .Select(lBody => QContract.QContractFind<StackPanel>(lBody, QToneStackPart))
+            .ToList();
 
+        qToneSlots.ForEach(QToneTextShow);
         qToneSlots.ForEach(QToneFieldBuild);
+        QToneBrightnessAttach();
+        QToneContrastAttach();
+        QToneSaturationAttach();
         qToneSlots.ForEach(QToneActiveAttach);
         qToneSlots.ForEach(QTonePersistentAttach);
         QToneNoticeBuild(qToneStacks[1]);
 
         qToneGate.CToneChanged += QToneUpdate;
         QToneUpdate();
+    }
+
+    public StackPanel QToneBrightnessBody => qToneBodies[0];
+
+    public CheckBox QToneBrightnessPersistent => qTonePersistent[0];
+
+    public StackPanel QToneContrastBody => qToneBodies[1];
+
+    public CheckBox QToneContrastPersistent => qTonePersistent[1];
+
+    public StackPanel QToneSaturationBody => qToneBodies[2];
+
+    public CheckBox QToneSaturationPersistent => qTonePersistent[2];
+
+    private void QToneTextShow(int lSlot)
+    {
+        qToneSwitches[lSlot].Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply");
+        qToneSwitches[lSlot].ToolTip = QLocalizationCatalog.QLocalizationTextRead(qToneApplyKeys[lSlot]);
+        qTonePersistent[lSlot].Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent");
+        qTonePersistent[lSlot].ToolTip = QLocalizationCatalog.QLocalizationTextRead(qTonePersistKeys[lSlot]);
     }
 
     // The contrast preview notice under its field row, shown as the gate answers once at build.
@@ -85,13 +125,19 @@ public sealed class QTone
             qToneGate.CToneMosts[lSlot],
             qToneGate.CToneOrigins[lSlot]);
         qToneStacks[lSlot].Children.Insert(0, qToneFields[lSlot]);
-        QField.QFieldAttach(
-            qToneFields[lSlot],
-            null,
-            null,
-            () => qToneGate.CToneValues[lSlot],
-            lNumber => qToneGate.CToneValueSet(lSlot, lNumber));
     }
+
+    private void QToneBrightnessAttach() =>
+        QField.QFieldAttach(
+            qToneFields[0], null, null, () => qToneGate.CToneValues[0], qToneGate.CToneBrightnessSet);
+
+    private void QToneContrastAttach() =>
+        QField.QFieldAttach(
+            qToneFields[1], null, null, () => qToneGate.CToneValues[1], qToneGate.CToneContrastSet);
+
+    private void QToneSaturationAttach() =>
+        QField.QFieldAttach(
+            qToneFields[2], null, null, () => qToneGate.CToneValues[2], qToneGate.CToneSaturationSet);
 
     private void QToneActiveAttach(int lSlot) =>
         QToneSwitchAttach(qToneSwitches[lSlot], lActive => qToneGate.CToneActiveSet(lSlot, lActive));

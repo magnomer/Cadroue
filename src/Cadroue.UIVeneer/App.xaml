@@ -21,6 +21,9 @@
                 <ResourceDictionary Source="Porch/Strip/PStrip.xaml" />
                 <ResourceDictionary Source="Kit/Panel/PPanel.xaml" />
                 <ResourceDictionary Source="Kit/PTool.xaml" />
+                <ResourceDictionary Source="Wing/Inspector/PTone.xaml" />
+                <ResourceDictionary Source="Wing/Inspector/PSkip.xaml" />
+                <ResourceDictionary Source="Wing/Inspector/PInspectorOrientation.xaml" />
                 <ResourceDictionary Source="Wing/Inspector/PGamma.xaml" />
                 <ResourceDictionary Source="Wing/Inspector/PExposure.xaml" />
                 <ResourceDictionary Source="Wing/Inspector/Curve/PCurve.xaml" />

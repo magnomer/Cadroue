@@ -22,7 +22,6 @@ public sealed class QInspectorCrop
             QInspectorCropbox,
             () => (lOwner.QInspectorSourcePresent, lOwner.QInspectorSourceWidth, lOwner.QInspectorSourceHeight));
         qInspectorCropGate.CCropAccept(qInspectorCropOutlet);
-        qInspectorCropGate.CCropChanged += QInspectorCropHandle;
     }
 
     public LCropboxState QInspectorCropbox { get; } = new();
@@ -80,21 +79,7 @@ public sealed class QInspectorCrop
     public void QInspectorCropApply(LWorkCrop lCrop, bool lApply) => qInspectorCropOutlet.LCropWorkApply(lCrop, lApply);
 
     // A reset crop disarms the crop tool; a persistent one is left as it is.
-    public void QInspectorCropReset()
-    {
-        if (qInspectorCropGate.CCropReset())
-        {
-            qInspector.QInspectorToolSet(false);
-        }
-    }
-
-    private void QInspectorCropHandle()
-    {
-        if (!qInspectorCropGate.CCropActive)
-        {
-            qInspector.QInspectorToolSet(false);
-        }
-    }
+    public void QInspectorCropReset() => qInspector.QInspectorGate.CInspectorFrame.CInspectorCropReset();
 
     private string? QInspectorNoticeResolve() => QInspectorNotice.QInspectorNoticeResolve(qInspectorCropGate);
 }

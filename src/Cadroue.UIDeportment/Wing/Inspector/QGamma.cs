@@ -51,6 +51,11 @@ public sealed class QGamma
         QTool.QToolSwitchAttach(qGammaActive, qGammaGate.CGammaActiveSet);
         QTool.QToolSwitchAttach(QGammaPersistent, qGammaGate.CGammaPersistentSet);
         qGammaSlots.ForEach(QGammaFieldBuild);
+        QGammaMidtoneAttach();
+        QGammaRedAttach();
+        QGammaGreenAttach();
+        QGammaBlueAttach();
+        QGammaHighlightAttach();
 
         Button lDefault = QGammaDefaultBuild();
         QGammaDefaultAttach(lDefault);
@@ -87,14 +92,33 @@ public sealed class QGamma
     private void QGammaFieldBuild(int lSlot)
     {
         QGammaFieldCreate(lSlot);
-        QField.QFieldAttach(
-            qGammaFields[lSlot],
-            qGammaGate.CGammaLeasts[lSlot],
-            QGammaMost,
-            () => qGammaGate.CGammaValues[lSlot],
-            lNumber => qGammaGate.CGammaValueSet(lSlot, lNumber));
         qGammaStack.Children.Insert(lSlot, qGammaFields[lSlot]);
     }
+
+    private void QGammaMidtoneAttach() =>
+        QField.QFieldAttach(
+            qGammaFields[0], qGammaGate.CGammaLeasts[0], QGammaMost,
+            () => qGammaGate.CGammaValues[0], qGammaGate.CGammaMidtoneSet);
+
+    private void QGammaRedAttach() =>
+        QField.QFieldAttach(
+            qGammaFields[1], qGammaGate.CGammaLeasts[1], QGammaMost,
+            () => qGammaGate.CGammaValues[1], qGammaGate.CGammaRedSet);
+
+    private void QGammaGreenAttach() =>
+        QField.QFieldAttach(
+            qGammaFields[2], qGammaGate.CGammaLeasts[2], QGammaMost,
+            () => qGammaGate.CGammaValues[2], qGammaGate.CGammaGreenSet);
+
+    private void QGammaBlueAttach() =>
+        QField.QFieldAttach(
+            qGammaFields[3], qGammaGate.CGammaLeasts[3], QGammaMost,
+            () => qGammaGate.CGammaValues[3], qGammaGate.CGammaBlueSet);
+
+    private void QGammaHighlightAttach() =>
+        QField.QFieldAttach(
+            qGammaFields[4], qGammaGate.CGammaLeasts[4], QGammaMost,
+            () => qGammaGate.CGammaValues[4], qGammaGate.CGammaHighlightSet);
 
     private void QGammaFieldCreate(int lSlot) =>
         qGammaFields[lSlot] = QField.QFieldBuild(

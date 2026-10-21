@@ -34,8 +34,8 @@ public sealed class TToneGate
     [Fact]
     public void ToneValueSet_Brightness_HeldAsGiven_RepeatIsSilent()
     {
-        tToneGate.CToneValueSet(0, 250);
-        tToneGate.CToneValueSet(0, 250);
+        tToneGate.CToneBrightnessSet(250);
+        tToneGate.CToneBrightnessSet(250);
 
         Assert.Equal(250, tToneGate.CToneValues[0]);
         Assert.Equal(1, tToneNotices);
@@ -44,9 +44,9 @@ public sealed class TToneGate
     [Fact]
     public void ToneValueSet_ContrastAndSaturation_ClampToRange()
     {
-        tToneGate.CToneValueSet(1, 250);
-        tToneGate.CToneValueSet(1, 200);
-        tToneGate.CToneValueSet(2, -5);
+        tToneGate.CToneContrastSet(250);
+        tToneGate.CToneContrastSet(200);
+        tToneGate.CToneSaturationSet(-5);
 
         Assert.Equal(200, tToneGate.CToneValues[1]);
         Assert.Equal(0, tToneGate.CToneValues[2]);
