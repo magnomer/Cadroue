@@ -1,5 +1,7 @@
 using Cadroue.Application;
 using Cadroue.Conduct;
+using Cadroue.Core;
+using Cadroue.Infrastructure;
 
 namespace Cadroue.UIDeportment;
 
@@ -7,11 +9,11 @@ public sealed class QExport
 {
     private readonly CUsher qExportUsher;
     private readonly CSEncoder qExportEncoder;
+    private readonly CExportRow cExportRow;
     private readonly LPresetSelection qExportOwner;
     private readonly bool qExportSmartAllowed;
     private readonly string qExportNotice;
-    private string? qExportSelected;
-    private string? qExportEditing;
+    private bool _qExportRequestActive;
 
     public event Action? QExportPresetsChanged;
 
@@ -23,29 +25,140 @@ public sealed class QExport
         qExportOwner = lExportSelection;
         qExportSmartAllowed = qWorkspaceKey.QWorkspaceSmart;
         qExportNotice = qWorkspaceKey.QWorkspaceNotice;
-        qExportSelected = QExportNameNormalize(lExportSelection.LPresetSelectionName);
-        QExportDrag = new QExportDrag(this);
+        CExport = new CExport(
+            () => lExportSelection.LPresetSelectionName,
+            () => lExportSelection.LPresetSelectionValue,
+            lExportSelection.LPresetSelectionSave,
+            LPresetNaming.LPresetNameCreate,
+            LPresetTable.LPresetNativeCheck,
+            LPresetTable.LPresetDelete,
+            lExportSelection.LPresetSelectionRestore);
+        cExportRow = new CExportRow(
+            LPresetTable.LPresetNativeCheck,
+            (name, working) => LPresetTable.LPresetMatch(name, LPreset.LPresetStateCreate(working)),
+            (name, working, selected) => lExportSelection.LPresetSupportCheck(
+                name,
+                LPreset.LPresetStateCreate(working),
+                selected));
+        QExportTransfer = new QExportTransfer(new CExportTransfer(
+            () => lExportSelection.LPresetSelectionValue,
+            () => CExport.CExportSelected,
+            LPresetStore.LPresetCatalogCheck,
+            LPresetStore.LPresetFileSave,
+            LPresetStore.LPresetFileLoad,
+            LPresetNaming.LPresetNameResolve,
+            LPresetNaming.LPresetNameCreate,
+            (name, record) => LPresetTable.LPresetSave(name, LPreset.LPresetStateCreate(record)),
+            lExportSelection.LPresetSelectionSelect,
+            LPresetNaming.LPresetFileFormat));
+        QExportDrag = new QExportDrag(this, LPresetTable.LPresetMove);
+        QExportList = new QExportList();
+        QExportName = new(
+            () => QExportSelected,
+            QExportSelect,
+            (oldName, newName) => qExportOwner.LPresetSelectionCommit(oldName, newName),
+            () => QExportPresetsChanged?.Invoke(),
+            QExportSync);
+        QExportSummary = new(QExportSummaryRead);
     }
+
+    public CExport CExport { get; }
 
     public QExportDrag QExportDrag { get; }
 
-    public string? QExportSelected => qExportSelected;
+    public QExportTransfer QExportTransfer { get; }
 
-    public string? QExportEditing => qExportEditing;
+    public QExportList QExportList { get; }
 
-    public bool QExportSelectedCheck(string lPresetName) =>
-        string.Equals(lPresetName, qExportSelected, StringComparison.OrdinalIgnoreCase);
+    public QExportName QExportName { get; }
 
-    public bool QExportEditingCheck(string lPresetName) =>
-        string.Equals(lPresetName, qExportEditing, StringComparison.OrdinalIgnoreCase);
+    public QExportSummary QExportSummary { get; }
 
-    public string QExportSupportNotice => qExportNotice;
+    public string? QExportSelected => CExport.CExportSelected;
 
-    public bool QExportSupportCheck(string lPresetName, LPreset lWorking) =>
-        qExportOwner.LPresetSupportCheck(lPresetName, lWorking, QExportSelectedCheck(lPresetName));
+    public string? QExportEditing => QExportName.QExportNameEditing;
+
+    public bool QExportEditingCheck(string lPresetName) => QExportName.QExportNameCheck(lPresetName);
+
+    public LPreset QExportWorkingRead() => LPreset.LPresetStateCreate(CExport.CExportWorkingRead());
+
+    public QExportRows QExportRowsRead()
+    {
+        LPresetDocument working = CExport.CExportWorkingRead();
+        return new(
+            cExportRow,
+            working,
+            () => QExportSelected,
+            QExportEditingCheck,
+            LPresetNaming.LPresetDisplayRead,
+            qExportNotice);
+    }
+
+    public QExportDigest QExportSummaryRead()
+    {
+        LPreset lWorking = QExportWorkingRead();
+        return new(
+            lWorking.LPresetVideoSummary,
+            lWorking.LPresetAudioSummary,
+            lWorking.LPresetContainer,
+            lWorking.LPresetOutputSummary);
+    }
 
     public QSEncoder QExportEncoderCreate() =>
         new(qExportUsher, qExportEncoder, qExportOwner.LPresetSelectionName, qExportSmartAllowed);
+
+    public void QExportFailureRaise()
+    {
+        QExportFailureRaise(CExport.CExportModificationRestore, string.Empty, _ => { });
+    }
+
+    public void QExportFailureRaise(Func<string> presetName, Action<string> failure)
+    {
+        string name = presetName();
+        QExportFailureRaise(
+            () =>
+            {
+                (bool? result, string resolved) = CExport.CExportPresetAdd(name);
+                name = resolved;
+                return result;
+            },
+            string.Empty,
+            _ => failure(name));
+    }
+
+    public void QExportFailureRaise(Action<string> failure)
+    {
+        string name = QExportSelected ?? string.Empty;
+        QExportFailureRaise(CExport.CExportPresetDelete, name, failure);
+    }
+
+    public void QExportFailureRaise(string failureName, Action<string> failure)
+    {
+        QExportFailureRaise(CExport.CExportModificationApply, failureName, failure);
+    }
+
+    private void QExportFailureRaise(Func<bool?> request, string failureName, Action<string> failure)
+    {
+        bool? result;
+        _qExportRequestActive = true;
+        try
+        {
+            result = request();
+        }
+        finally
+        {
+            _qExportRequestActive = false;
+        }
+
+        if (result == true)
+        {
+            QExportUpdate();
+        }
+        else if (result == false)
+        {
+            failure(failureName);
+        }
+    }
 
     public void QExportAttach()
     {
@@ -61,13 +174,14 @@ public sealed class QExport
 
     public void QExportDetach()
     {
+        QExportName.QExportNameDetach();
         LPresetTable.LPresetStoreChanged -= QExportSync;
         qExportOwner.LPresetSelectionChanged -= QExportUpdate;
     }
 
     public void QExportSync()
     {
-        if (qExportEditing is null && !QExportDrag.QExportDragActive)
+        if (QExportName.QExportNameEditing is null && !QExportDrag.QExportDragActive)
         {
             QExportUpdate();
         }
@@ -75,60 +189,19 @@ public sealed class QExport
 
     public void QExportUpdate()
     {
-        qExportSelected = QExportNameNormalize(qExportOwner.LPresetSelectionName);
-        qExportEditing = QExportEditingResolve();
+        if (_qExportRequestActive)
+        {
+            return;
+        }
+
+        QExportName.QExportNameSync(QExportSelected);
         QExportPresetsChanged?.Invoke();
     }
 
     public void QExportSelect(string lPresetName)
     {
-        QExportSelectedSet(lPresetName);
         qExportOwner.LPresetSelectionSelect(lPresetName);
     }
 
-    public void QExportEditStart(string lPresetName)
-    {
-        if (!QExportSelectedCheck(lPresetName))
-        {
-            QExportSelect(lPresetName);
-        }
-
-        QExportEditingSet(lPresetName);
-    }
-
-    public void QExportEditCancel()
-    {
-        QExportEditingClear();
-        QExportSync();
-    }
-
-    public bool QExportNameCommit(string lOldName, string lNewName)
-    {
-        if (!QExportEditingCheck(lOldName))
-        {
-            return false;
-        }
-
-        QExportEditingClear();
-        qExportOwner.LPresetSelectionCommit(lOldName, lNewName);
-        QExportSync();
-        return true;
-    }
-
-    private void QExportSelectedSet(string lPresetName) => qExportSelected = lPresetName;
-
-    private void QExportEditingSet(string lPresetName)
-    {
-        qExportEditing = lPresetName;
-        QExportPresetsChanged?.Invoke();
-    }
-
-    private void QExportEditingClear() => qExportEditing = null;
-
-    // Editing survives only while it names the selected preset.
-    private string? QExportEditingResolve() =>
-        string.Equals(qExportEditing, qExportSelected, StringComparison.OrdinalIgnoreCase) ? qExportEditing : null;
-
-    private static string? QExportNameNormalize(string lPresetName) =>
-        string.IsNullOrEmpty(lPresetName) ? null : lPresetName;
+    public void QExportEditStart(string lPresetName) => QExportName.QExportNameStart(lPresetName);
 }

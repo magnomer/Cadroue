@@ -33,10 +33,10 @@ internal sealed class PSOptionsPlayback
     internal required Border psOptionsWheelMode;
     internal required CheckBox psOptionsDragBox;
 
-    internal UIElement PSPlaybackBuild(PSOptionsSystemFlyleaf psOptionsFlyleaf, PSOptionsSystemMpv psOptionsMpv)
+    internal UIElement PSPlaybackBuild(UIElement psFlyleaf, UIElement psMpv)
     {
         var pPanel = new StackPanel();
-        pPanel.Children.Add(PSPlaybackEngineBuild(psOptionsFlyleaf, psOptionsMpv));
+        pPanel.Children.Add(PSPlaybackEngineBuild(psFlyleaf, psMpv));
         pPanel.Children.Add(PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead(
             "Options.Playback.Autoplay"),
             PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Playback.Autoplay"),
@@ -60,13 +60,13 @@ internal sealed class PSOptionsPlayback
         return pPanel;
     }
 
-    private UIElement PSPlaybackEngineBuild(PSOptionsSystemFlyleaf psOptionsFlyleaf, PSOptionsSystemMpv psOptionsMpv)
+    private UIElement PSPlaybackEngineBuild(UIElement psFlyleaf, UIElement psMpv)
     {
         return PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Playback.Preview"),
             PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Playback.Engine"),
                 psOptionsEngineMode),
-            psOptionsFlyleaf.PSSystemFlyleafBuild(),
-            psOptionsMpv.PSSystemMpvBuild(),
+            psFlyleaf,
+            psMpv,
             PSNotice.PSNoticeBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Playback.MpvEditNotice")));
     }
 }

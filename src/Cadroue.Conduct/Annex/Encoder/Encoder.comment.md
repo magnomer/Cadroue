@@ -70,8 +70,6 @@ Supplying more indices than remaining extras throws.
 
 ## CSEncoderQuality.cs
 
-Quality metadata is copied from the capability.
-
 Stored quality is used only for the same active rate.
 
 A differing rate or blank stored text falls back to the capability default.
@@ -150,13 +148,17 @@ Invalid or non-positive sample text persists as `Same as source`.
 
 A missing channel position also persists as `Same as source`.
 
-Saving trims quality and stores empty speed or extras when no codec detail has been read.
+Saving rebuilds the codec rows from the draft and trims quality.
+
+It stores an empty speed when the codec has no speed or the index is invalid.
+
+Extras resolve by position against the codec's open extras.
 
 Stream and mode are delegated unchanged.
 
-Excluded stream or mode disables detail and selects the excluded notice.
+Detail is disabled when the stream or mode is `Exclude`, and for the `Copy` mode.
 
-Otherwise detail is enabled except for `Copy`, with the copied notice.
+The notice key is the excluded one when either is `Exclude`, and the copied one otherwise.
 
 The regular offer for a known container includes only compatible and trial-available audio encoders.
 
@@ -172,7 +174,7 @@ Video trial runs every token of every repertoire entry.
 
 An entry is available when any token succeeds.
 
-The applied trial set contains every successful token using ordinal-insensitive identity.
+The applied trial set contains every successful token, compared without case.
 
 Audio trial runs each candidate and applies the successful encoder names.
 
@@ -208,8 +210,23 @@ The first selection has no previous mode to save.
 
 ## CSEncoderOutput.cs
 
-Output read and extension lookup pass through the draft port.
-
 Output save writes display, container, extension, collision, and location together.
 
 It then trims and stores suffix by collision policy and folder by location policy.
+
+## Stamp
+
+Commit: `b84e5458de50`
+- `CSEncoder.cs` `fb12970e12f17c4f`
+- `CSEncoderAudio.cs` `d6edf7698a702a63`
+- `CSEncoderCodec.cs` `a08ed6edc06b4b08`
+- `CSEncoderDraft.cs` `7f8540bda850fc64`
+- `CSEncoderExtra.cs` `bf782a55fce6af55`
+- `CSEncoderFramerate.cs` `2aff48757f003824`
+- `CSEncoderOutput.cs` `9f3349f79d9616db`
+- `CSEncoderQuality.cs` `7073a49c40b36b8b`
+- `CSEncoderSize.cs` `260e57506e05fc05`
+- `CSEncoderSpeed.cs` `1ecbde3bdbc05cd6`
+- `CSEncoderSuffix.cs` `acd0d781bf1a70e1`
+- `CSEncoderTrial.cs` `82bb73d70fb9c0cd`
+- `CSEncoderVideo.cs` `84b9e5e51a7a1314`

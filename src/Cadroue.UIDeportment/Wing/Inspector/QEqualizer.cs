@@ -46,7 +46,7 @@ public sealed class QEqualizer
 
     // The combo shows each row's wording and selects the row the gate marked chosen.
     public QInspectorChoice QEqualizerChoiceRead() =>
-        QInspectorPlan.QInspectorChoiceBuild(qEqualizerGate.CEqualizerChoices);
+        QInspectorPlan.QInspectorChoiceBuild(CChoicePlan.CChoicePlanBuild(qEqualizerGate.CEqualizerChoices));
 
     internal void QEqualizerBandUpdate(IReadOnlyList<(TextBox, Slider, TextBox)> lRows)
     {

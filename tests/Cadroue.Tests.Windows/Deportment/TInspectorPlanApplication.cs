@@ -1,13 +1,126 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
+using System.Reflection;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Markup;
+using System.Windows.Media;
 
 using Xunit;
 
 namespace Cadroue.Tests.Windows;
 
+[Collection(nameof(TProgramCollection))]
 public sealed class TInspectorPlanApplication
 {
+    [Fact]
+    public void CropRepaint_DoesNotRequestConduct()
+    {
+        Exception? failure = null;
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                System.Windows.Application program = System.Windows.Application.Current
+                    ?? new System.Windows.Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
+                program.Resources["PToolDimmed"] = 0.5;
+                program.Resources["PToolIcon"] = Brushes.Black;
+                program.Resources["PIconRoot"] = "pack://application:,,,/";
+                foreach (string sheet in new[] { "PCheckbox", "PTextbox", "Button/PButton" })
+                {
+                    using Stream stream = File.OpenRead(Path.GetFullPath(Path.Combine(
+                        AppContext.BaseDirectory, $"../../../../../src/Cadroue.UIVeneer/Kit/{sheet}.xaml")));
+                    program.Resources.MergedDictionaries.Add((ResourceDictionary)XamlReader.Load(stream));
+                }
+                var icons = (System.Collections.Concurrent.ConcurrentDictionary<string, ImageSource>)typeof(QIcon)
+                    .GetField("qIconCache", BindingFlags.Static | BindingFlags.NonPublic)!.GetValue(null)!;
+                icons[$"pack://application:,,,/PAsset/PPanel/PProcessingCrop.svg|{Brushes.Black}"] = new DrawingImage();
+                QInspector inspector = TInterfaceInspector.TInspectorCreate();
+                Action<object, string, object> set = (target, name, value) => target.GetType()
+                    .GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(target, value);
+                var tool = new ToggleButton();
+                QInspectorCrop crop = inspector.QInspectorCrop;
+                set(crop, "qInspectorApplyBox", new CheckBox());
+                set(crop, "qInspectorCropPersistent", new CheckBox());
+                set(crop, "qInspectorCropStack", new StackPanel());
+                set(crop, "qInspectorCropTool", tool);
+                set(crop, "qInspectorToolIcon", new Image());
+                set(inspector.QInspectorOrientation, "qInspectorOrientationHorizontal", new CheckBox());
+                set(inspector.QInspectorOrientation, "qInspectorOrientationVertical", new CheckBox());
+                var rotate = new ComboBox();
+                rotate.Items.Add("None");
+                rotate.Items.Add("90");
+                set(inspector.QInspectorOrientation, "qInspectorOrientationRotate", rotate);
+                typeof(QInspectorOrientation).GetMethod(
+                    "QInspectorRotateAttach", BindingFlags.Instance | BindingFlags.NonPublic)!
+                    .Invoke(inspector.QInspectorOrientation, null);
+                set(inspector.QInspectorRatio, "qInspectorRatioCustom", new StackPanel());
+                set(inspector.QInspectorRatio, "qInspectorRatioFixed", new CheckBox());
+                set(inspector.QInspectorRatio, "qInspectorRatioHeight", new TextBox());
+                set(inspector.QInspectorRatio, "qInspectorRatioLenient", new CheckBox());
+                set(inspector.QInspectorRatio, "qInspectorRatioNotice", new TextBlock());
+                var preset = new ComboBox();
+                preset.Items.Add("Custom");
+                set(inspector.QInspectorRatio, "qInspectorRatioPreset", preset);
+                set(inspector.QInspectorRatio, "qInspectorRatioWidth", new TextBox());
+                typeof(QInspectorRatio).GetMethod(
+                    "QInspectorRatioAttach", BindingFlags.Instance | BindingFlags.NonPublic)!
+                    .Invoke(inspector.QInspectorRatio, null);
+                set(crop.QInspectorGrid, "qInspectorGridBottom", new TextBox());
+                var left = new TextBox { Text = "9" };
+                set(crop.QInspectorGrid, "qInspectorGridLeft", left);
+                set(crop.QInspectorGrid, "qInspectorGridRight", new TextBox());
+                set(crop.QInspectorGrid, "qInspectorGridTop", new TextBox());
+                set(crop.QInspectorGrid, "qInspectorGridResolution", new TextBlock());
+                typeof(QInspectorGrid).GetMethod(
+                    "QInspectorGridAttach", BindingFlags.Instance | BindingFlags.NonPublic)!
+                    .Invoke(crop.QInspectorGrid, [crop, new Button()]);
+                var port = new TCropPort(inspector);
+                inspector.QInspectorGate.CInspectorCrop.CCropAccept(port);
+                inspector.QInspectorGate.CInspectorWhitebalance.CWhitebalanceCapableSet(true, true);
+                inspector.QInspectorGate.CInspectorWhitebalance.CWhitebalanceToolSet(true, true);
+                typeof(Cadroue.Conduct.CInspectorFrame).GetField(
+                    "_cInspectorToolArmed", BindingFlags.Instance | BindingFlags.NonPublic)!
+                    .SetValue(inspector.QInspectorGate.CInspectorFrame, true);
+                int requests = 0;
+                inspector.QInspectorGate.CInspectorFrame.CInspectorToolChanged += _ => requests++;
+                var window = new Window { Content = left, ShowInTaskbar = false };
+                window.Show();
+                left.Focus();
+                Assert.True(left.IsKeyboardFocusWithin);
+
+                try
+                {
+                    crop.QInspectorCropAttach();
+                    crop.QInspectorCropUpdate();
+                }
+                catch (IOException) { /* The event path runs before the unavailable Veneer icon is read. */ }
+
+                Assert.True(inspector.QInspectorGate.CInspectorWhitebalance.CWhitebalanceArmed);
+                Assert.Equal(0, requests);
+                Assert.Equal(0, port.TCropPortRequests);
+                try { rotate.SelectedIndex = 1; }
+                catch (IOException) { /* The request reaches the port before the unavailable icon repaint. */ }
+                Assert.Equal(1, port.TCropPortRequests);
+                tool.IsChecked = false;
+                tool.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, tool));
+                Assert.Equal(1, requests);
+                window.Close();
+            }
+            catch (Exception exception)
+            {
+                failure = exception;
+            }
+        });
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        thread.Join();
+        Assert.Null(failure);
+    }
+
     [Fact]
     public void PlanApply_SetsEverySection_RaisesOneVideoNotice()
     {
@@ -95,6 +208,7 @@ public sealed class TInspectorPlanApplication
     public void AudioApply_RaisesOneAudioNotice()
     {
         QInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspectorFrame frame = inspector.QInspectorFrame;
         int notices = 0;
         inspector.QInspectorAudio.QInspectorAudioChanged += () => notices++;
 
@@ -104,6 +218,9 @@ public sealed class TInspectorPlanApplication
 
         Assert.Equal(1, notices);
         Assert.Equal(3, inspector.QInspectorAudio.QInspectorVolume.CVolumeGain);
+        frame.QInspectorFrameSet("Normalize");
+        Assert.True(TInterfaceInspector.TInspectorSectionCheck(inspector, "Normalize"));
+        Assert.Equal(1, notices);
     }
 
     [Fact]
@@ -111,7 +228,7 @@ public sealed class TInspectorPlanApplication
     {
         QInspector inspector = TInterfaceInspector.TInspectorCreate();
 
-        TInterfaceInspector.TInspectorStepSet(inspector, "Noise Reduction");
+        inspector.QInspectorFrame.QInspectorFrameSet("Noise Reduction");
 
         Assert.True(TInterfaceInspector.TInspectorSectionCheck(inspector, "Noise Reduction"));
         Assert.False(TInterfaceInspector.TInspectorSectionCheck(inspector, "Crop"));
@@ -121,7 +238,7 @@ public sealed class TInspectorPlanApplication
             Interface.TInterface.TLocalizationTextRead("Inspector.Step.NoiseReduction"),
             TInterfaceInspector.TInspectorTitleRead(inspector));
 
-        TInterfaceInspector.TInspectorStepSet(inspector, "Nowhere");
+        inspector.QInspectorFrame.QInspectorFrameSet("Nowhere");
 
         Assert.False(inspector.QInspectorPersistentShown);
         Assert.True(inspector.QInspectorEmptyShown);
@@ -145,6 +262,37 @@ public sealed class TInspectorPlanApplication
     }
 
     [Fact]
+    public void ToolSet_FalseWhileWhitebalanceArmed_KeepsWhitebalance()
+    {
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
+        inspector.QInspectorGate.CInspectorWhitebalance.CWhitebalanceCapableSet(true, true);
+        inspector.QInspectorGate.CInspectorWhitebalance.CWhitebalanceToolSet(true, true);
+
+        inspector.QInspectorGate.CInspectorFrame.CInspectorToolSet(false);
+
+        Assert.True(inspector.QInspectorGate.CInspectorWhitebalance.CWhitebalanceArmed);
+        Assert.False(inspector.QInspectorGate.CInspectorFrame.CInspectorToolArmed);
+    }
+
+    [Fact]
+    public void ToolSet_RepeatedRequests_AreSilent()
+    {
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
+        int changes = 0;
+        int tools = 0;
+        inspector.QInspectorGate.CInspectorFrame.CInspectorChanged += () => changes++;
+        inspector.QInspectorGate.CInspectorFrame.CInspectorToolChanged += _ => tools++;
+
+        inspector.QInspectorGate.CInspectorFrame.CInspectorToolSet(true);
+        inspector.QInspectorGate.CInspectorFrame.CInspectorToolSet(true);
+        inspector.QInspectorGate.CInspectorFrame.CInspectorToolSet(false);
+        inspector.QInspectorGate.CInspectorFrame.CInspectorToolSet(false);
+
+        Assert.Equal(2, changes);
+        Assert.Equal(2, tools);
+    }
+
+    [Fact]
     public void TipResolve_DisabledThenPreview_ThenApplyKeys()
     {
         QInspector inspector = TInterfaceInspector.TInspectorCreate();
@@ -155,6 +303,12 @@ public sealed class TInspectorPlanApplication
             inspector, true, true, false, "Disabled", "Preview");
         QInspectorTip plain = TInterfaceInspector.TInspectorTipResolve(
             inspector, true, true, true, "Disabled", "Preview");
+        CInspectorTip disabledPlan = CInspectorTip.CInspectorTipResolve(
+            true, false, false, "Disabled", "Preview");
+        CInspectorTip previewPlan = CInspectorTip.CInspectorTipResolve(
+            true, true, false, "Disabled", "Preview");
+        CInspectorTip plainPlan = CInspectorTip.CInspectorTipResolve(
+            true, true, true, "Disabled", "Preview");
 
         Assert.False(disabled.QInspectorTipEnabled);
         Assert.Equal(Interface.TInterface.TLocalizationTextRead("Disabled"), disabled.QInspectorTipBox);
@@ -162,5 +316,8 @@ public sealed class TInspectorPlanApplication
         Assert.Equal(Interface.TInterface.TLocalizationTextRead("Preview"), preview.QInspectorTipNotice);
         Assert.Null(plain.QInspectorTipNotice);
         Assert.Equal(Interface.TInterface.TLocalizationTextRead("Inspector.Common.Apply"), plain.QInspectorTipBox);
+        Assert.Equal("Disabled", disabledPlan.CInspectorNotice?.CInspectorNoticeKey);
+        Assert.Equal("Preview", previewPlan.CInspectorNotice?.CInspectorNoticeKey);
+        Assert.Null(plainPlan.CInspectorNotice);
     }
 }

@@ -81,10 +81,6 @@ public sealed class CLoudness
         _cLoudnessValues.Skip(_cLoudnessDynamicFirst).Take(_cLoudnessDynamicCount).ToList()
     ];
 
-    // Each mode's preset rows, in mode order.
-    public IReadOnlyList<IReadOnlyList<CChoice>> CLoudnessChoices =>
-        [CLoudnessChoicesRead(false), CLoudnessChoicesRead(true)];
-
     // One row per preset of the mode and a custom row last, each mode matched on its own slots whatever the held
     // mode. The custom row shows the preset it drifted from, when there is one.
     public IReadOnlyList<CChoice> CLoudnessChoicesRead(bool dynamic) =>

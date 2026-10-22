@@ -1,8 +1,13 @@
 using System.Globalization;
+using System.Windows;
+using System.Windows.Controls;
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
+using Cadroue.ShellEngine;
 using Cadroue.UIDeportment;
+using Xunit;
 
 namespace Cadroue.Tests.Windows;
 
@@ -15,24 +20,62 @@ internal static partial class TInterface
 
     internal static QSOptions TOptionsCreate(LPreferenceState draft, bool mpv) =>
         new(TAtelierCreate().CAtelierUsher, draft, mpv);
+    internal static QSOptions TOptionsCreate(LPreferenceState draft, bool mpv, LUsherPort usher) =>
+        new(new CUsher(usher), draft, mpv);
+    internal static QSOptions TOptionsCreate(
+        LPreferenceState draft,
+        bool mpv,
+        CSFlyleafPort flyleaf,
+        CSMpvPort mpvPort) =>
+        new(TAtelierCreate().CAtelierUsher, draft, mpv, flyleaf, mpvPort);
+    internal static QSOptions TOptionsCreate(
+        LPreferenceState draft,
+        bool mpv,
+        LUsherPort usher,
+        CSFlyleafPort flyleaf,
+        CSMpvPort mpvPort) =>
+        new(new CUsher(usher), draft, mpv, flyleaf, mpvPort);
     internal static void TOptionsMpvAttach(QSOptions options, Action<bool> handler) =>
-        options.QSOptionsMpv.QSOptionsMpvChanged += handler;
+        options.QSMpv.QSMpvChanged += handler;
     internal static void TOptionsMpvSet(QSOptions options, bool enabled) =>
-        options.QSOptionsMpv.QSOptionsMpvSet(enabled);
+        options.QSMpv.QSMpvUpdate(enabled);
     internal static string TOptionsEngineRead(QSOptions options) => options.QSOptionsEngineRead();
     internal static void TOptionsPageSelect(QSOptions options, QSOptionsPage page) =>
         options.QSOptionsPageSelect(page);
     internal static bool TOptionsApply(QSOptions options) => options.QSOptionsApply();
-    internal static bool TOptionsRecordCheck(QSOptions options) => options.QSOptionsRecordCheck();
-    internal static string TOptionsFfmpegResolve(string folder) => QSOptions.QSOptionsFfmpegResolve(folder);
-
+    internal static QSWorkspaceAnswer TWorkspaceAnswerCreate(
+        Action<string, string, Action<string>> folder,
+        Action<string, string, string, Action> confirmation,
+        Action<string, string> warning,
+        Action<string, string> announcement) => new(folder, confirmation, warning, announcement);
+    internal static (QSWorkspace, Button) TWorkspaceAttach(
+        Func<LOptionsRequest, LOptionsFact> read,
+        Func<LOptionsRequest, LOptionsFact> apply,
+        FrameworkElement surface,
+        string folder,
+        QSWorkspaceAnswer answer)
+    {
+        var workspace = new QSWorkspace(new CSOptions(
+            TAtelierCreate().CAtelierUsher,
+            LPreference.LPreferenceStateCurrent.LPreferenceClone(),
+            read,
+            apply));
+        workspace.QSWorkspaceAttach(surface, folder, answer, out Button done);
+        return (workspace, done);
+    }
+    internal static (QSWorkspace, Button) TWorkspaceAttach(
+        QSOptions options,
+        FrameworkElement surface,
+        string folder,
+        QSWorkspaceAnswer answer)
+    {
+        options.QSWorkspace.QSWorkspaceAttach(surface, folder, answer, out Button done);
+        return (options.QSWorkspace, done);
+    }
+    internal static void TWorkspaceDetach(QSWorkspace workspace) => workspace.QSWorkspaceDetach();
+    internal static LOptionsFact TOptionsFactCreate(string path, int count, long size, bool state) =>
+        new(path, count, size, state);
     internal static QSSpectrum TSpectrumCreate(string name, string folder) => new(name, () => folder);
-    internal static void TSpectrumAttach(QSSpectrum spectrum, Action handler) => spectrum.QSSpectrumChanged += handler;
-    internal static void TSpectrumNamesSet(QSSpectrum spectrum, IReadOnlyList<string> names) =>
-        spectrum.QSSpectrumNamesSet(names);
-    internal static void TSpectrumSelect(QSSpectrum spectrum, string name) => spectrum.QSSpectrumSelect(name);
-    internal static bool TSpectrumRemove(QSSpectrum spectrum, string name, bool native, string? path) =>
-        spectrum.QSSpectrumRemove(name, native, path);
 
     internal static void TPresetSelectionClose(LPresetSelection selection) => selection.LPresetSelectionClose();
     internal static bool TPresetSelectionCommit(LPresetSelection selection, string oldName, string newName) =>

@@ -142,11 +142,13 @@ internal static partial class TInterface
         double coverage,
         double minimum) => new(enabled, type, hue, saturation, brightness, tolerance, coverage, minimum);
     internal static void TSensorEnabledSet(QSensor sensor, LDetectorKind kind, bool enabled) =>
-        sensor.QSensorEnabledSet(kind, enabled);
-    internal static void TSensorModeSet(QSensor sensor, LDetectorStillMode mode) => sensor.QSensorModeSet(mode);
-    internal static void TSensorSpeedSet(QSensor sensor, LDetectorLuminanceMode speed) => sensor.QSensorSpeedSet(speed);
-    internal static void TSensorPersistentSet(QSensor sensor, bool persistent) =>
-        sensor.QSensorSweep.QSensorPersistentSet(persistent);
+        sensor.CDetector.CDetectorEnabledSet(kind, enabled);
+    internal static void TSensorModeSet(QSensor sensor, LDetectorStillMode mode) =>
+        sensor.CDetector.CDetectorModeSet(mode);
+    internal static void TSensorSpeedSet(QSensor sensor, LDetectorLuminanceMode speed) =>
+        sensor.CDetector.CDetectorSpeedSet(speed);
+    internal static void TSensorPersistentSet(QInspector inspector, bool persistent) =>
+        inspector.QInspectorGate.CInspectorSweep.CSweepPersistentSet(persistent);
     internal static string TSensorNameRead(LDetectorKind kind) => QSensorName.QSensorNameRead(kind);
     internal static LDetectorKind? TSensorKindRead(string? name) => QSensorName.QSensorKindRead(name);
 

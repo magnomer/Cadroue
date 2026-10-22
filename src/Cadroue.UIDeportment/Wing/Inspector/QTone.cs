@@ -74,14 +74,18 @@ public sealed class QTone
 
         qToneSlots.ForEach(QToneTextShow);
         qToneSlots.ForEach(QToneFieldBuild);
-        QToneBrightnessAttach();
-        QToneContrastAttach();
-        QToneSaturationAttach();
-        qToneSlots.ForEach(QToneActiveAttach);
-        qToneSlots.ForEach(QTonePersistentAttach);
+        var lHandlers = new List<(Action, Action)>
+        {
+            QToneBrightnessAttach(),
+            QToneContrastAttach(),
+            QToneSaturationAttach(),
+        };
+        lHandlers.AddRange(qToneSlots.Select(QToneActiveAttach));
+        lHandlers.AddRange(qToneSlots.Select(QTonePersistentAttach));
+        qToneBodies[0].Resources[typeof(QTone)] = lHandlers;
         QToneNoticeBuild(qToneStacks[1]);
 
-        qToneGate.CToneChanged += QToneUpdate;
+        QToneAttach();
         QToneUpdate();
     }
 
@@ -127,28 +131,62 @@ public sealed class QTone
         qToneStacks[lSlot].Children.Insert(0, qToneFields[lSlot]);
     }
 
-    private void QToneBrightnessAttach() =>
+    private (Action, Action) QToneBrightnessAttach() =>
         QField.QFieldAttach(
             qToneFields[0], null, null, () => qToneGate.CToneValues[0], qToneGate.CToneBrightnessSet);
 
-    private void QToneContrastAttach() =>
+    private (Action, Action) QToneContrastAttach() =>
         QField.QFieldAttach(
             qToneFields[1], null, null, () => qToneGate.CToneValues[1], qToneGate.CToneContrastSet);
 
-    private void QToneSaturationAttach() =>
+    private (Action, Action) QToneSaturationAttach() =>
         QField.QFieldAttach(
             qToneFields[2], null, null, () => qToneGate.CToneValues[2], qToneGate.CToneSaturationSet);
 
-    private void QToneActiveAttach(int lSlot) =>
+    private (Action, Action) QToneActiveAttach(int lSlot) =>
         QToneSwitchAttach(qToneSwitches[lSlot], lActive => qToneGate.CToneActiveSet(lSlot, lActive));
 
-    private void QTonePersistentAttach(int lSlot) =>
+    private (Action, Action) QTonePersistentAttach(int lSlot) =>
         QToneSwitchAttach(qTonePersistent[lSlot], lFlag => qToneGate.CTonePersistentSet(lSlot, lFlag));
 
-    private static void QToneSwitchAttach(CheckBox lSwitch, Action<bool> lSet)
+    private static (Action, Action) QToneSwitchAttach(CheckBox lSwitch, Action<bool> lSet)
     {
-        lSwitch.Checked += (_, _) => lSet(true);
-        lSwitch.Unchecked += (_, _) => lSet(false);
+        RoutedEventHandler lChecked = (_, _) => lSet(true);
+        RoutedEventHandler lUnchecked = (_, _) => lSet(false);
+        Action lAttach = () =>
+        {
+            lSwitch.Checked -= lChecked;
+            lSwitch.Unchecked -= lUnchecked;
+            lSwitch.Checked += lChecked;
+            lSwitch.Unchecked += lUnchecked;
+        };
+        Action lDetach = () =>
+        {
+            lSwitch.Checked -= lChecked;
+            lSwitch.Unchecked -= lUnchecked;
+        };
+        lAttach();
+        return (lAttach, lDetach);
+    }
+
+    public void QToneAttach()
+    {
+        foreach ((Action lAttach, _) in (List<(Action, Action)>)qToneBodies[0].Resources[typeof(QTone)])
+        {
+            lAttach();
+        }
+
+        qToneGate.CToneChanged -= QToneUpdate;
+        qToneGate.CToneChanged += QToneUpdate;
+    }
+
+    public void QToneDetach()
+    {
+        qToneGate.CToneChanged -= QToneUpdate;
+        foreach ((_, Action lDetach) in (List<(Action, Action)>)qToneBodies[0].Resources[typeof(QTone)])
+        {
+            lDetach();
+        }
     }
 
     private void QToneUpdate() => qToneSlots.ForEach(QToneSlotUpdate);
@@ -159,11 +197,12 @@ public sealed class QTone
         QTool.QToolSwitchUpdate(qTonePersistent[lSlot], qToneGate.CTonePersistents[lSlot]);
         QField.QFieldUpdate(qToneFields[lSlot], qToneGate.CToneValues[lSlot], QTonePattern);
         QInspectorTip lTip = QInspectorTip.QInspectorTipResolve(
-            qToneGate.CToneActives[lSlot],
-            qToneGate.CToneCapable,
-            true,
-            qToneRequireKeys[lSlot],
-            string.Empty,
+            CInspectorTip.CInspectorTipResolve(
+                qToneGate.CToneActives[lSlot],
+                qToneGate.CToneCapable,
+                true,
+                qToneRequireKeys[lSlot],
+                string.Empty),
             qToneApplyKeys[lSlot],
             qTonePersistKeys[lSlot]);
         QTool.QToolTipApply(

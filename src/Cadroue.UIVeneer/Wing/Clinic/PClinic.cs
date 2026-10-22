@@ -207,7 +207,10 @@ public sealed class PClinic : UserControl
 
     private Border PClinicFooterBuild()
     {
-        pClinicDiagnosisProgress = PSensorSweep.PSensorProgressBuild();
+        pClinicDiagnosisProgress = new ProgressBar
+        {
+            Style = QContract.QContractSheetFind<Style>("PSensorProgress")
+        };
         pClinicPersistentBox = PClinicSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Clinic.Persistent"),
             QLocalizationCatalog.QLocalizationTextRead("Clinic.Persistent.Tooltip"));

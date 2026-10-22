@@ -7,10 +7,6 @@ namespace Cadroue.UIDeportment;
 // The wiring every inspector tool section shares: its apply and persistent switches and its enabled look.
 public static class QTool
 {
-    private const string QToolFontSheet = "PToolFont";
-
-    private const string QToolMutedSheet = "PToolMuted";
-
     private const string QToolIconSheet = "PToolIcon";
 
     private const string QToolAccentSheet = "PToolAccent";
@@ -19,20 +15,6 @@ public static class QTool
 
     private const double QToolLit = 1.0;
 
-    public static double QToolLabelWidth =>
-        (double)QContract.QContractSheetFind<object>("PToolLabelWidth");
-
-    public static double QToolFieldHeight =>
-        (double)QContract.QContractSheetFind<object>("PToolFieldHeight");
-
-    public static double QToolRowHeight =>
-        (double)QContract.QContractSheetFind<object>("PToolRowHeight");
-
-    public static FontFamily QToolFontRead() =>
-        QContract.QContractSheetFind<FontFamily>(QToolFontSheet);
-
-    public static Brush QToolMutedRead() => QContract.QContractSheetFind<Brush>(QToolMutedSheet);
-
     public static Brush QToolIconRead() => QContract.QContractSheetFind<Brush>(QToolIconSheet);
 
     public static Brush QToolPickRead(bool lPicked) =>
@@ -40,12 +22,19 @@ public static class QTool
             ? QContract.QContractSheetFind<Brush>(QToolAccentSheet)
             : QToolIconRead();
 
-    public static void QToolSwitchAttach(CheckBox lSwitch, Action<bool> lSet)
+    public static (Action, Action) QToolSwitchAttach(CheckBox lSwitch, Action<bool> lSet)
     {
         QInteractionClick.QInteractionClickAttach(lSwitch);
         QCheckbox.QCheckboxAttach(lSwitch);
-        lSwitch.Checked += (_, _) => lSet(true);
-        lSwitch.Unchecked += (_, _) => lSet(false);
+        RoutedEventHandler lHandler = (_, _) => lSet(lSwitch.IsChecked == true);
+        Action lAttach = () =>
+        {
+            lSwitch.Click -= lHandler;
+            lSwitch.Click += lHandler;
+        };
+        Action lDetach = () => lSwitch.Click -= lHandler;
+        lAttach();
+        return (lAttach, lDetach);
     }
 
     public static void QToolSwitchUpdate(CheckBox lSwitch, bool lChecked) => lSwitch.IsChecked = lChecked;

@@ -262,7 +262,7 @@ public sealed class TSplitTabSidecar
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
         (_, QInspector inspector, QViewer viewer, _) = TSplitBuild();
-        TInterface.TSensorPersistentSet(inspector.QInspectorSensor, true);
+        TInterface.TSensorPersistentSet(inspector, true);
         TSplitWriterAttach(TSplitRecordCreate(true));
         try
         {

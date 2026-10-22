@@ -58,16 +58,51 @@ public sealed class QInspectorOrientation
         QCheckbox.QCheckboxAttach(qInspectorOrientationHorizontal);
         QCheckbox.QCheckboxAttach(qInspectorOrientationVertical);
         QDropdown.QDropdownAttach(qInspectorOrientationRotate);
-        QInspectorHorizontalAttach();
-        QInspectorVerticalAttach();
-        QInspectorRotateAttach();
+        SelectionChangedEventHandler lRotate = QInspectorRotateSelect;
+        Action lAttach = () =>
+        {
+            qInspectorOrientationRotate.SelectionChanged -= lRotate;
+            qInspectorOrientationRotate.SelectionChanged += lRotate;
+        };
+        Action lDetach = () => qInspectorOrientationRotate.SelectionChanged -= lRotate;
+        lAttach();
+        QInspectorOrientationBody.Resources[typeof(QInspectorOrientation)] = new List<(Action, Action)>
+        {
+            QInspectorHorizontalAttach(),
+            QInspectorVerticalAttach(),
+            (lAttach, lDetach),
+        };
+        QInspectorOrientationBuild(true);
+    }
+
+    public void QInspectorOrientationBuild(bool lAttached)
+    {
+        foreach ((Action lAttach, Action lDetach) in
+                 (List<(Action, Action)>)QInspectorOrientationBody.Resources[typeof(QInspectorOrientation)])
+        {
+            if (lAttached) lAttach(); else lDetach();
+        }
+
+        QInspectorOrientationBody.Resources[typeof(QInspectorFrame)] = lAttached;
     }
 
     public void QInspectorOrientationUpdate(bool lCapable)
     {
         QTool.QToolSwitchUpdate(qInspectorOrientationHorizontal, QInspectorFlipHorizontal);
         QTool.QToolSwitchUpdate(qInspectorOrientationVertical, QInspectorFlipVertical);
-        qInspectorOrientationRotate.SelectedIndex = QInspectorRotateIndex;
+        bool lAttached = QInspectorOrientationBody is null
+            || !QInspectorOrientationBody.Resources.Contains(typeof(QInspectorFrame))
+            || QInspectorOrientationBody.Resources[typeof(QInspectorFrame)] is true;
+        if (lAttached)
+            qInspectorOrientationRotate.SelectionChanged -= QInspectorRotateSelect;
+        try
+        {
+            qInspectorOrientationRotate.SelectedIndex = QInspectorRotateIndex;
+        }
+        finally
+        {
+            if (lAttached) QInspectorRotateAttach();
+        }
         qInspectorOrientationRotate.IsEnabled = lCapable;
         qInspectorOrientationHorizontal.IsEnabled = lCapable;
         qInspectorOrientationVertical.IsEnabled = lCapable;
@@ -84,12 +119,20 @@ public sealed class QInspectorOrientation
     public void QInspectorFlipSet(bool lHorizontal, bool lFlipped) =>
         qInspectorOrientationGate.CCropFlipSet(lHorizontal, lFlipped);
 
-    private void QInspectorHorizontalAttach() => QTool.QToolSwitchAttach(
+    private (Action, Action) QInspectorHorizontalAttach() => QTool.QToolSwitchAttach(
         qInspectorOrientationHorizontal, lValue => QInspectorFlipSet(true, lValue));
 
-    private void QInspectorVerticalAttach() => QTool.QToolSwitchAttach(
+    private (Action, Action) QInspectorVerticalAttach() => QTool.QToolSwitchAttach(
         qInspectorOrientationVertical, lValue => QInspectorFlipSet(false, lValue));
 
-    private void QInspectorRotateAttach() => qInspectorOrientationRotate.SelectionChanged += (_, _) =>
+    private void QInspectorRotateAttach()
+    {
+        qInspectorOrientationRotate.SelectionChanged -= QInspectorRotateSelect;
+        qInspectorOrientationRotate.SelectionChanged += QInspectorRotateSelect;
+    }
+
+    private void QInspectorRotateSelect(object lSender, SelectionChangedEventArgs lEvent)
+    {
         QInspectorRotateSelect(qInspectorOrientationRotate.SelectedIndex);
+    }
 }

@@ -1,0 +1,33 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="../../Kit/PTool.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <StackPanel x:Key="PInspectorRatioBody" x:Shared="False" Margin="0,14,0,0">
+        <StackPanel Orientation="Horizontal">
+            <TextBlock x:Name="PInspectorRatioLabel" Width="80" FontSize="12"
+                       FontFamily="{StaticResource PToolFont}" Foreground="{StaticResource PToolText}"
+                       VerticalAlignment="Center" />
+            <ComboBox x:Name="PInspectorRatioPreset" Height="26" Width="140"
+                      HorizontalAlignment="Left" FontSize="12" FontFamily="{StaticResource PToolFont}" />
+        </StackPanel>
+        <StackPanel x:Name="PInspectorRatioCustom" Orientation="Horizontal" Margin="80,6,0,0">
+            <TextBox x:Name="PInspectorRatioWidth" Text="0" Width="68" Height="26" FontSize="12"
+                     FontFamily="{StaticResource PToolFont}" TextAlignment="Center" Padding="4,0" />
+            <TextBlock Text="×" FontSize="12" FontFamily="{StaticResource PToolFont}"
+                       Foreground="{StaticResource PToolMuted}" VerticalAlignment="Center" Margin="7,0" />
+            <TextBox x:Name="PInspectorRatioHeight" Text="0" Width="68" Height="26" FontSize="12"
+                     FontFamily="{StaticResource PToolFont}" TextAlignment="Center" Padding="4,0" />
+        </StackPanel>
+        <CheckBox x:Name="PInspectorRatioFixed" FontSize="12"
+                  FontFamily="{StaticResource PToolFont}" Foreground="{StaticResource PToolText}"
+                  VerticalContentAlignment="Center" Margin="80,8,0,0" />
+        <CheckBox x:Name="PInspectorRatioLenient" FontSize="12"
+                  FontFamily="{StaticResource PToolFont}" Foreground="{StaticResource PToolText}"
+                  VerticalContentAlignment="Center" IsEnabled="False" Margin="80,4,0,0" />
+        <TextBlock x:Name="PInspectorRatioNotice" FontSize="11"
+                   FontFamily="{StaticResource PToolFont}" Foreground="#FFC25A1E"
+                   TextWrapping="Wrap" Margin="80,6,0,0" Visibility="Collapsed" />
+    </StackPanel>
+</ResourceDictionary>

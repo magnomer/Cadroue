@@ -213,18 +213,20 @@ internal static partial class TInterface
     internal static bool TSectionPaletteSave(string path, string name, string[] colors) =>
         LSectionPaletteStore.LSectionPaletteSave(path, name, colors);
     internal static bool TSectionPaletteDelete(string path) => LSectionPaletteStore.LSectionPaletteDelete(path);
+    internal static bool TSectionPaletteRemove(string? folder, string name, bool native, string? path) =>
+        LSectionPaletteStore.LSectionPaletteRemove(folder, name, native, path);
     internal static LSectionImportResult TSectionPaletteImport(
         string folder, string source, string name, out string target) =>
         LSectionPaletteStore.LSectionPaletteImport(folder, source, name, out target);
+    internal static LSectionImportResult TSectionPaletteImport(
+        string folder, string source, out string target) =>
+        LSectionPaletteStore.LSectionPaletteImport(() => folder, source, out target);
     internal static IReadOnlyList<string> TSectionHiddenLoad(string folder) =>
         LSectionPaletteStore.LSectionHiddenLoad(folder);
     internal static bool TSectionHiddenSave(string folder, IReadOnlyList<string> hidden) =>
         LSectionPaletteStore.LSectionHiddenSave(folder, hidden);
     internal static string? TSectionHexNormalize(string hex) => LSectionPalette.LSectionHexNormalize(hex);
     internal static string TSectionColorRead(int index) => LSectionPalette.LSectionColorRead(index);
-    internal static IReadOnlyList<string> TSectionColorsRead(string name) => LSectionPalette.LSectionColorsRead(name);
-    internal static IReadOnlyList<string> TSectionNamesRead() => LSectionPalette.LSectionNamesRead();
-    internal static bool TSectionNativeCheck(string name) => LSectionPalette.LSectionNativeCheck(name);
     internal static int TSectionCountRead() => LSectionPalette.LSectionActiveCount;
 
     internal static Task<LMediaScanResult> TMediaPathScan(
@@ -334,6 +336,15 @@ internal static partial class TInterface
     internal static string TInfoCodecFormat(string codec) => LInfoText.LInfoCodecFormat(codec);
     internal static string TInfoChannelFormat(int channels) => LInfoText.LInfoChannelFormat(channels);
 
+    internal static LDetectorBlank TDetectorBlankCreate(
+        bool enabled,
+        LDetectorType type,
+        double hue,
+        double saturation,
+        double brightness,
+        double tolerance,
+        double coverage,
+        double minimum) => new(enabled, type, hue, saturation, brightness, tolerance, coverage, minimum);
     internal static LDetectorBundle TDetectorSetCreate(
         IReadOnlyList<LDetectorStep> steps,
         LDetectorBlank? blank,

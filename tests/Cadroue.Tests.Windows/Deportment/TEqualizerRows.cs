@@ -72,22 +72,4 @@ public sealed class TEqualizerRows
         Assert.Equal(choice.QInspectorChoiceCustom, choice.QInspectorChoiceIndex);
         Assert.Equal(tokens[1], TInterface.TEqualizerTokenRead(equalizer));
     }
-
-    [Fact]
-    public void ChoiceResolve_SkipsCustom_AndAlreadyMatched()
-    {
-        string[] tokens = { "A", "B" };
-
-        Assert.Null(TInterfaceInspector.TInspectorChoiceResolve(tokens, -1, "A", "A"));
-        Assert.Null(TInterfaceInspector.TInspectorChoiceResolve(tokens, 2, "A", "A"));
-        Assert.Null(TInterfaceInspector.TInspectorChoiceResolve(tokens, 0, "A", "A"));
-        Assert.Equal("B", TInterfaceInspector.TInspectorChoiceResolve(tokens, 1, "A", "A"));
-        Assert.Equal("A", TInterfaceInspector.TInspectorChoiceResolve(tokens, 0, "A", null));
-
-        QInspectorChoice drifted = TInterfaceInspector.TInspectorChoiceRead(tokens, token => token, "A", null);
-        Assert.Equal(2, drifted.QInspectorChoiceIndex);
-        Assert.Equal(3, drifted.QInspectorChoiceNames.Count);
-        QInspectorChoice matched = TInterfaceInspector.TInspectorChoiceRead(tokens, token => token, "A", "B");
-        Assert.Equal(1, matched.QInspectorChoiceIndex);
-    }
 }

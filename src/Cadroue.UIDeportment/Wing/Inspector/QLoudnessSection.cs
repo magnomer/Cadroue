@@ -25,6 +25,7 @@ public sealed class QLoudnessSection
         StackPanel lDynamicRows = QContract.QContractFind<StackPanel>(QLoudnessSectionBody, "PDynamicRows");
         CheckBox lTwopass = QContract.QContractFind<CheckBox>(QLoudnessSectionBody, "PLoudnessTwopass");
         TextBlock lNotice = QContract.QContractFind<TextBlock>(QLoudnessSectionBody, "PLoudnessNotice");
+        var lHandlers = new List<(Action, Action)>();
 
         lActive.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply");
         lActive.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Normalize.ApplyTooltip");
@@ -40,11 +41,13 @@ public sealed class QLoudnessSection
         lTwopass.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Normalize.TwoPassTooltip");
         lNotice.Text = QLocalizationCatalog.QLocalizationTextRead("Inspector.Normalize.Notice");
 
-        QTool.QToolSwitchAttach(lActive, qLoudness.QLoudnessActiveSet);
-        QTool.QToolSwitchAttach(QLoudnessSectionPersistent, qLoudness.QLoudnessPersistentSet);
-        QTool.QToolSwitchAttach(lTwopass, qLoudness.QLoudnessTwopassSet);
+        lHandlers.Add(QTool.QToolSwitchAttach(lActive, qLoudness.QLoudnessActiveSet));
+        lHandlers.Add(QTool.QToolSwitchAttach(QLoudnessSectionPersistent, qLoudness.QLoudnessPersistentSet));
+        lHandlers.Add(QTool.QToolSwitchAttach(lTwopass, qLoudness.QLoudnessTwopassSet));
 
-        _ = new QLoudnessMode(qLoudness, lMode);
+        _ = new QLoudnessMode(qLoudness, lMode, lHandlers);
+        _ = new QLoudnessChoice(qLoudness, false, lLoudnessPreset, lHandlers);
+        _ = new QLoudnessChoice(qLoudness, true, lDynamicPreset, lHandlers);
 
         (StackPanel, bool)[] lRowGroups =
         {
@@ -60,9 +63,12 @@ public sealed class QLoudnessSection
                 int lIndex = lSlot;
                 QInspectorRow lPlan = lPlans[lIndex];
                 Grid lRow = (Grid)lRows.Children[lIndex];
-                _ = new QLoudnessRow(qLoudness, lDynamic, lIndex, lPlan, lRow);
+                _ = new QLoudnessRow(qLoudness, lDynamic, lIndex, lPlan, lRow, lHandlers);
             }
         }
+
+        QLoudnessSectionBody.Resources[typeof(QLoudnessSection)] = lHandlers;
+        QLoudnessSectionAttach();
     }
 
     public StackPanel QLoudnessSectionBody { get; }
@@ -71,16 +77,24 @@ public sealed class QLoudnessSection
 
     public void QLoudnessSectionAttach()
     {
-        _ = new QLoudnessChoice(
-            qLoudness,
-            false,
-            QContract.QContractFind<ComboBox>(QLoudnessSectionBody, "PLoudnessPreset"));
-        _ = new QLoudnessChoice(
-            qLoudness,
-            true,
-            QContract.QContractFind<ComboBox>(QLoudnessSectionBody, "PDynamicPreset"));
+        foreach ((Action lAttach, _) in
+                 (List<(Action, Action)>)QLoudnessSectionBody.Resources[typeof(QLoudnessSection)])
+        {
+            lAttach();
+        }
 
+        qLoudness.QLoudnessChanged -= QLoudnessSectionUpdate;
         qLoudness.QLoudnessChanged += QLoudnessSectionUpdate;
+    }
+
+    public void QLoudnessSectionDetach()
+    {
+        qLoudness.QLoudnessChanged -= QLoudnessSectionUpdate;
+        foreach ((_, Action lDetach) in
+                 (List<(Action, Action)>)QLoudnessSectionBody.Resources[typeof(QLoudnessSection)])
+        {
+            lDetach();
+        }
     }
 
     public void QLoudnessSectionUpdate()
@@ -117,7 +131,10 @@ public sealed class QLoudnessSection
 
     private sealed class QLoudnessMode
     {
-        public QLoudnessMode(QLoudness lDriver, ComboBox lMode)
+        public QLoudnessMode(
+            QLoudness lDriver,
+            ComboBox lMode,
+            List<(Action, Action)> lHandlers)
         {
             QDropdown.QDropdownAttach(lMode);
             foreach (string lName in lDriver.QLoudnessModeNames)
@@ -125,7 +142,15 @@ public sealed class QLoudnessSection
                 lMode.Items.Add(lName);
             }
 
-            lMode.SelectionChanged += (_, _) => lDriver.QLoudnessModeSelect(lMode.SelectedIndex);
+            SelectionChangedEventHandler lHandler = (_, _) => lDriver.QLoudnessModeSelect(lMode.SelectedIndex);
+            Action lAttach = () =>
+            {
+                lMode.SelectionChanged -= lHandler;
+                lMode.SelectionChanged += lHandler;
+            };
+            Action lDetach = () => lMode.SelectionChanged -= lHandler;
+            lAttach();
+            lHandlers.Add((lAttach, lDetach));
         }
     }
 
@@ -135,7 +160,11 @@ public sealed class QLoudnessSection
         private readonly bool qLoudnessChoiceDynamic;
         private readonly ComboBox qLoudnessChoicePreset;
 
-        public QLoudnessChoice(QLoudness lDriver, bool lDynamic, ComboBox lPreset)
+        public QLoudnessChoice(
+            QLoudness lDriver,
+            bool lDynamic,
+            ComboBox lPreset,
+            List<(Action, Action)> lHandlers)
         {
             qLoudnessChoiceDriver = lDriver;
             qLoudnessChoiceDynamic = lDynamic;
@@ -146,7 +175,14 @@ public sealed class QLoudnessSection
                 lPreset.Items.Add(lName);
             }
 
-            lPreset.SelectionChanged += QLoudnessChoiceSelect;
+            Action lAttach = () =>
+            {
+                lPreset.SelectionChanged -= QLoudnessChoiceSelect;
+                lPreset.SelectionChanged += QLoudnessChoiceSelect;
+            };
+            Action lDetach = () => lPreset.SelectionChanged -= QLoudnessChoiceSelect;
+            lAttach();
+            lHandlers.Add((lAttach, lDetach));
         }
 
         private void QLoudnessChoiceSelect(object lSender, SelectionChangedEventArgs lChange) =>
@@ -167,7 +203,8 @@ public sealed class QLoudnessSection
             bool lDynamic,
             int lIndex,
             QInspectorRow lPlan,
-            Grid lRow)
+            Grid lRow,
+            List<(Action, Action)> lHandlers)
         {
             qLoudnessRowDriver = lDriver;
             qLoudnessRowDynamic = lDynamic;
@@ -184,7 +221,6 @@ public sealed class QLoudnessSection
             QTextbox.QTextboxAttach(lNumber);
             lNumber.PreviewTextInput +=
                 (_, lInput) => lInput.Handled = !QInspectorField.QInspectorDecimalCheck(lInput.Text);
-            qLoudnessRowSlider.ValueChanged += QLoudnessRowSet;
             Action lCommit = () =>
             {
                 qLoudnessRowSlider.Value = QInspectorField.QInspectorValueCommit(
@@ -194,8 +230,8 @@ public sealed class QLoudnessSection
                     qLoudnessRowSlider.Maximum);
                 lNumber.CaretIndex = lNumber.Text.Length;
             };
-            lNumber.LostFocus += (_, _) => lCommit();
-            lNumber.KeyDown += (_, lKey) =>
+            RoutedEventHandler lLost = (_, _) => lCommit();
+            KeyEventHandler lKey = (_, lKey) =>
             {
                 if (lKey.Key == Key.Enter)
                 {
@@ -204,6 +240,23 @@ public sealed class QLoudnessSection
 
                 lKey.Handled = lKey.Key == Key.Enter;
             };
+            Action lAttach = () =>
+            {
+                qLoudnessRowSlider.ValueChanged -= QLoudnessRowSet;
+                lNumber.LostFocus -= lLost;
+                lNumber.KeyDown -= lKey;
+                qLoudnessRowSlider.ValueChanged += QLoudnessRowSet;
+                lNumber.LostFocus += lLost;
+                lNumber.KeyDown += lKey;
+            };
+            Action lDetach = () =>
+            {
+                qLoudnessRowSlider.ValueChanged -= QLoudnessRowSet;
+                lNumber.LostFocus -= lLost;
+                lNumber.KeyDown -= lKey;
+            };
+            lAttach();
+            lHandlers.Add((lAttach, lDetach));
         }
 
         private double QLoudnessRowReset() =>

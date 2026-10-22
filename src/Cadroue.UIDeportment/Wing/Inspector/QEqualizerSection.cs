@@ -18,6 +18,7 @@ public sealed class QEqualizerSection
         CheckBox lActive = QContract.QContractFind<CheckBox>(QEqualizerSectionBody, "PEqualizerActive");
         ComboBox lPreset = QContract.QContractFind<ComboBox>(QEqualizerSectionBody, "PEqualizerPreset");
         Button lInsertion = QContract.QContractFind<Button>(QEqualizerSectionBody, "PEqualizerInsertion");
+        var lHandlers = new List<(Action, Action)>();
 
         lActive.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply");
         lActive.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Equalizer.ApplyTooltip");
@@ -30,8 +31,8 @@ public sealed class QEqualizerSection
         ((Image)lInsertion.Content).Source =
             QIcon.QIconRead("/PAsset/PPanel/PFunnelAdd.svg", QTool.QToolIconRead());
 
-        QTool.QToolSwitchAttach(lActive, qEqualizer.QEqualizerActiveSet);
-        QTool.QToolSwitchAttach(QEqualizerSectionPersistent, qEqualizer.QEqualizerPersistentSet);
+        lHandlers.Add(QTool.QToolSwitchAttach(lActive, qEqualizer.QEqualizerActiveSet));
+        lHandlers.Add(QTool.QToolSwitchAttach(QEqualizerSectionPersistent, qEqualizer.QEqualizerPersistentSet));
         QDropdown.QDropdownAttach(lPreset);
         QButton.QButtonAttach(lInsertion, QButtonLook.QButtonLookPanel);
         foreach (string lName in qEqualizer.QEqualizerChoiceRead().QInspectorChoiceNames)
@@ -39,8 +40,27 @@ public sealed class QEqualizerSection
             lPreset.Items.Add(lName);
         }
 
-        lPreset.SelectionChanged += (_, _) => qEqualizer.QEqualizerChoiceSelect(lPreset.SelectedIndex);
-        qEqualizer.QEqualizerRowsChanged += QEqualizerSectionRebuild;
+        SelectionChangedEventHandler lPresetChanged =
+            (_, _) => qEqualizer.QEqualizerChoiceSelect(lPreset.SelectedIndex);
+        RoutedEventHandler lInsert = (_, _) => qEqualizer.QEqualizerBandAdd();
+        Action lAttach = () =>
+        {
+            lPreset.SelectionChanged -= lPresetChanged;
+            lInsertion.Click -= lInsert;
+            lPreset.SelectionChanged += lPresetChanged;
+            lInsertion.Click += lInsert;
+        };
+        Action lDetach = () =>
+        {
+            lPreset.SelectionChanged -= lPresetChanged;
+            lInsertion.Click -= lInsert;
+        };
+        lAttach();
+        lHandlers.Add((lAttach, lDetach));
+        QEqualizerSectionBody.Resources[typeof(QEqualizerSection)] = lHandlers;
+        QEqualizerSectionBody.Resources[typeof(QEqualizerBand)] = new List<(Action, Action)>();
+        QEqualizerSectionBody.Resources[typeof(QInspectorFrame)] = false;
+        QEqualizerSectionAttach();
         QEqualizerSectionRebuild();
     }
 
@@ -50,9 +70,41 @@ public sealed class QEqualizerSection
 
     public void QEqualizerSectionAttach()
     {
-        QContract.QContractFind<Button>(QEqualizerSectionBody, "PEqualizerInsertion").Click +=
-            (_, _) => qEqualizer.QEqualizerBandAdd();
+        foreach ((Action lAttach, _) in
+                 (List<(Action, Action)>)QEqualizerSectionBody.Resources[typeof(QEqualizerSection)])
+        {
+            lAttach();
+        }
+
+        foreach ((Action lAttach, _) in
+                 (List<(Action, Action)>)QEqualizerSectionBody.Resources[typeof(QEqualizerBand)])
+        {
+            lAttach();
+        }
+
+        qEqualizer.QEqualizerRowsChanged -= QEqualizerSectionRebuild;
+        qEqualizer.QEqualizerChanged -= QEqualizerSectionUpdate;
+        qEqualizer.QEqualizerRowsChanged += QEqualizerSectionRebuild;
         qEqualizer.QEqualizerChanged += QEqualizerSectionUpdate;
+        QEqualizerSectionBody.Resources[typeof(QInspectorFrame)] = true;
+    }
+
+    public void QEqualizerSectionDetach()
+    {
+        QEqualizerSectionBody.Resources[typeof(QInspectorFrame)] = false;
+        qEqualizer.QEqualizerRowsChanged -= QEqualizerSectionRebuild;
+        qEqualizer.QEqualizerChanged -= QEqualizerSectionUpdate;
+        foreach ((_, Action lDetach) in
+                 (List<(Action, Action)>)QEqualizerSectionBody.Resources[typeof(QEqualizerSection)])
+        {
+            lDetach();
+        }
+
+        foreach ((_, Action lDetach) in
+                 (List<(Action, Action)>)QEqualizerSectionBody.Resources[typeof(QEqualizerBand)])
+        {
+            lDetach();
+        }
     }
 
     public void QEqualizerSectionUpdate()
@@ -79,16 +131,26 @@ public sealed class QEqualizerSection
     private void QEqualizerSectionRebuild()
     {
         StackPanel lRows = QContract.QContractFind<StackPanel>(QEqualizerSectionBody, "PEqualizerRows");
+        var lHandlers =
+            (List<(Action, Action)>)QEqualizerSectionBody.Resources[typeof(QEqualizerBand)];
+        foreach ((_, Action lDetach) in lHandlers)
+        {
+            lDetach();
+        }
+
+        lHandlers.Clear();
         lRows.Children.Clear();
         foreach (QEqualizerBand lBand in qEqualizer.QEqualizerRows)
         {
-            (Grid, TextBox, Slider, TextBox) lRow = QEqualizerBandBuild(lBand);
-            QEqualizerBandAttach(lRow);
+            (Grid, TextBox, Slider, TextBox) lRow = QEqualizerBandBuild(lBand, lHandlers);
+            QEqualizerBandAttach(lRow, lHandlers);
             lRows.Children.Add(lRow.Item1);
         }
     }
 
-    private (Grid, TextBox, Slider, TextBox) QEqualizerBandBuild(QEqualizerBand lBand)
+    private (Grid, TextBox, Slider, TextBox) QEqualizerBandBuild(
+        QEqualizerBand lBand,
+        List<(Action, Action)> lHandlers)
     {
         var lRow = (Grid)QContract.QContractSheetFind<DataTemplate>(QEqualizerSectionBody, "pEqualizerBand")
             .LoadContent();
@@ -106,12 +168,26 @@ public sealed class QEqualizerSection
         ((Image)lRemoval.Content).Source =
             QIcon.QIconRead("/PAsset/PPanel/PFunnelRemove.svg", QTool.QToolIconRead());
         QButton.QButtonAttach(lRemoval, QButtonLook.QButtonLookPanel);
-        lRemoval.Click += (_, _) => qEqualizer.QEqualizerBandRemove(
+        RoutedEventHandler lRemove = (_, _) => qEqualizer.QEqualizerBandRemove(
             QContract.QContractFind<StackPanel>(QEqualizerSectionBody, "PEqualizerRows").Children.IndexOf(lRow));
+        Action lAttach = () =>
+        {
+            lRemoval.Click -= lRemove;
+            lRemoval.Click += lRemove;
+        };
+        Action lDetach = () => lRemoval.Click -= lRemove;
+        if ((bool)QEqualizerSectionBody.Resources[typeof(QInspectorFrame)])
+        {
+            lAttach();
+        }
+
+        lHandlers.Add((lAttach, lDetach));
         return (lRow, lFrequency, lSlider, lValue);
     }
 
-    private void QEqualizerBandAttach((Grid, TextBox, Slider, TextBox) lBand)
+    private void QEqualizerBandAttach(
+        (Grid, TextBox, Slider, TextBox) lBand,
+        List<(Action, Action)> lHandlers)
     {
         (Grid lRow, TextBox lFrequency, Slider lSlider, TextBox lValue) = lBand;
         QSlider.QSliderAttach(lSlider);
@@ -122,10 +198,10 @@ public sealed class QEqualizerSection
             (_, lInput) => lInput.Handled = !QInspectorField.QInspectorDecimalCheck(lInput.Text);
         lValue.PreviewTextInput +=
             (_, lInput) => lInput.Handled = !QInspectorField.QInspectorDecimalCheck(lInput.Text);
-        lSlider.ValueChanged += (_, _) => qEqualizer.QEqualizerGainSet(
+        RoutedPropertyChangedEventHandler<double> lSlide = (_, _) => qEqualizer.QEqualizerGainSet(
             QContract.QContractFind<StackPanel>(QEqualizerSectionBody, "PEqualizerRows").Children.IndexOf(lRow),
             lSlider.Value);
-        lValue.LostFocus += (_, _) =>
+        RoutedEventHandler lValueLost = (_, _) =>
         {
             lSlider.Value = QInspectorField.QInspectorValueCommit(
                 lValue.Text,
@@ -134,7 +210,7 @@ public sealed class QEqualizerSection
                 lSlider.Maximum);
             lValue.CaretIndex = lValue.Text.Length;
         };
-        lValue.KeyDown += (_, lKey) =>
+        KeyEventHandler lValueKey = (_, lKey) =>
         {
             if (lKey.Key == Key.Enter)
             {
@@ -148,8 +224,8 @@ public sealed class QEqualizerSection
 
             lKey.Handled = lKey.Key == Key.Enter;
         };
-        lFrequency.LostFocus += (_, _) => QEqualizerFrequencyApply(lRow, lFrequency);
-        lFrequency.KeyDown += (_, lKey) =>
+        RoutedEventHandler lFrequencyLost = (_, _) => QEqualizerFrequencyApply(lRow, lFrequency);
+        KeyEventHandler lFrequencyKey = (_, lKey) =>
         {
             if (lKey.Key == Key.Enter)
             {
@@ -158,6 +234,33 @@ public sealed class QEqualizerSection
 
             lKey.Handled = lKey.Key == Key.Enter;
         };
+        Action lAttach = () =>
+        {
+            lSlider.ValueChanged -= lSlide;
+            lValue.LostFocus -= lValueLost;
+            lValue.KeyDown -= lValueKey;
+            lFrequency.LostFocus -= lFrequencyLost;
+            lFrequency.KeyDown -= lFrequencyKey;
+            lSlider.ValueChanged += lSlide;
+            lValue.LostFocus += lValueLost;
+            lValue.KeyDown += lValueKey;
+            lFrequency.LostFocus += lFrequencyLost;
+            lFrequency.KeyDown += lFrequencyKey;
+        };
+        Action lDetach = () =>
+        {
+            lSlider.ValueChanged -= lSlide;
+            lValue.LostFocus -= lValueLost;
+            lValue.KeyDown -= lValueKey;
+            lFrequency.LostFocus -= lFrequencyLost;
+            lFrequency.KeyDown -= lFrequencyKey;
+        };
+        if ((bool)QEqualizerSectionBody.Resources[typeof(QInspectorFrame)])
+        {
+            lAttach();
+        }
+
+        lHandlers.Add((lAttach, lDetach));
     }
 
     private void QEqualizerFrequencyApply(Grid lRow, TextBox lFrequency)

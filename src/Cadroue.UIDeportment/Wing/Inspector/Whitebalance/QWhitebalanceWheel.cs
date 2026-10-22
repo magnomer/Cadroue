@@ -59,15 +59,41 @@ public sealed class QWhitebalanceWheel
 
     public void QWhitebalanceWheelAttach()
     {
-        qWhitebalanceWheelCanvas.MouseLeftButtonDown += (_, lMouse) =>
+        MouseButtonEventHandler lPress = (_, lMouse) =>
         {
             qWhitebalanceWheelCanvas.CaptureMouse();
             QWhitebalanceWheelHandle(lMouse);
         };
-        qWhitebalanceWheelCanvas.MouseMove += (_, lMouse) => QWhitebalanceWheelHandle(lMouse);
-        qWhitebalanceWheelCanvas.MouseLeftButtonUp += (_, _) => qWhitebalanceWheelCanvas.ReleaseMouseCapture();
-        qWhitebalanceWheelBrightness.ValueChanged += (_, _) => QWhitebalanceWheelDraw();
+        MouseEventHandler lMove = (_, lMouse) => QWhitebalanceWheelHandle(lMouse);
+        MouseButtonEventHandler lRelease = (_, _) => qWhitebalanceWheelCanvas.ReleaseMouseCapture();
+        RoutedPropertyChangedEventHandler<double> lBrightness = (_, _) => QWhitebalanceWheelDraw();
+        Action lAttach = () =>
+        {
+            qWhitebalanceWheelCanvas.MouseLeftButtonDown -= lPress;
+            qWhitebalanceWheelCanvas.MouseMove -= lMove;
+            qWhitebalanceWheelCanvas.MouseLeftButtonUp -= lRelease;
+            qWhitebalanceWheelBrightness.ValueChanged -= lBrightness;
+            qWhitebalanceWheelCanvas.MouseLeftButtonDown += lPress;
+            qWhitebalanceWheelCanvas.MouseMove += lMove;
+            qWhitebalanceWheelCanvas.MouseLeftButtonUp += lRelease;
+            qWhitebalanceWheelBrightness.ValueChanged += lBrightness;
+        };
+        Action lDetach = () =>
+        {
+            qWhitebalanceWheelCanvas.MouseLeftButtonDown -= lPress;
+            qWhitebalanceWheelCanvas.MouseMove -= lMove;
+            qWhitebalanceWheelCanvas.MouseLeftButtonUp -= lRelease;
+            qWhitebalanceWheelBrightness.ValueChanged -= lBrightness;
+        };
+        QWhitebalanceWheelBody.Resources[typeof(QWhitebalanceWheel)] = (lAttach, lDetach);
+        QWhitebalanceWheelAttach(true);
         QWhitebalanceWheelDraw();
+    }
+
+    public void QWhitebalanceWheelAttach(bool lAttached)
+    {
+        var lHandlers = (ValueTuple<Action, Action>)QWhitebalanceWheelBody.Resources[typeof(QWhitebalanceWheel)];
+        if (lAttached) lHandlers.Item1(); else lHandlers.Item2();
     }
 
     private void QWhitebalanceWheelDraw() =>

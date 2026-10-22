@@ -27,13 +27,15 @@ public sealed class TInspectorGating
     public void Step_SameName_IsSilent()
     {
         QInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspectorFrame frame = inspector.QInspectorFrame;
         int notices = 0;
         TInterfaceInspector.TInspectorAttach(inspector, () => notices++);
 
-        TInterfaceInspector.TInspectorStepSet(inspector, "Crop");
-        TInterfaceInspector.TInspectorStepSet(inspector, "Crop");
-        TInterfaceInspector.TInspectorMinimizedSet(inspector, true);
+        frame.QInspectorFrameSet("Crop");
+        frame.QInspectorFrameSet("Crop");
+        frame.QInspectorFrameSet(true);
 
+        Assert.True(TInterfaceInspector.TInspectorSectionCheck(inspector, "Crop"));
         Assert.Equal(2, notices);
         Assert.True(inspector.QInspectorMinimized);
     }

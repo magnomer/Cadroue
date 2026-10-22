@@ -63,8 +63,14 @@ public sealed class QCurveCanvas
             ["Plain"] = Brushes.White
         };
 
-    public void QCurveAttach(Canvas lCanvas)
+    public void QCurveAttach(Canvas lCanvas) => QCurveAttach(lCanvas, true);
+
+    public void QCurveAttach(Canvas lCanvas, bool lAttached)
     {
+        lCanvas.MouseLeftButtonDown -= QCurvePressHandle;
+        lCanvas.MouseMove -= QCurveMoveHandle;
+        lCanvas.MouseLeftButtonUp -= QCurveReleaseHandle;
+        if (!lAttached) return;
         lCanvas.MouseLeftButtonDown += QCurvePressHandle;
         lCanvas.MouseMove += QCurveMoveHandle;
         lCanvas.MouseLeftButtonUp += QCurveReleaseHandle;

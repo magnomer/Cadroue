@@ -6,9 +6,11 @@ UI helpers retain only the control state needed to rebuild or commit a surface.
 
 ## QSEncoder.cs
 
-`QSEncoder` creates one Conduct draft and gives each row group only its corresponding gate.
+`QSEncoder` creates one Conduct draft and gives each row group its gate.
 Output reads and writes, apply, save, close, and readiness are relayed to that draft.
 One window therefore shares one draft across video, size, audio, suffix, and location controls.
+
+The video driver also keeps the whole draft, to read and set the video detail.
 
 ## QSEncoderAudio.cs
 
@@ -149,3 +151,23 @@ The close event closes the draft and saves placement.
 Stored placement is restored under the fixed `Encoder` key.
 Conduct readiness is marshalled through the window dispatcher before repainting audio.
 This preserves WPF thread affinity.
+
+## Stamp
+
+Commit: `b84e5458de50`
+- `QSEncoder.cs` `b5298d2bdd2971d7`
+- `QSEncoderAudio.cs` `e631db73ed66511e`
+- `QSEncoderChip.cs` `5d431c5c79e9d543`
+- `QSEncoderFramerate.cs` `867080c70d64eb97`
+- `QSEncoderLocation.cs` `860efc1cc323f0fb`
+- `QSEncoderName.cs` `5442babfb0fbf851`
+- `QSEncoderNameDrag.cs` `8191fd0efb3eaf59`
+- `QSEncoderOutput.cs` `a8e60b66b815bf61`
+- `QSEncoderPicture.cs` `d5a8d3eeeadef28c`
+- `QSEncoderRate.cs` `7153a4b96b99a134`
+- `QSEncoderResolution.cs` `34d73bd5e46223e2`
+- `QSEncoderSize.cs` `cad0bef1534dbc72`
+- `QSEncoderSound.cs` `1b67ffb38ca7faf9`
+- `QSEncoderSuffix.cs` `1f9aabc540d3cddb`
+- `QSEncoderVideo.cs` `0c78be7e320de301`
+- `QSEncoderWindow.cs` `7785e166054e4991`

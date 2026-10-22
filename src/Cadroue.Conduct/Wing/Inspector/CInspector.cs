@@ -54,6 +54,12 @@ public sealed class CInspector
 
     public CCurve CInspectorCurve { get; } = new();
 
+    public CBlank CInspectorBlank { get; } = new();
+
+    public CDetector CInspectorDetector { get; } = new();
+
+    public CSweep CInspectorSweep { get; } = new();
+
     public CVolume CInspectorVolume { get; } = new();
 
     public CCrop CInspectorCrop { get; } = new();

@@ -90,8 +90,21 @@ public sealed class QWhitebalanceNeutral
 
     public void QWhitebalanceNeutralAttach(QWhitebalance lWhitebalance)
     {
-        QWhitebalanceNeutralAttach(qWhitebalanceNeutralTool, false, lWhitebalance.QWhitebalanceToolToggle);
-        QWhitebalanceNeutralAttach(qWhitebalanceWhiteTool, true, lWhitebalance.QWhitebalanceToolToggle);
+        QWhitebalanceNeutralBody.Resources[typeof(QWhitebalanceNeutral)] = new List<(Action, Action)>
+        {
+            QWhitebalanceNeutralAttach(qWhitebalanceNeutralTool, false, lWhitebalance.QWhitebalanceToolToggle),
+            QWhitebalanceNeutralAttach(qWhitebalanceWhiteTool, true, lWhitebalance.QWhitebalanceToolToggle),
+        };
+        QWhitebalanceNeutralAttach(true);
+    }
+
+    public void QWhitebalanceNeutralAttach(bool lAttached)
+    {
+        foreach ((Action lAttach, Action lDetach) in
+                 (List<(Action, Action)>)QWhitebalanceNeutralBody.Resources[typeof(QWhitebalanceNeutral)])
+        {
+            if (lAttached) lAttach(); else lDetach();
+        }
     }
 
     public void QWhitebalanceNeutralUpdate(QWhitebalance lWhitebalance)
@@ -129,13 +142,27 @@ public sealed class QWhitebalanceNeutral
         qWhitebalanceNeutralReadout.Text = lReadout.QWhitebalanceReadoutText;
     }
 
-    private static void QWhitebalanceNeutralAttach(
+    private static (Action, Action) QWhitebalanceNeutralAttach(
         ToggleButton lTool,
         bool lWhite,
         Action<bool, bool> lSet)
     {
-        lTool.Checked += (_, _) => lSet(lWhite, true);
-        lTool.Unchecked += (_, _) => lSet(lWhite, false);
+        RoutedEventHandler lChecked = (_, _) => lSet(lWhite, true);
+        RoutedEventHandler lUnchecked = (_, _) => lSet(lWhite, false);
+        Action lAttach = () =>
+        {
+            lTool.Checked -= lChecked;
+            lTool.Unchecked -= lUnchecked;
+            lTool.Checked += lChecked;
+            lTool.Unchecked += lUnchecked;
+        };
+        Action lDetach = () =>
+        {
+            lTool.Checked -= lChecked;
+            lTool.Unchecked -= lUnchecked;
+        };
+        lAttach();
+        return (lAttach, lDetach);
     }
 
 }

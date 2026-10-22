@@ -53,7 +53,6 @@ public sealed class QSplitTabSweep
 
         var lSource = new CancellationTokenSource();
         QSplitSweepSet(lSource);
-        qSplitInspector.QInspectorSensor.QSensorSweep.QSensorRunningSet(true);
         QSplitBusyApplied?.Invoke(true);
         QSplitProgressApplied?.Invoke(0);
         try
@@ -84,7 +83,6 @@ public sealed class QSplitTabSweep
         finally
         {
             QSplitBusyApplied?.Invoke(false);
-            qSplitInspector.QInspectorSensor.QSensorSweep.QSensorRunningSet(false);
             QSplitSweepSet(null);
             lSource.Dispose();
         }

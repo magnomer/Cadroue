@@ -20,7 +20,7 @@ public sealed class PAudioTab : PTabSurface
         QAudioTab = lWorkspace.QWorkspaceMode.QAudioTabCreate();
         pAudioViewerTimer = new PDebounce(TimeSpan.FromMilliseconds(150), () => QAudioTab.QAudioViewerApply());
         pProcessing = new PProcessing(QAudioTab.QAudioProcessing);
-        pInspector = new PInspector(QAudioTab.QAudioInspector);
+        pInspector = new PInspector(QAudioTab.QAudioInspector.QInspectorFrame);
         QAudioProcessing.QAudioRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
         PAudioStepsAttach();
         pProcessing.PProcessingMonitorSet();
@@ -61,8 +61,8 @@ public sealed class PAudioTab : PTabSurface
 
     private void PAudioStepsAttach()
     {
-        pProcessing.PProcessingStepChanged += pInspector.PInspectorStepShow;
-        pProcessing.PProcessingStepOpened += _ => pInspector.PInspectorMinimizeSet(false);
+        pProcessing.PProcessingStepChanged += pInspector.QInspectorFrame.QInspectorFrameSet;
+        pProcessing.PProcessingStepOpened += _ => pInspector.QInspectorFrame.QInspectorFrameSet(false);
         pProcessing.PProcessingMonitorShown += PAudioMonitorShow;
     }
 

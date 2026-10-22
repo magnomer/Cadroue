@@ -176,6 +176,9 @@ $RECYCLE.BIN/
 !/scripts/Build.ps1
 !/scripts/Check.comment.md
 !/scripts/Check.ps1
+!/scripts/CheckPlacement.comment.md
+!/scripts/CheckPlacement.json
+!/scripts/CheckPlacement.ps1
 !/scripts/Clean.ps1
 !/scripts/Debug.ps1
 !/scripts/Execution.config.ps1

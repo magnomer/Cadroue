@@ -17,6 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Cadroue.Tests.Interface\Cadroue.Tests.Interface.csproj" />
     <ProjectReference Include="..\..\src\Cadroue.UIDeportment\Cadroue.UIDeportment.csproj" />
+    <ProjectReference Include="..\..\src\Cadroue.UIVeneer\Cadroue.UIVeneer.csproj" />
   </ItemGroup>
 
 </Project>

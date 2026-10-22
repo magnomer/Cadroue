@@ -1,3 +1,5 @@
+using Cadroue.Conduct;
+
 namespace Cadroue.UIDeportment;
 
 // A section's tips: a notice, when the tool is not capable or has no preview, stands in for every tip's own wording.
@@ -14,15 +16,20 @@ public sealed record QInspectorTip(
         string lDisabledKey,
         string lPreviewKey,
         string lApplyKey,
+        string lPersistKey) => QInspectorTipResolve(
+            CInspectorTip.CInspectorTipResolve(
+                lActive, lCapable, lPreviewAvailable, lDisabledKey, lPreviewKey),
+            lApplyKey,
+            lPersistKey);
+
+    internal static QInspectorTip QInspectorTipResolve(
+        CInspectorTip lPlan,
+        string lApplyKey,
         string lPersistKey)
     {
-        string? lNotice = !lCapable
-            ? QLocalizationCatalog.QLocalizationTextRead(lDisabledKey)
-            : !lPreviewAvailable && lPreviewKey.Length > 0
-                ? QLocalizationCatalog.QLocalizationTextRead(lPreviewKey)
-                : null;
+        string? lNotice = QInspectorNotice.QInspectorNoticeResolve(lPlan.CInspectorNotice);
         return new QInspectorTip(
-            lCapable && lActive,
+            lPlan.CInspectorTipEnabled,
             lNotice,
             lNotice ?? QLocalizationCatalog.QLocalizationTextRead(lApplyKey),
             lNotice ?? QLocalizationCatalog.QLocalizationTextRead(lPersistKey));

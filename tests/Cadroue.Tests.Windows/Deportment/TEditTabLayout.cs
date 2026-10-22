@@ -103,6 +103,10 @@ public sealed class TEditTabLayout
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
         (QEditTab tab, QInspector inspector) = TEditBuild();
+        inspector.QInspectorFrame.QInspectorFrameSet(true);
+        Assert.True(inspector.QInspectorMinimized);
+        inspector.QInspectorFrame.QInspectorFrameSet(false);
+        Assert.False(inspector.QInspectorMinimized);
 
         TInterface.TEditLayoutApply(tab, null);
 

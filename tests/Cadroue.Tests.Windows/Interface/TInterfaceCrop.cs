@@ -1,6 +1,7 @@
 using Cadroue.Application;
 using Cadroue.Conduct;
 using Cadroue.Core;
+using Cadroue.ShellEngine;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.Tests.Windows;
@@ -55,4 +56,57 @@ internal static class TInterfaceCrop
     internal static bool TCropMoveHandle(QCropDrag drag, bool pressed, double x, double y) =>
         drag.QCropMoveHandle(pressed, x, y);
     internal static bool TCropReleaseHandle(QCropDrag drag, double x, double y) => drag.QCropReleaseHandle(x, y);
+}
+
+internal sealed class TCropPort : LCropPort
+{
+    private readonly LCropPort tCropPortInner;
+
+    internal TCropPort(QInspector inspector) => tCropPortInner = new LCropOutlet(
+        inspector.QInspectorCrop.QInspectorCropbox,
+        () => (inspector.QInspectorSourcePresent,
+            inspector.QInspectorSourceWidth, inspector.QInspectorSourceHeight));
+
+    internal int TCropPortRequests { get; private set; }
+
+    public event Action? LCropChanged
+    {
+        add => tCropPortInner.LCropChanged += value;
+        remove => tCropPortInner.LCropChanged -= value;
+    }
+
+    public (int LCropRotation, bool LCropHorizontal, bool LCropVertical) LCropOrientationRead() =>
+        tCropPortInner.LCropOrientationRead();
+    public (bool LCropActive, bool LCropPersistent, bool LCropFixed, bool LCropLenient, int LCropWidth,
+        int LCropHeight) LCropStateRead() => tCropPortInner.LCropStateRead();
+    public (int LCropLeft, int LCropTop, int LCropRight, int LCropBottom) LCropEdgesRead() =>
+        tCropPortInner.LCropEdgesRead();
+    public (int LCropLeft, int LCropTop, int LCropRight, int LCropBottom) LCropNormalRead() =>
+        tCropPortInner.LCropNormalRead();
+    public (bool LCropPresent, double LCropWidth, double LCropHeight) LCropSourceRead() =>
+        tCropPortInner.LCropSourceRead();
+    public bool LCropRectCheck() => tCropPortInner.LCropRectCheck();
+    public (bool LCropTolerated, int LCropExcess, bool LCropWide) LCropNoticeRead(double lWidth, double lHeight) =>
+        tCropPortInner.LCropNoticeRead(lWidth, lHeight);
+    public (int LCropWidth, int LCropHeight) LCropRatioNormalize(int lWidth, int lHeight) =>
+        tCropPortInner.LCropRatioNormalize(lWidth, lHeight);
+
+    public void LCropRotateSet(int lRotation) { TCropPortRequests++; tCropPortInner.LCropRotateSet(lRotation); }
+    public void LCropFlipSet(bool lHorizontal, bool lFlipped)
+    { TCropPortRequests++; tCropPortInner.LCropFlipSet(lHorizontal, lFlipped); }
+    public void LCropEdgeSet(int lSide, double lEdge, bool lLocked)
+    { TCropPortRequests++; tCropPortInner.LCropEdgeSet(lSide, lEdge, lLocked); }
+    public void LCropEdgeReset() { TCropPortRequests++; tCropPortInner.LCropEdgeReset(); }
+    public void LCropApplySet(bool lApply, bool lRatioReset)
+    { TCropPortRequests++; tCropPortInner.LCropApplySet(lApply, lRatioReset); }
+    public void LCropWorkApply(LInspectorPort lPlan)
+    { TCropPortRequests++; tCropPortInner.LCropWorkApply(lPlan); }
+    public void LCropPersistentSet(bool lPersistent)
+    { TCropPortRequests++; tCropPortInner.LCropPersistentSet(lPersistent); }
+    public void LCropReset() { TCropPortRequests++; tCropPortInner.LCropReset(); }
+    public void LCropRatioSet(bool lFixed, bool lLenient, int lWidth, int lHeight, bool lUnlock)
+    { TCropPortRequests++; tCropPortInner.LCropRatioSet(lFixed, lLenient, lWidth, lHeight, lUnlock); }
+    public void LCropRatioReset() { TCropPortRequests++; tCropPortInner.LCropRatioReset(); }
+    public void LCropPresetSet(int lWidth, int lHeight)
+    { TCropPortRequests++; tCropPortInner.LCropPresetSet(lWidth, lHeight); }
 }

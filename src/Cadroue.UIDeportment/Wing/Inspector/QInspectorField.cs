@@ -20,10 +20,6 @@ public static class QInspectorField
     internal static string QInspectorWholeFormat(string lText, double lNumber) =>
         CInspectorField.CInspectorWholeFormat(lText, lNumber);
 
-    public static void QInspectorSlideCommit(
-        double lSlider, double lCurrent, double lLeast, double lMost, Action<double> lSet) =>
-        CInspectorField.CInspectorSlideCommit(lSlider, lCurrent, lLeast, lMost, lSet);
-
     // A row's slider takes the number within its range; its box keeps typed text that already reads as the number.
     internal static void QInspectorFieldUpdate(Slider lSlider, TextBox lValue, double lNumber, string lPattern)
     {

@@ -13,7 +13,7 @@ internal sealed class PSOptionsTimeline
         new("ViewfinderFirst", "Options.Timeline.ViewfinderTop")
     };
 
-    internal required PSOptionsSpectrum psOptionsSpectrum;
+    internal required PSSpectrum psSpectrum;
     internal required Border psOptionsOrderMode;
     internal required Slider psKeyframeSlider;
     internal required Slider psKeyframeDelaySlider;
@@ -52,7 +52,7 @@ internal sealed class PSOptionsTimeline
             PSNotice.PSNoticeBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.WaveformNotice"))));
         pPanel.Children.Add(PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead(
             "Options.Timeline.SectionPalette"),
-            psOptionsSpectrum.PSSpectrumFieldBuild()));
+            psSpectrum));
         return pPanel;
     }
 }

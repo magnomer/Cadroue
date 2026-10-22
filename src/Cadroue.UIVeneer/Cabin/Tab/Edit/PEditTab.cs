@@ -23,7 +23,7 @@ public sealed class PEditTab : PTabSurface
         pEditColorTimer = new PDebounce(TimeSpan.FromMilliseconds(80), () => QEditTab.QEditColor.QEditColorApply());
         pEditHistogramTimer = new PDebounce(
             TimeSpan.FromMilliseconds(220), () => QEditTab.QEditColor.QEditHistogramRun());
-        pInspector = new PInspector(QEditTab.QEditInspector);
+        pInspector = new PInspector(QEditTab.QEditInspector.QInspectorFrame);
         pProcessing = new PProcessing(QEditTab.QEditProcessing);
         var pAction = new PAction(lWorkspace.QWorkspaceMode.QWorkspaceAction!);
         pAction.PActionAllSet(true, QLocalizationCatalog.QLocalizationTextRead("Action.EditAll.Tooltip"));
@@ -65,8 +65,8 @@ public sealed class PEditTab : PTabSurface
 
     private void PEditEventsAttach()
     {
-        pProcessing.PProcessingStepChanged += pInspector.PInspectorStepShow;
-        pProcessing.PProcessingStepOpened += _ => pInspector.PInspectorMinimizeSet(false);
+        pProcessing.PProcessingStepChanged += pInspector.QInspectorFrame.QInspectorFrameSet;
+        pProcessing.PProcessingStepOpened += _ => pInspector.QInspectorFrame.QInspectorFrameSet(false);
         pViewer.QViewer.QViewerPlayback.QViewerClockTicked += PEditHistogramDefer;
 
         QEditTab.QEditPresetMissing += PExportNotice.PExportMissingShow;

@@ -1,3 +1,4 @@
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
@@ -21,6 +22,7 @@ public sealed class QNoiseSection
         StackPanel lRows = QContract.QContractFind<StackPanel>(QNoiseSectionBody, "PNoiseRows");
         ComboBox lType = QContract.QContractFind<ComboBox>(QNoiseSectionBody, "PNoiseType");
         CheckBox lTrack = QContract.QContractFind<CheckBox>(QNoiseSectionBody, "PNoiseTrack");
+        var lHandlers = new List<(Action, Action)>();
 
         lActive.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply");
         lActive.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Noise.ApplyTooltip");
@@ -34,9 +36,9 @@ public sealed class QNoiseSection
         lTrack.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Noise.Track");
         lTrack.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Noise.TrackTooltip");
 
-        QTool.QToolSwitchAttach(lActive, qNoise.QNoiseActiveSet);
-        QTool.QToolSwitchAttach(QNoiseSectionPersistent, qNoise.QNoisePersistentSet);
-        QTool.QToolSwitchAttach(lTrack, qNoise.QNoiseTrackSet);
+        lHandlers.Add(QTool.QToolSwitchAttach(lActive, qNoise.QNoiseActiveSet));
+        lHandlers.Add(QTool.QToolSwitchAttach(QNoiseSectionPersistent, qNoise.QNoisePersistentSet));
+        lHandlers.Add(QTool.QToolSwitchAttach(lTrack, qNoise.QNoiseTrackSet));
 
         QDropdown.QDropdownAttach(lPreset);
         foreach (string lName in qNoise.QNoiseChoiceRead().QInspectorChoiceNames)
@@ -55,8 +57,16 @@ public sealed class QNoiseSection
         for (int lChoice = 0; lChoice < lChoices.Length; lChoice++)
         {
             int lIndex = lChoice;
-            lChoices[lIndex].SelectionChanged +=
+            SelectionChangedEventHandler lHandler =
                 (_, _) => lSelect[lIndex](lChoices[lIndex].SelectedIndex);
+            Action lAttach = () =>
+            {
+                lChoices[lIndex].SelectionChanged -= lHandler;
+                lChoices[lIndex].SelectionChanged += lHandler;
+            };
+            Action lDetach = () => lChoices[lIndex].SelectionChanged -= lHandler;
+            lAttach();
+            lHandlers.Add((lAttach, lDetach));
         }
 
         IReadOnlyList<QInspectorRow> lPlans = qNoise.QNoiseRows;
@@ -77,7 +87,8 @@ public sealed class QNoiseSection
             QTextbox.QTextboxAttach(lNumber);
             lNumber.PreviewTextInput +=
                 (_, lInput) => lInput.Handled = !QInspectorField.QInspectorDecimalCheck(lInput.Text);
-            lSlider.ValueChanged += (_, _) => qNoise.QNoiseValueSet(lIndex, lSlider.Value);
+            RoutedPropertyChangedEventHandler<double> lSlide =
+                (_, _) => qNoise.QNoiseValueSet(lIndex, lSlider.Value);
             Action lCommit = () =>
             {
                 lSlider.Value = QInspectorField.QInspectorValueCommit(
@@ -87,24 +98,62 @@ public sealed class QNoiseSection
                     lSlider.Maximum);
                 lNumber.CaretIndex = lNumber.Text.Length;
             };
-            lNumber.LostFocus += (_, _) => lCommit();
-            lNumber.KeyDown += (_, lKey) =>
+            RoutedEventHandler lLost = (_, _) => lCommit();
+            KeyEventHandler lKey = (_, lInput) =>
             {
-                if (lKey.Key == Key.Enter)
+                if (lInput.Key == Key.Enter)
                 {
                     lCommit();
                 }
 
-                lKey.Handled = lKey.Key == Key.Enter;
+                lInput.Handled = lInput.Key == Key.Enter;
             };
+            Action lAttach = () =>
+            {
+                lSlider.ValueChanged -= lSlide;
+                lNumber.LostFocus -= lLost;
+                lNumber.KeyDown -= lKey;
+                lSlider.ValueChanged += lSlide;
+                lNumber.LostFocus += lLost;
+                lNumber.KeyDown += lKey;
+            };
+            Action lDetach = () =>
+            {
+                lSlider.ValueChanged -= lSlide;
+                lNumber.LostFocus -= lLost;
+                lNumber.KeyDown -= lKey;
+            };
+            lAttach();
+            lHandlers.Add((lAttach, lDetach));
         }
+
+        QNoiseSectionBody.Resources[typeof(QNoiseSection)] = lHandlers;
+        QNoiseSectionAttach();
     }
 
     public StackPanel QNoiseSectionBody { get; }
 
     public CheckBox QNoiseSectionPersistent { get; }
 
-    public void QNoiseSectionAttach() => qNoise.QNoiseChanged += QNoiseSectionUpdate;
+    public void QNoiseSectionAttach()
+    {
+        foreach ((Action lAttach, _) in (List<(Action, Action)>)QNoiseSectionBody.Resources[typeof(QNoiseSection)])
+        {
+            lAttach();
+        }
+
+        qNoise.QNoiseChanged -= QNoiseSectionUpdate;
+        qNoise.QNoiseChanged += QNoiseSectionUpdate;
+    }
+
+    public void QNoiseSectionDetach()
+    {
+        qNoise.QNoiseChanged -= QNoiseSectionUpdate;
+        foreach ((_, Action lDetach) in (List<(Action, Action)>)QNoiseSectionBody.Resources[typeof(QNoiseSection)])
+        {
+            lDetach();
+        }
+    }
 
     public void QNoiseSectionUpdate()
     {

@@ -1,9 +1,8 @@
 # QSplitTabSweep.cs
-Hash: `c7b5099229534b62`
 
 ## `public sealed class QSplitTabSweep`
 
-Runs the Smart Split detection for the selected file and applies the combined result to the sections.
+The class runs the Smart Split detection for the selected file and applies the combined result to the sections.
 It is a sibling of the split tab, which owns it.
 
 ## `private delegate Task QSplitSweepStep(IProgress<double> lProgress, CancellationToken lToken);`
@@ -14,6 +13,7 @@ Later inspector edits therefore cannot change a running sweep.
 ## `public event Action<bool>? QSplitBusyApplied;`
 
 Raised true when a sweep begins and false when it ends, whatever the outcome.
+The tab mirrors it into the gate's running state, and this class does not touch the sensor surface.
 
 ## `public event Action<double>? QSplitProgressApplied;`
 
@@ -28,34 +28,26 @@ It is raised for a detection fault or for sections that exceed the ceiling.
 
 True from the start until the cleanup, the same window in which a second start is refused.
 
-## `public IReadOnlyList<LDetectorKind> QSplitStepsRead()`
-
-Lists the enabled detector kinds in catalog order.
-The blank detector is enabled through its own section, not the sensor.
-
 ## `public void QSplitSweepCancel() => qSplitSweepSource?.Cancel();`
 
-Cancellation ends the sweep quietly and keeps the sections untouched.
+Cancellation ends the sweep quietly.
+The gate applies the combined result only after the scan returns, so a cancelled scan applies nothing.
+Test `SweepCancel_Idle_IsNoop` pins the idle case.
+Test `SweepButton_RunThenStop_RequestsOnceAndSynchronizesState` pins run then stop.
 
 ## `public async Task QSplitSweepStart()`
 
-Needs an unlocked selection, a loaded timeline and at least one enabled step.
+A start needs an unlocked selection, a loaded timeline and at least one enabled step.
+Tests `SweepStart_NoSelection_DoesNotRun`, `SweepStart_NoSpool_DoesNotRun` and `SweepStart_NothingEnabled_DoesNotRun` pin the refusals.
 Steps run one after another, and the combined result is applied only after all finish.
-Editing is locked and the sensor shows running until the cleanup restores both.
+The section gate turns editing off for the scan and restores it by the lock state afterward.
 Cancellation is silent, and an expected fault is traced and reported.
 
 ## `private IReadOnlyList<QSplitSweepStep> QSplitStepsCreate(`
 
-Builds one step per enabled detector and fills the shared excluded, kept and boundary lists.
+One step is built per enabled detector, and the shared excluded, kept and boundary lists are filled.
 Blank, silence and the still scan in the discard mode produce excluded spans.
 The still scan in the treat mode produces kept spans.
 Scene, luminance and volume produce cut boundaries.
 Only scene boundaries carry a minimum length.
-
-## `private bool QSplitLockedCheck() =>`
-
-Whether the current file is locked in the docket.
-
-## `private LDocketEntry? QSplitSelectedRead() =>`
-
-The current entry only if it exists and is unlocked.
+Test `StepsRead_EnabledKindsInCatalogOrder` pins the order.

@@ -59,7 +59,8 @@ public sealed class QLoudness
 
     // The combo shows each row's wording and selects the row the gate marked chosen.
     public QInspectorChoice QLoudnessChoiceRead(bool lDynamic) =>
-        QInspectorPlan.QInspectorChoiceBuild(qLoudnessGate.CLoudnessChoicesRead(lDynamic));
+        QInspectorPlan.QInspectorChoiceBuild(
+            CChoicePlan.CChoicePlanBuild(qLoudnessGate.CLoudnessChoicesRead(lDynamic)));
 
     public double QLoudnessDefaultRead(bool lDynamic, int lIndex) =>
         qLoudnessGate.CLoudnessDefaultRead(lDynamic, lIndex);
@@ -114,10 +115,9 @@ public sealed class QLoudness
             }
         }
 
-        IReadOnlyList<IReadOnlyList<CChoice>> lChoices = qLoudnessGate.CLoudnessChoices;
         for (int lList = 0; lList < lPresets.Count; lList++)
         {
-            QInspectorChoice lChoice = QInspectorPlan.QInspectorChoiceBuild(lChoices[lList]);
+            QInspectorChoice lChoice = QLoudnessChoiceRead(lList == 1);
             lPresets[lList].Items[lChoice.QInspectorChoiceCustom] = lChoice.QInspectorChoiceText;
             lPresets[lList].SelectedIndex = lChoice.QInspectorChoiceIndex;
         }

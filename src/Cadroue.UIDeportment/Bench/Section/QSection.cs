@@ -41,8 +41,6 @@ public sealed class QSection
 
     public static string QSectionHexRead(int lColorIndex) => LSectionPalette.LSectionColorRead(lColorIndex);
 
-    public static IReadOnlyList<string> QSectionPaletteRead(string lName) => LSectionPalette.LSectionColorsRead(lName);
-
     public static bool QSectionStepCheck(string lText) =>
         string.Equals(lText, QSectionStepText, StringComparison.Ordinal);
 

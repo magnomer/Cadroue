@@ -138,11 +138,15 @@ public sealed class TInspectorGate
         tInspectorGate.CInspectorFrame.CInspectorStepSet("Crop");
         tInspectorGate.CInspectorWhitebalance.CWhitebalanceCapableSet(true, true);
         tInspectorGate.CInspectorWhitebalance.CWhitebalanceToolSet(true, true);
+        tInspectorGate.CInspectorFrame.CInspectorToolSet(true);
+
+        Assert.False(tInspectorGate.CInspectorWhitebalance.CWhitebalanceArmed);
+        tInspectorGate.CInspectorFrame.CInspectorToolSet(false);
         tInspectorGate.CInspectorFrame.CInspectorMinimizedSet(true);
         tInspectorGate.CInspectorFrame.CInspectorMinimizedSet(true);
 
-        Assert.Equal(4, changes);
-        Assert.Equal(2, tools);
+        Assert.Equal(6, changes);
+        Assert.Equal(4, tools);
         Assert.True(tInspectorGate.CInspectorFrame.CInspectorMinimized);
         Assert.False(tInspectorGate.CInspectorFrame.CInspectorToolArmed);
     }

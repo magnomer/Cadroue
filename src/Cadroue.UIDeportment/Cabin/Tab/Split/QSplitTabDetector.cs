@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
@@ -23,11 +24,11 @@ public sealed class QSplitTabDetector
     // The detector kinds switched on, in detector order.
     public IReadOnlyList<LDetectorKind> QSplitStepsRead()
     {
-        QSensor lSensor = qSplitInspector.QInspectorSensor;
+        CDetector lDetector = qSplitInspector.QInspectorGate.CInspectorDetector;
         return LDetector.LDetectorKinds
             .Where(lKind => lKind == LDetectorKind.LDetectorKindBlank
                 ? qSplitInspector.QInspectorBlank.QBlankStep.LDetectorBlankEnabled
-                : lSensor.QSensorStepRead(lKind).LDetectorStepEnabled)
+                : lDetector.CDetectorStepRead(lKind).LDetectorStepEnabled)
             .ToArray();
     }
 
@@ -36,7 +37,7 @@ public sealed class QSplitTabDetector
         IReadOnlyList<LDetectorKind> lEnabled = QSplitStepsRead();
         foreach (LDetectorKind lKind in LDetector.LDetectorKinds)
         {
-            qSplitProcessing.QProcessingActiveSet(QSensorName.QSensorNameRead(lKind), lEnabled.Contains(lKind));
+            qSplitProcessing.QProcessingActiveSet(CDetectorPlan.CDetectorNameRead(lKind), lEnabled.Contains(lKind));
         }
     }
 
@@ -71,26 +72,26 @@ public sealed class QSplitTabDetector
 
     public LDetectorBundle QSplitStateRead()
     {
-        QSensor lSensor = qSplitInspector.QInspectorSensor;
+        CDetector lDetector = qSplitInspector.QInspectorGate.CInspectorDetector;
         IReadOnlyList<LDetectorStep> lSteps = LDetector.LDetectorKinds
             .Where(lKind => lKind != LDetectorKind.LDetectorKindBlank)
-            .Select(lSensor.QSensorStepRead)
+            .Select(lDetector.CDetectorStepRead)
             .ToArray();
         Dictionary<LDetectorKind, string> lPresets = lSteps.ToDictionary(
             lStep => lStep.LDetectorStepKind,
-            lStep => lSensor.QSensorPreset.QSensorTokenRead(lStep.LDetectorStepKind) ?? string.Empty);
+            lStep => lDetector.CDetectorPreset.CDetectorTokenRead(lStep.LDetectorStepKind) ?? string.Empty);
         return new LDetectorBundle(
             lSteps,
             qSplitInspector.QInspectorBlank.QBlankStep,
-            lSensor.QSensorMode,
-            lSensor.QSensorSpeed,
-            lSensor.QSensorMetric,
+            lDetector.CDetectorMode,
+            lDetector.CDetectorSpeed,
+            lDetector.CDetectorMetric,
             lPresets);
     }
 
     public void QSplitStateApply(LDetectorBundle lSet)
     {
-        QSensor lSensor = qSplitInspector.QInspectorSensor;
+        CDetector lDetector = qSplitInspector.QInspectorGate.CInspectorDetector;
         qSplitInspector.QInspectorSaveSuspend();
         try
         {
@@ -99,29 +100,29 @@ public sealed class QSplitTabDetector
                 qSplitInspector.QInspectorBlank.QBlankStepSet(lBlank);
             }
 
+            if (lSet.LDetectorSetMetric is { } lMetric)
+            {
+                lDetector.CDetectorMetricSet(lMetric);
+            }
+
             foreach (LDetectorStep lStep in lSet.LDetectorSetSteps)
             {
-                lSensor.QSensorStepSet(lStep);
+                lDetector.CDetectorStepSet(lStep);
             }
 
             if (lSet.LDetectorSetStill is { } lStill)
             {
-                lSensor.QSensorModeSet(lStill);
+                lDetector.CDetectorModeSet(lStill);
             }
 
             if (lSet.LDetectorSetLuminance is { } lLuminance)
             {
-                lSensor.QSensorSpeedSet(lLuminance);
-            }
-
-            if (lSet.LDetectorSetMetric is { } lMetric)
-            {
-                lSensor.QSensorMetricSet(lMetric);
+                lDetector.CDetectorSpeedSet(lLuminance);
             }
 
             foreach (KeyValuePair<LDetectorKind, string> lPreset in lSet.LDetectorSetPresets)
             {
-                lSensor.QSensorPreset.QSensorTokenSet(lPreset.Key, lPreset.Value);
+                lDetector.CDetectorPreset.CDetectorTokenSet(lPreset.Key, lPreset.Value);
             }
         }
         finally

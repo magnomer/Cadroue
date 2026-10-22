@@ -1,6 +1,9 @@
+using System;
+using System.Collections.Generic;
 using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
+using Cadroue.Tests.Interface;
 
 using Xunit;
 
@@ -27,13 +30,25 @@ public sealed class TInspectorPreset
         TInterface.TNoisePresetSelect(noise, "Strong");
 
         TInterface.TNoiseValueSet(noise, 0, 20);
+        CChoicePlan drifted = CChoicePlan.CChoicePlanBuild(noise.CNoiseChoices);
+        int strong = drifted.CChoiceRows.ToList().FindIndex(choice => choice.CChoiceToken == "Strong");
 
         Assert.Equal("Strong", TInterface.TNoiseTokenRead(noise));
         Assert.Null(TInterface.TNoiseMatchRead(noise));
+        Assert.Equal(drifted.CChoiceRows.Count - 1, drifted.CChoiceSelectedIndex);
+        Assert.Throws<NotSupportedException>(() =>
+            ((IList<CChoice>)drifted.CChoiceRows)[0] = drifted.CChoiceRows[0]);
+        List<CChoice> rows = drifted.CChoiceRows.ToList();
+        var direct = new CChoicePlan(rows, 0);
+        rows.Clear();
+        Assert.NotEmpty(direct.CChoiceRows);
+        Assert.False(typeof(CChoicePlan).GetProperty(nameof(CChoicePlan.CChoiceRows))!.CanWrite);
 
         TInterface.TNoiseValueSet(noise, 0, 24);
+        CChoicePlan matched = CChoicePlan.CChoicePlanBuild(noise.CNoiseChoices);
 
         Assert.Equal("Strong", TInterface.TNoiseMatchRead(noise));
+        Assert.Equal(strong, matched.CChoiceSelectedIndex);
     }
 
     [Fact]
@@ -240,5 +255,24 @@ public sealed class TInspectorPreset
         Assert.Equal(2, volume.LDetectorStepWindow);
         Assert.Equal(0.5, volume.LDetectorStepMinimum);
         Assert.Equal("Conservative", TInterface.TSensorMatchRead(sensor, LDetectorKind.LDetectorKindVolume));
+    }
+
+    [Fact]
+    public void SensorPresetFacade_AndDetectorPolicyShareTokenAndMatch()
+    {
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QSensor sensor = inspector.QInspectorSensor;
+        CDetector detector = inspector.QInspectorGate.CInspectorDetector;
+        const LDetectorKind kind = LDetectorKind.LDetectorKindScene;
+
+        detector.CDetectorPreset.CDetectorPresetSelect(kind, "Sensitive");
+
+        Assert.Equal("Sensitive", TInterface.TSensorTokenRead(sensor, kind));
+        Assert.Equal("Sensitive", TInterface.TSensorMatchRead(sensor, kind));
+
+        TInterface.TSensorThresholdSet(sensor, kind, sensor.QSensorStepRead(kind).LDetectorStepThreshold + 1);
+
+        Assert.Equal("Sensitive", detector.CDetectorPreset.CDetectorTokenRead(kind));
+        Assert.Null(detector.CDetectorPreset.CDetectorMatchRead(kind));
     }
 }

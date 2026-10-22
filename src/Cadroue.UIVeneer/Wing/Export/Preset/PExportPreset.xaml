@@ -1,0 +1,13 @@
+<ResourceDictionary x:Class="Cadroue.UIVeneer.PExportPreset"
+                    x:ClassModifier="internal"
+                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ControlTemplate x:Key="PExportPreset">
+        <ScrollViewer Background="White"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      FocusVisualStyle="{x:Null}">
+            <StackPanel />
+        </ScrollViewer>
+    </ControlTemplate>
+</ResourceDictionary>

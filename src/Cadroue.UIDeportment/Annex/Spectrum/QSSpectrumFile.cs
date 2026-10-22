@@ -1,18 +1,11 @@
+using Cadroue.Conduct;
 using Cadroue.Infrastructure;
 
 namespace Cadroue.UIDeportment;
 
-public enum QSSpectrumResult
-{
-    QSSpectrumResultLoaded,
-    QSSpectrumResultInvalid,
-    QSSpectrumResultReserved,
-    QSSpectrumResultFailed
-}
-
 // The palette folder's files: imports, saves, and hides or deletes a palette on disk; the selection stays with
 // the spectrum.
-public sealed class QSSpectrumFile
+public sealed class QSSpectrumFile : CSSpectrumPort
 {
     private readonly Func<string> qsSpectrumFolder;
 
@@ -23,43 +16,40 @@ public sealed class QSSpectrumFile
 
     public string QSSpectrumFolderRead() => qsSpectrumFolder();
 
-    public QSSpectrumResult QSSpectrumImport(string lSourcePath, out string lTargetPath)
+    public CSSpectrumImportResult CSSpectrumPortImport(
+        string lSourcePath, out string lTargetPath, out string? lLoadedName)
     {
-        lTargetPath = string.Empty;
-        if (LSectionPaletteStore.LSectionPaletteRead(lSourcePath) is not { } lFile)
+        LSectionImportResult lResult = LSectionPalette.LSectionPaletteImport(
+            qsSpectrumFolder, lSourcePath, out lTargetPath, out lLoadedName);
+        return lResult switch
         {
-            return QSSpectrumResult.QSSpectrumResultInvalid;
-        }
-
-        LSectionImportResult lResult = LSectionPaletteStore.LSectionPaletteImport(
-            qsSpectrumFolder(), lSourcePath, lFile.LSectionPaletteName, out lTargetPath);
-        return QSSpectrumResultResolve(lResult);
+            LSectionImportResult.LSectionImportInvalid => CSSpectrumImportResult.CSSpectrumImportInvalid,
+            LSectionImportResult.LSectionImportReserved => CSSpectrumImportResult.CSSpectrumImportReserved,
+            LSectionImportResult.LSectionImportFailed => CSSpectrumImportResult.CSSpectrumImportFailed,
+            _ => CSSpectrumImportResult.CSSpectrumImportLoaded
+        };
     }
 
-    private static QSSpectrumResult QSSpectrumResultResolve(LSectionImportResult lResult) => lResult switch
+    public CSSpectrumSnapshot CSSpectrumPortRead()
     {
-        LSectionImportResult.LSectionImportReserved => QSSpectrumResult.QSSpectrumResultReserved,
-        LSectionImportResult.LSectionImportFailed => QSSpectrumResult.QSSpectrumResultFailed,
-        _ => QSSpectrumResult.QSSpectrumResultLoaded
-    };
-
-    public bool QSSpectrumSave(string lTargetPath, string lName, string[] lColors) =>
-        LSectionPaletteStore.LSectionPaletteSave(lTargetPath, lName, lColors);
-
-    // A native palette is hidden in the folder's list; any other is deleted from its path. True when it is gone.
-    public bool QSSpectrumRemove(string lName, bool lNative, string? lPath)
-    {
-        if (lNative)
+        var lRows = new List<CSSpectrumRow>();
+        foreach (LSectionEntry lEntry in LSectionPalette.LSectionEntriesRead(qsSpectrumFolder()))
         {
-            string lFolder = qsSpectrumFolder();
-            string[] lHidden = QSSpectrumHiddenResolve(LSectionPaletteStore.LSectionHiddenLoad(lFolder), lName);
-            LSectionPaletteStore.LSectionHiddenSave(lFolder, lHidden);
-            return true;
+            lRows.Add(new CSSpectrumRow(
+                lEntry.LSectionEntryName,
+                lEntry.LSectionEntryColors,
+                lEntry.LSectionEntryPath is null,
+                lEntry.LSectionEntryPath));
         }
 
-        return lPath is not null && LSectionPaletteStore.LSectionPaletteDelete(lPath);
+        return new CSSpectrumSnapshot(lRows);
     }
 
-    private static string[] QSSpectrumHiddenResolve(IEnumerable<string> lHidden, string lName) =>
-        new HashSet<string>(lHidden, StringComparer.Ordinal) { lName }.ToArray();
+    public bool CSSpectrumPortRemove(string lName, bool lNative, string? lPath) =>
+        LSectionPaletteStore.LSectionPaletteRemove(
+            lNative ? qsSpectrumFolder() : null, lName, lNative, lPath);
+
+    public bool CSSpectrumPortSave(string lTargetPath, string lName) =>
+        LSectionPaletteStore.LSectionPaletteSave(
+            lTargetPath, lName, LSectionPalette.LSectionHexRead(lName));
 }

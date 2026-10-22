@@ -109,11 +109,4 @@ internal static class TInterfaceInspector
     internal static LWorkAudio TInspectorPersistentRead(QInspectorAudio audio) => audio.QInspectorPersistentRead();
     internal static void TInspectorAudioAttach(QInspectorAudio audio, Action handler) =>
         audio.QInspectorAudioChanged += handler;
-
-    internal static QInspectorChoice TInspectorChoiceRead(
-        IReadOnlyList<string> tokens, Func<string, string> keyRead, string? token, string? match) =>
-        QInspectorPlan.QInspectorChoiceRead(tokens, keyRead, token, match);
-    internal static string? TInspectorChoiceResolve(
-        IReadOnlyList<string> tokens, int index, string? token, string? match) =>
-        QInspectorPlan.QInspectorChoiceResolve(tokens, index, token, match);
 }

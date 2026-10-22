@@ -1,0 +1,71 @@
+<Border x:Class="Cadroue.UIVeneer.PExportSummary"
+        x:ClassModifier="internal"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        BorderBrush="Transparent"
+        BorderThickness="0"
+        Background="Transparent"
+        Padding="10,4,10,10">
+    <StackPanel>
+        <TextBlock FontSize="12"
+                   FontWeight="SemiBold"
+                   Foreground="#FF1D2A3D"
+                   Margin="0,0,0,6" />
+        <Grid Margin="0,0,0,3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="74" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Foreground="#FF626F83"
+                       FontSize="11"
+                       VerticalAlignment="Top" />
+            <TextBlock x:Name="PExportWrapper"
+                       Grid.Column="1"
+                       Foreground="#FF1D2A3D"
+                       FontSize="11"
+                       TextWrapping="Wrap" />
+        </Grid>
+        <Grid Margin="0,0,0,3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="74" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Foreground="#FF626F83"
+                       FontSize="11"
+                       VerticalAlignment="Top" />
+            <TextBlock x:Name="PExportPicture"
+                       Grid.Column="1"
+                       Foreground="#FF1D2A3D"
+                       FontSize="11"
+                       TextWrapping="Wrap" />
+        </Grid>
+        <Grid Margin="0,0,0,3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="74" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Foreground="#FF626F83"
+                       FontSize="11"
+                       VerticalAlignment="Top" />
+            <TextBlock x:Name="PExportSound"
+                       Grid.Column="1"
+                       Foreground="#FF1D2A3D"
+                       FontSize="11"
+                       TextWrapping="Wrap" />
+        </Grid>
+        <Grid Margin="0,0,0,3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="74" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Foreground="#FF626F83"
+                       FontSize="11"
+                       VerticalAlignment="Top" />
+            <TextBlock x:Name="PExportDestination"
+                       Grid.Column="1"
+                       Foreground="#FF1D2A3D"
+                       FontSize="11"
+                       TextWrapping="Wrap" />
+        </Grid>
+    </StackPanel>
+</Border>

@@ -46,16 +46,6 @@ public static class LSectionPalette
 
     public static int LSectionActiveCount => LSectionActiveRead().LSectionEntryColors.Length;
 
-    public static IReadOnlyList<string> LSectionNamesRead() =>
-        LSectionEntriesRead().Select(lEntry => lEntry.LSectionEntryName).ToArray();
-
-
-    public static bool LSectionNativeCheck(string lName) =>
-        lSectionNative.Any(lEntry => string.Equals(lEntry.LSectionEntryName, lName, StringComparison.Ordinal));
-
-    public static string? LSectionPathFind(string lName) =>
-        lSectionLoaded.FirstOrDefault(lEntry => lEntry.LSectionEntryName == lName)?.LSectionEntryPath;
-
     public static string? LSectionNameFind(string lPath) =>
         lSectionLoaded
             .FirstOrDefault(lEntry =>
@@ -65,18 +55,35 @@ public static class LSectionPalette
     public static string[] LSectionHexRead(string lName) =>
         LSectionEntryFind(lName)?.LSectionEntryColors.ToArray() ?? [];
 
+    public static LSectionImportResult LSectionPaletteImport(
+        Func<string> lFolder,
+        string lSourcePath,
+        out string lTargetPath,
+        out string? lLoadedName)
+    {
+        LSectionImportResult lResult =
+            LSectionPaletteStore.LSectionPaletteImport(lFolder, lSourcePath, out lTargetPath);
+        if (lResult == LSectionImportResult.LSectionImportCopied)
+        {
+            LSectionRegistryLoad(lFolder());
+        }
+
+        lLoadedName = lResult == LSectionImportResult.LSectionImportCopied
+            ? LSectionNameFind(lTargetPath)
+            : null;
+        return lResult;
+    }
+
     public static string LSectionColorRead(int lColorIndex)
     {
         string[] lColors = LSectionActiveRead().LSectionEntryColors;
         return lColors[((lColorIndex % lColors.Length) + lColors.Length) % lColors.Length];
     }
 
-    public static IReadOnlyList<string> LSectionColorsRead(string lName) =>
-        (LSectionEntryFind(lName) ?? lSectionNative[0]).LSectionEntryColors;
+    public static void LSectionRegistryLoad() => LSectionRegistryLoad(LDepot.LDepotPaletteRead());
 
-    public static void LSectionRegistryLoad()
+    public static void LSectionRegistryLoad(string lFolder)
     {
-        string lFolder = LDepot.LDepotPaletteRead();
         lSectionHidden.Clear();
         foreach (string lName in LSectionPaletteStore.LSectionHiddenLoad(lFolder))
         {
@@ -101,6 +108,12 @@ public static class LSectionPalette
             lSectionLoaded.Add(new LSectionEntry(
                 LSectionSpareResolve(lFile.LSectionPaletteName), lColors, lFile.LSectionPalettePath));
         }
+    }
+
+    public static IReadOnlyList<LSectionEntry> LSectionEntriesRead(string lFolder)
+    {
+        LSectionRegistryLoad(lFolder);
+        return LSectionEntriesRead().ToArray();
     }
 
     public static string? LSectionHexNormalize(string lHex)

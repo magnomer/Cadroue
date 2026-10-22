@@ -49,6 +49,17 @@ public sealed class QExposure
             QExposureMost,
             QExposureOrigin);
         qExposureStack.Children.Insert(0, qExposureField);
+        QExposureBody.Resources[typeof(QExposure)] = new List<(Action, Action)>
+        {
+            QTool.QToolSwitchAttach(qExposureActive, qExposureGate.CExposureActiveSet),
+            QTool.QToolSwitchAttach(QExposurePersistent, qExposureGate.CExposurePersistentSet),
+            QField.QFieldAttach(
+                qExposureField,
+                QExposureLeast,
+                QExposureMost,
+                () => qExposureGate.CExposureValue,
+                qExposureGate.CExposureValueSet),
+        };
 
         QExposureAttach();
         QExposureUpdate();
@@ -58,17 +69,24 @@ public sealed class QExposure
 
     public CheckBox QExposurePersistent { get; }
 
-    private void QExposureAttach()
+    public void QExposureAttach()
     {
-        QTool.QToolSwitchAttach(qExposureActive, qExposureGate.CExposureActiveSet);
-        QTool.QToolSwitchAttach(QExposurePersistent, qExposureGate.CExposurePersistentSet);
-        QField.QFieldAttach(
-            qExposureField,
-            QExposureLeast,
-            QExposureMost,
-            () => qExposureGate.CExposureValue,
-            qExposureGate.CExposureValueSet);
+        foreach ((Action lAttach, _) in (List<(Action, Action)>)QExposureBody.Resources[typeof(QExposure)])
+        {
+            lAttach();
+        }
+
+        qExposureGate.CExposureChanged -= QExposureUpdate;
         qExposureGate.CExposureChanged += QExposureUpdate;
+    }
+
+    public void QExposureDetach()
+    {
+        qExposureGate.CExposureChanged -= QExposureUpdate;
+        foreach ((_, Action lDetach) in (List<(Action, Action)>)QExposureBody.Resources[typeof(QExposure)])
+        {
+            lDetach();
+        }
     }
 
     private void QExposureUpdate()
@@ -77,11 +95,12 @@ public sealed class QExposure
         QTool.QToolSwitchUpdate(QExposurePersistent, qExposureGate.CExposurePersistent);
         QField.QFieldUpdate(qExposureField, qExposureGate.CExposureValue, QExposurePattern);
         QInspectorTip lTip = QInspectorTip.QInspectorTipResolve(
-            qExposureGate.CExposureActive,
-            qExposureGate.CExposureCapable,
-            qExposureGate.CExposurePreview,
-            "Inspector.Video.ExposureRequiresEq",
-            "Inspector.Video.ExposurePreviewMpv",
+            CInspectorTip.CInspectorTipResolve(
+                qExposureGate.CExposureActive,
+                qExposureGate.CExposureCapable,
+                qExposureGate.CExposurePreview,
+                "Inspector.Video.ExposureRequiresEq",
+                "Inspector.Video.ExposurePreviewMpv"),
             "Inspector.Video.ApplyExposure",
             "Inspector.Video.PersistExposure");
         QTool.QToolTipApply(qExposureActive, QExposurePersistent, qExposureStack, QExposureBody, lTip);

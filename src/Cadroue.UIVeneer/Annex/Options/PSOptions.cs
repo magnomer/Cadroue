@@ -29,6 +29,7 @@ internal sealed class PSOptions : Window
     private readonly PSOptionsDraft psOptionsDraft;
     private readonly PSOptionsSystem psOptionsSystem;
     private readonly PSGrabber psOptionsGrabber;
+    private readonly QSSpectrumDialog qsSpectrumDialog;
 
     internal static void PSOptionsShow(Window pOwner, QSOptions lsOptionsOwner, Action? pApplyCallback)
     {
@@ -40,8 +41,22 @@ internal sealed class PSOptions : Window
     {
         lsOptions = lsOptionsOwner;
         psOptionsCallback = pApplyCallback;
-        psOptionsDraft = new PSOptionsDraft(
-            lsOptions, new PSOptionsSpectrum(lsOptions.QSOptionsSpectrumCreate(), this));
+        QSSpectrum qsSpectrum = lsOptions.QSOptionsSpectrumCreate();
+        var psSpectrum = new PSSpectrum();
+        qsSpectrumDialog = new QSSpectrumDialog(
+            qsSpectrum,
+            psSpectrum,
+            pMessage => PSWarning.PSWarningShow(
+                this,
+                QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.LoadTitle"),
+                QLocalizationCatalog.QLocalizationTextRead(pMessage)),
+            pQuestion => PSAlert.PSAlertConfirm(
+                this,
+                QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.RemoveTitle"),
+                pQuestion,
+                QLocalizationCatalog.QLocalizationTextRead("Terms.Remove")));
+        qsSpectrumDialog.QSSpectrumDialogAttach();
+        psOptionsDraft = new PSOptionsDraft(lsOptions, qsSpectrum, psSpectrum);
         psOptionsSystem = new PSOptionsSystem(lsOptions, this);
 
         PSOptionsWindowApply(pOwner);
@@ -92,7 +107,8 @@ internal sealed class PSOptions : Window
             PSSheet.PSSheetBuild(
                 QLocalizationCatalog.QLocalizationTextRead("Options.Sheet.General"),
                 PSSheetGeneralIcon,
-                PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(psOptionsDraft.psOptionsGeneral.PSGeneralBuild()))),
+                PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(
+                    lsOptions.QSOptionsGeneral.QSGeneralAttach(new PSGeneral())))),
             PSSheet.PSSheetBuild(
                 QLocalizationCatalog.QLocalizationTextRead("Options.Sheet.System"),
                 PSSheetSystemIcon,
@@ -101,7 +117,20 @@ internal sealed class PSOptions : Window
                 QLocalizationCatalog.QLocalizationTextRead("Options.Sheet.Playback"),
                 PSSheetPlaybackIcon,
                 PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(psOptionsDraft.psOptionsPlayback.PSPlaybackBuild(
-                    new PSOptionsSystemFlyleaf(lsOptions, this), new PSOptionsSystemMpv(lsOptions, this))))),
+                    lsOptions.QSFlyleaf.QSFlyleafAttach(
+                        new PSFlyleaf(),
+                        new QSFlyleafAnswer(
+                            lsOptions,
+                            this,
+                            PSAnnouncement.PSAnnouncementShow,
+                            PSWarning.PSWarningShow)),
+                    lsOptions.QSMpv.QSMpvAttach(
+                        new PSMpv(),
+                        new QSMpvAnswer(
+                            lsOptions,
+                            this,
+                            PSAnnouncement.PSAnnouncementShow,
+                            PSWarning.PSWarningShow)))))),
             PSSheet.PSSheetBuild(
                 QLocalizationCatalog.QLocalizationTextRead("Options.Sheet.Timeline"),
                 PSSheetTimelineIcon,
@@ -156,10 +185,10 @@ internal sealed class PSOptions : Window
 
     private void PSOptionsApply()
     {
-        psOptionsDraft.PSOptionsDraftUpdate(psOptionsSystem, this);
+        psOptionsDraft.PSOptionsDraftUpdate(psOptionsSystem);
         bool psOptionsSaved = lsOptions.QSOptionsApply();
         psOptionsCallback?.Invoke();
-        psOptionsSystem.PSSystemAppliedUpdate();
+        psOptionsSystem.PSSystemAppliedUpdate(lsOptions);
         if (!psOptionsSaved)
         {
             PSWarning.PSWarningShow(
@@ -180,6 +209,13 @@ internal sealed class PSOptions : Window
 
     private void PSOptionsCloseHandle(object? sender, EventArgs e)
     {
+        qsSpectrumDialog.QSSpectrumDialogDetach();
+        lsOptions.QSWorkspace.QSWorkspaceDetach();
+        psOptionsDraft.PSOptionsDraftDetach();
+        lsOptions.QSOptionsGeneral.QSGeneralDetach();
+        lsOptions.QSRenderer.QSRendererDetach();
+        lsOptions.QSFlyleaf.QSFlyleafDetach();
+        lsOptions.QSMpv.QSMpvDetach();
         PSGrabberPlacement.PSGrabberPlacementSave(this, PSOptionsPlacementKey);
         psOptionsGrabber.PSGrabberDetach();
         PSOptionsWindowDetach();

@@ -53,9 +53,11 @@ public sealed class TSectionPalettePersistence : IDisposable
     {
         Assert.Empty(TInterface.TSectionHiddenLoad(tSectionFolder));
 
-        Assert.True(TInterface.TSectionHiddenSave(tSectionFolder, ["Muted", "Vivid"]));
+        Assert.True(TInterface.TSectionHiddenSave(tSectionFolder, ["Vivid"]));
+        Assert.True(TInterface.TSectionPaletteRemove(tSectionFolder, "Muted", true, null));
+        Assert.True(TInterface.TSectionPaletteRemove(tSectionFolder, "Muted", true, null));
 
-        Assert.Equal(["Muted", "Vivid"], TInterface.TSectionHiddenLoad(tSectionFolder));
+        Assert.Equal(["Vivid", "Muted"], TInterface.TSectionHiddenLoad(tSectionFolder));
         Assert.Empty(TInterface.TSectionPaletteLoad(tSectionFolder));
     }
 
@@ -68,9 +70,9 @@ public sealed class TSectionPalettePersistence : IDisposable
         try
         {
             LSectionImportResult first =
-                TInterface.TSectionPaletteImport(tSectionFolder, source, "Cool", out string firstPath);
+                TInterface.TSectionPaletteImport(tSectionFolder, source, out string firstPath);
             LSectionImportResult second =
-                TInterface.TSectionPaletteImport(tSectionFolder, source, "Cool", out string secondPath);
+                TInterface.TSectionPaletteImport(tSectionFolder, source, out string secondPath);
 
             Assert.Equal(LSectionImportResult.LSectionImportCopied, first);
             Assert.Equal(LSectionImportResult.LSectionImportCopied, second);
@@ -89,16 +91,28 @@ public sealed class TSectionPalettePersistence : IDisposable
     public void Import_ReservedNameIsRefusedAndInsideFolderIsNotCopied()
     {
         string inside = Path.Combine(tSectionFolder, "Inside.json");
+        string invalid = Path.Combine(tSectionFolder, "Invalid.json");
+        string blocked = Path.Combine(tSectionFolder, "blocked");
         File.WriteAllText(inside, "{\"Name\":\"Inside\",\"Colors\":[\"#0000FF\"]}");
+        File.WriteAllText(invalid, "{ invalid");
+        File.WriteAllText(blocked, "occupied");
 
         LSectionImportResult reserved = TInterface.TSectionPaletteImport(tSectionFolder, inside, ".hidden", out _);
+        LSectionImportResult refused =
+            TInterface.TSectionPaletteImport(tSectionFolder, invalid, out string refusedPath);
         LSectionImportResult kept =
-            TInterface.TSectionPaletteImport(tSectionFolder, inside, "Inside", out string keptPath);
+            TInterface.TSectionPaletteImport(tSectionFolder, inside, out string keptPath);
+        LSectionImportResult failed =
+            TInterface.TSectionPaletteImport(blocked, inside, out string failedPath);
 
         Assert.Equal(LSectionImportResult.LSectionImportReserved, reserved);
+        Assert.Equal(LSectionImportResult.LSectionImportInvalid, refused);
+        Assert.Equal(string.Empty, refusedPath);
         Assert.Equal(LSectionImportResult.LSectionImportCopied, kept);
         Assert.Equal(inside, keptPath);
-        Assert.Single(Directory.GetFiles(tSectionFolder));
+        Assert.Equal(LSectionImportResult.LSectionImportFailed, failed);
+        Assert.Equal(Path.Combine(blocked, "Inside.json"), failedPath);
+        Assert.Equal(3, Directory.GetFiles(tSectionFolder).Length);
     }
 
     [Fact]
@@ -107,8 +121,9 @@ public sealed class TSectionPalettePersistence : IDisposable
         string path = Path.Combine(tSectionFolder, "Gone.json");
         File.WriteAllText(path, "{\"Name\":\"Gone\",\"Colors\":[\"#000000\"]}");
 
-        Assert.True(TInterface.TSectionPaletteDelete(path));
+        Assert.True(TInterface.TSectionPaletteRemove(null, "Gone", false, path));
         Assert.False(File.Exists(path));
         Assert.Null(TInterface.TSectionPaletteRead(path));
+        Assert.False(TInterface.TSectionPaletteRemove(null, "Gone", false, null));
     }
 }

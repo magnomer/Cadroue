@@ -1,0 +1,45 @@
+<UserControl x:Class="Cadroue.UIVeneer.PSRenderer"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel Margin="0,0,0,18">
+        <TextBlock Foreground="#1D2A3D"
+                   FontWeight="SemiBold"
+                   Margin="0,0,0,10" />
+        <Grid MinHeight="32"
+              Margin="0,0,0,9">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="130" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Foreground="#626F83"
+                       VerticalAlignment="Center" />
+            <StackPanel Grid.Column="1"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Left">
+                <TextBox x:Name="PSRendererPath"
+                         Width="320"
+                         Height="32"
+                         HorizontalAlignment="Left" />
+                <Button x:Name="PSRendererFinder"
+                        Width="40"
+                        Height="32"
+                        Padding="0"
+                        Margin="8,0,0,0" />
+                <Button x:Name="PSRendererOpener"
+                        Width="40"
+                        Height="32"
+                        Padding="0"
+                        Margin="6,0,0,0" />
+                <Button x:Name="PSRendererExaminer"
+                        Width="40"
+                        Height="32"
+                        Padding="0"
+                        Margin="6,0,0,0" />
+            </StackPanel>
+        </Grid>
+        <TextBlock x:Name="PSRendererStatus"
+                   Foreground="#626F83"
+                   TextWrapping="Wrap"
+                   Margin="130,-7,0,9" />
+    </StackPanel>
+</UserControl>

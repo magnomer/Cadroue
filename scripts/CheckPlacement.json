@@ -1,0 +1,36 @@
+{
+  "generation": 1,
+  "project": "Cadroue",
+  "source": {
+    "path": "Cadroue.comment.md",
+    "hash": "c6f2e2b02624dc302e11c414029fadcb8d408fc0508e5400b242440e4dcd00b4"
+  },
+  "layers": [
+    { "id": "Veneer", "role": "surface", "path": "src/Cadroue.UIVeneer", "exists": true, "tests": [] },
+    { "id": "Deportment", "role": "driver", "path": "src/Cadroue.UIDeportment", "exists": true, "tests": ["tests/Cadroue.Tests.Windows"] },
+    { "id": "Deportment.Capsule", "role": "capsule", "path": "src/Cadroue.UIDeportment.Capsule", "exists": true, "tests": ["tests/Cadroue.Tests.Windows"] },
+    { "id": "Conduct", "role": "conduct", "path": "src/Cadroue.Conduct", "exists": true, "tests": ["tests/Cadroue.Tests.Conduct", "tests/Cadroue.Tests.Interface"] },
+    { "id": "ShellEngine", "role": "connection", "path": "src/Cadroue.ShellEngine", "exists": true, "tests": ["tests/Cadroue.Tests.Engine", "tests/Cadroue.Tests.Interface"] },
+    { "id": "Application", "role": "workflow", "path": "src/Cadroue.Application", "exists": true, "tests": ["tests/Cadroue.Tests.Engine"] },
+    { "id": "Core", "role": "model", "path": "src/Cadroue.Core", "exists": true, "tests": ["tests/Cadroue.Tests.Engine"] },
+    { "id": "Infrastructure", "role": "adapter", "path": "src/Cadroue.Infrastructure", "exists": true, "tests": ["tests/Cadroue.Tests.Engine", "tests/Cadroue.Tests.Interface"] },
+    { "id": "Host", "role": "wiring", "path": "src/Cadroue.Host", "exists": true, "tests": [] }
+  ],
+  "names": [
+    { "from": "Veneer", "to": "Deportment" },
+    { "from": "Deportment", "to": "Conduct" },
+    { "from": "Deportment", "to": "Deportment.Capsule" },
+    { "from": "Conduct", "to": "ShellEngine" },
+    { "from": "ShellEngine", "to": "Application" },
+    { "from": "Application", "to": "Core" },
+    { "from": "Infrastructure", "to": "Core" }
+  ],
+  "twins": [
+    { "owner": "Core", "twin": "Core.Windows", "path": "src/Cadroue.Core.Windows", "exists": false, "tests": [] }
+  ],
+  "outside": ["src/Cadroue.Media", "src/Cadroue.UIShell", "src/Cadroue.UIDemeanor", "src/Cadroue.UITerminal"],
+  "locales": [
+    "localization/en.json",
+    "localization/ko.json"
+  ]
+}

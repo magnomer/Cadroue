@@ -13,6 +13,7 @@ using Xunit;
 
 namespace Cadroue.Tests.Windows;
 
+[Collection(nameof(TProgramCollection))]
 public sealed class TLookSheet
 {
     private static readonly XNamespace TLookSheetMarkup = "http://schemas.microsoft.com/winfx/2006/xaml";

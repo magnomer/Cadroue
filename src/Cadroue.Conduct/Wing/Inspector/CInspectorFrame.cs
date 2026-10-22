@@ -31,7 +31,7 @@ public sealed class CInspectorFrame
         {
             ["Blank"] = "Inspector.Step.Blank",
             ["Scene"] = "Inspector.Step.Scene",
-            ["Still"] = "Inspector.Step.Still",
+            ["Still Image"] = "Inspector.Step.Still",
             ["Luminance"] = "Inspector.Step.Luminance",
             ["Silence"] = "Inspector.Step.Silence",
             ["Volume"] = "Inspector.Step.Volume"
@@ -104,6 +104,11 @@ public sealed class CInspectorFrame
 
     public void CInspectorToolSet(bool armed)
     {
+        if (armed)
+        {
+            _cInspector.CInspectorWhitebalance.CWhitebalanceToolCancel();
+        }
+
         if (_cInspectorToolArmed == armed)
         {
             return;

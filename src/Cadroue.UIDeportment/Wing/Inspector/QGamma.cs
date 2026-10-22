@@ -48,20 +48,23 @@ public sealed class QGamma
         qGammaStack = QContract.QContractFind<StackPanel>(QGammaBody, QGammaStackPart);
 
         QGammaSwitchBuild();
-        QTool.QToolSwitchAttach(qGammaActive, qGammaGate.CGammaActiveSet);
-        QTool.QToolSwitchAttach(QGammaPersistent, qGammaGate.CGammaPersistentSet);
         qGammaSlots.ForEach(QGammaFieldBuild);
-        QGammaMidtoneAttach();
-        QGammaRedAttach();
-        QGammaGreenAttach();
-        QGammaBlueAttach();
-        QGammaHighlightAttach();
 
         Button lDefault = QGammaDefaultBuild();
-        QGammaDefaultAttach(lDefault);
         QButton.QButtonAttach(lDefault, QButtonLook.QButtonLookPanel);
+        QGammaBody.Resources[typeof(QGamma)] = new List<(Action, Action)>
+        {
+            QTool.QToolSwitchAttach(qGammaActive, qGammaGate.CGammaActiveSet),
+            QTool.QToolSwitchAttach(QGammaPersistent, qGammaGate.CGammaPersistentSet),
+            QGammaMidtoneAttach(),
+            QGammaRedAttach(),
+            QGammaGreenAttach(),
+            QGammaBlueAttach(),
+            QGammaHighlightAttach(),
+            QGammaDefaultAttach(lDefault),
+        };
 
-        QGammaGateAttach();
+        QGammaAttach();
         QGammaUpdate();
     }
 
@@ -85,9 +88,18 @@ public sealed class QGamma
         return lDefault;
     }
 
-    private void QGammaDefaultAttach(Button lDefault) => lDefault.Click += (_, _) => qGammaGate.CGammaReset();
-
-    private void QGammaGateAttach() => qGammaGate.CGammaChanged += QGammaUpdate;
+    private (Action, Action) QGammaDefaultAttach(Button lDefault)
+    {
+        System.Windows.RoutedEventHandler lHandler = (_, _) => qGammaGate.CGammaReset();
+        Action lAttach = () =>
+        {
+            lDefault.Click -= lHandler;
+            lDefault.Click += lHandler;
+        };
+        Action lDetach = () => lDefault.Click -= lHandler;
+        lAttach();
+        return (lAttach, lDetach);
+    }
 
     private void QGammaFieldBuild(int lSlot)
     {
@@ -95,27 +107,27 @@ public sealed class QGamma
         qGammaStack.Children.Insert(lSlot, qGammaFields[lSlot]);
     }
 
-    private void QGammaMidtoneAttach() =>
+    private (Action, Action) QGammaMidtoneAttach() =>
         QField.QFieldAttach(
             qGammaFields[0], qGammaGate.CGammaLeasts[0], QGammaMost,
             () => qGammaGate.CGammaValues[0], qGammaGate.CGammaMidtoneSet);
 
-    private void QGammaRedAttach() =>
+    private (Action, Action) QGammaRedAttach() =>
         QField.QFieldAttach(
             qGammaFields[1], qGammaGate.CGammaLeasts[1], QGammaMost,
             () => qGammaGate.CGammaValues[1], qGammaGate.CGammaRedSet);
 
-    private void QGammaGreenAttach() =>
+    private (Action, Action) QGammaGreenAttach() =>
         QField.QFieldAttach(
             qGammaFields[2], qGammaGate.CGammaLeasts[2], QGammaMost,
             () => qGammaGate.CGammaValues[2], qGammaGate.CGammaGreenSet);
 
-    private void QGammaBlueAttach() =>
+    private (Action, Action) QGammaBlueAttach() =>
         QField.QFieldAttach(
             qGammaFields[3], qGammaGate.CGammaLeasts[3], QGammaMost,
             () => qGammaGate.CGammaValues[3], qGammaGate.CGammaBlueSet);
 
-    private void QGammaHighlightAttach() =>
+    private (Action, Action) QGammaHighlightAttach() =>
         QField.QFieldAttach(
             qGammaFields[4], qGammaGate.CGammaLeasts[4], QGammaMost,
             () => qGammaGate.CGammaValues[4], qGammaGate.CGammaHighlightSet);
@@ -131,17 +143,38 @@ public sealed class QGamma
     private void QGammaFieldUpdate(int lSlot) =>
         QField.QFieldUpdate(qGammaFields[lSlot], qGammaGate.CGammaValues[lSlot], QGammaPattern);
 
+    public void QGammaAttach()
+    {
+        foreach ((Action lAttach, _) in (List<(Action, Action)>)QGammaBody.Resources[typeof(QGamma)])
+        {
+            lAttach();
+        }
+
+        qGammaGate.CGammaChanged -= QGammaUpdate;
+        qGammaGate.CGammaChanged += QGammaUpdate;
+    }
+
+    public void QGammaDetach()
+    {
+        qGammaGate.CGammaChanged -= QGammaUpdate;
+        foreach ((_, Action lDetach) in (List<(Action, Action)>)QGammaBody.Resources[typeof(QGamma)])
+        {
+            lDetach();
+        }
+    }
+
     private void QGammaUpdate()
     {
         QTool.QToolSwitchUpdate(qGammaActive, qGammaGate.CGammaActive);
         QTool.QToolSwitchUpdate(QGammaPersistent, qGammaGate.CGammaPersistent);
         qGammaSlots.ForEach(QGammaFieldUpdate);
         QInspectorTip lTip = QInspectorTip.QInspectorTipResolve(
-            qGammaGate.CGammaActive,
-            qGammaGate.CGammaCapable,
-            qGammaGate.CGammaPreview,
-            "Inspector.Video.GammaRequiresEq",
-            "Inspector.Video.GammaPreviewMpv",
+            CInspectorTip.CInspectorTipResolve(
+                qGammaGate.CGammaActive,
+                qGammaGate.CGammaCapable,
+                qGammaGate.CGammaPreview,
+                "Inspector.Video.GammaRequiresEq",
+                "Inspector.Video.GammaPreviewMpv"),
             "Inspector.Video.ApplyGamma",
             "Inspector.Video.PersistGamma");
         QTool.QToolTipApply(qGammaActive, QGammaPersistent, qGammaStack, QGammaBody, lTip);

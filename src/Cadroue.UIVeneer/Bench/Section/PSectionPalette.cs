@@ -14,11 +14,6 @@ internal static class PSectionPalette
     internal static Brush PSectionBadgeRead(int pColorIndex) =>
         PSectionBrushBuild(QSection.QSectionHexRead(pColorIndex), PSectionBadgeAlpha);
 
-    internal static IReadOnlyList<Brush> PSectionBadgesRead(string pName) =>
-        QSection.QSectionPaletteRead(pName).Select(PSectionBadgeBuild).ToList();
-
-    private static Brush PSectionBadgeBuild(string pHex) => PSectionBrushBuild(pHex, PSectionBadgeAlpha);
-
     private static Brush PSectionBrushBuild(string pHex, byte pAlpha)
     {
         var pColor = (Color)ColorConverter.ConvertFromString(pHex);

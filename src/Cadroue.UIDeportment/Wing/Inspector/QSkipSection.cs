@@ -23,15 +23,37 @@ public sealed class QSkipSection
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Skip.PersistentTooltip");
         lNote.Text = QLocalizationCatalog.QLocalizationTextRead("Inspector.Skip.Note");
 
-        QTool.QToolSwitchAttach(qSkipSectionActive, qSkip.QSkipActiveSet);
-        QTool.QToolSwitchAttach(QSkipSectionPersistent, qSkip.QSkipPersistentSet);
+        QSkipSectionBody.Resources[typeof(QSkipSection)] = new List<(Action, Action)>
+        {
+            QTool.QToolSwitchAttach(qSkipSectionActive, qSkip.QSkipActiveSet),
+            QTool.QToolSwitchAttach(QSkipSectionPersistent, qSkip.QSkipPersistentSet),
+        };
+        QSkipSectionAttach();
     }
 
     public StackPanel QSkipSectionBody { get; }
 
     public CheckBox QSkipSectionPersistent { get; }
 
-    public void QSkipSectionAttach() => qSkip.QSkipChanged += QSkipSectionUpdate;
+    public void QSkipSectionAttach()
+    {
+        foreach ((Action lAttach, _) in (List<(Action, Action)>)QSkipSectionBody.Resources[typeof(QSkipSection)])
+        {
+            lAttach();
+        }
+
+        qSkip.QSkipChanged -= QSkipSectionUpdate;
+        qSkip.QSkipChanged += QSkipSectionUpdate;
+    }
+
+    public void QSkipSectionDetach()
+    {
+        qSkip.QSkipChanged -= QSkipSectionUpdate;
+        foreach ((_, Action lDetach) in (List<(Action, Action)>)QSkipSectionBody.Resources[typeof(QSkipSection)])
+        {
+            lDetach();
+        }
+    }
 
     public void QSkipSectionUpdate()
     {

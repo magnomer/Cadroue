@@ -6,6 +6,7 @@ namespace Cadroue.Infrastructure;
 public enum LSectionImportResult
 {
     LSectionImportCopied,
+    LSectionImportInvalid,
     LSectionImportReserved,
     LSectionImportFailed
 }
@@ -85,6 +86,21 @@ public static class LSectionPaletteStore
     }
 
     public static LSectionImportResult LSectionPaletteImport(
+        Func<string> lSectionFolder,
+        string lSectionSourcePath,
+        out string lSectionTargetPath)
+    {
+        lSectionTargetPath = string.Empty;
+        if (LSectionPaletteRead(lSectionSourcePath) is not { } lSectionPalette)
+        {
+            return LSectionImportResult.LSectionImportInvalid;
+        }
+
+        return LSectionPaletteImport(
+            lSectionFolder(), lSectionSourcePath, lSectionPalette.LSectionPaletteName, out lSectionTargetPath);
+    }
+
+    public static LSectionImportResult LSectionPaletteImport(
         string lSectionFolder,
         string lSectionSourcePath,
         string lSectionName,
@@ -143,6 +159,26 @@ public static class LSectionPaletteStore
 
     public static bool LSectionHiddenSave(string lSectionFolder, IReadOnlyList<string> lSectionHidden) =>
         LVault.LVaultSave(Path.Combine(lSectionFolder, LSectionHiddenFile), lSectionHidden.ToArray());
+
+    public static bool LSectionPaletteRemove(
+        string? lSectionFolder,
+        string lSectionName,
+        bool lSectionNative,
+        string? lSectionPath)
+    {
+        if (lSectionNative)
+        {
+            string[] lSectionHidden =
+                new HashSet<string>(LSectionHiddenLoad(lSectionFolder!), StringComparer.Ordinal)
+                {
+                    lSectionName
+                }.ToArray();
+            LSectionHiddenSave(lSectionFolder!, lSectionHidden);
+            return true;
+        }
+
+        return lSectionPath is not null && LSectionPaletteDelete(lSectionPath);
+    }
 
     private static IEnumerable<string> LSectionFilesRead(string lSectionFolder)
     {

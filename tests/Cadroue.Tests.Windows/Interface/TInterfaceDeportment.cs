@@ -79,8 +79,8 @@ internal static partial class TInterface
 
     internal static QBlank TBlankCreate() => new();
     internal static void TBlankStepSet(QBlank blank, LDetectorBlank step) => blank.QBlankStepSet(step);
-    internal static void TBlankTypeSet(QBlank blank, LDetectorType type) => blank.QBlankTypeSet(type);
-    internal static void TBlankWheelSet(QBlank blank, double x, double y) => blank.QBlankWheelSet(x, y);
+    internal static void TBlankTypeSet(QBlank blank, LDetectorType type) =>
+        blank.QBlankStepSet(blank.QBlankStep with { LDetectorBlankType = type });
     internal static void TBlankSampleSet(QBlank blank, int red, int green, int blue) =>
         blank.QBlankSampleSet(red, green, blue);
     internal static bool TBlankPresentRead(QBlank blank) => blank.QBlankWheelPresent;
@@ -149,18 +149,18 @@ internal static partial class TInterface
     internal static IReadOnlyList<string> TDetectorTokensRead(LDetectorKind kind) =>
         LDetectorCatalog.LDetectorTokensRead(kind);
     internal static void TSensorPresetSelect(QSensor sensor, LDetectorKind kind, string token) =>
-        sensor.QSensorPreset.QSensorPresetSelect(kind, token);
+        sensor.CDetector.CDetectorPreset.CDetectorPresetSelect(kind, token);
     internal static void TSensorTokenSet(QSensor sensor, LDetectorKind kind, string token) =>
-        sensor.QSensorPreset.QSensorTokenSet(kind, token);
-    internal static void TSensorStepSet(QSensor sensor, LDetectorStep step) => sensor.QSensorStepSet(step);
+        sensor.CDetector.CDetectorPreset.CDetectorTokenSet(kind, token);
+    internal static void TSensorStepSet(QSensor sensor, LDetectorStep step) => sensor.CDetector.CDetectorStepSet(step);
     internal static void TSensorThresholdSet(QSensor sensor, LDetectorKind kind, double threshold) =>
-        sensor.QSensorThresholdSet(kind, threshold);
+        sensor.CDetector.CDetectorThresholdSet(kind, threshold);
     internal static void TSensorMetricSet(QSensor sensor, LDetectorMetricMode metric) =>
-        sensor.QSensorMetricSet(metric);
+        sensor.CDetector.CDetectorMetricSet(metric);
     internal static string? TSensorTokenRead(QSensor sensor, LDetectorKind kind) =>
-        sensor.QSensorPreset.QSensorTokenRead(kind);
+        sensor.CDetector.CDetectorPreset.CDetectorTokenRead(kind);
     internal static string? TSensorMatchRead(QSensor sensor, LDetectorKind kind) =>
-        sensor.QSensorPreset.QSensorMatchRead(kind);
+        sensor.CDetector.CDetectorPreset.CDetectorMatchRead(kind);
     internal static LDetectorStep TSensorStepRead(QSensor sensor, LDetectorKind kind) => sensor.QSensorStepRead(kind);
 
     internal static CLoudness TLoudnessCreate() => TAtelierCreate().CAtelierInspectorCreate().CInspectorLoudness;
@@ -245,7 +245,6 @@ internal static partial class TInterface
         loupe.QSLoupeFloatChoice.QSLoupeFloatChanged += handler;
     internal static void TLoupeEngineAttach(QSLoupe loupe, Action handler) => loupe.QSLoupeEngineCreated += handler;
     internal static void TLoupeCloseAttach(QSLoupe loupe, Action handler) => loupe.QSLoupeCloseApplied += handler;
-
     internal static QGroup TGroupCreate(LGroupSelection selection) => new(TAtelierCreate().CAtelierUsher, selection);
     internal static void TGroupAttach(QGroup group, Action handler) => group.QGroupChanged += handler;
     internal static bool TGroupAdd(QGroup group, IReadOnlyList<string> paths, string name) =>
@@ -289,7 +288,6 @@ internal static partial class TInterface
     internal static void TGroupDragClear(QGroup group) => group.QGroupDrag.QGroupDragClear();
     internal static int TGroupInsertResolve(double y, IReadOnlyList<double> tops, IReadOnlyList<double> heights) =>
         QGroupDrag.QGroupInsertResolve(y, tops, heights);
-
     internal static LPresetSelection TPresetSelectionCreate(string name) => new(name, string.Empty);
     internal static QExport TExportCreate(LPresetSelection selection, string key)
     {
@@ -300,15 +298,21 @@ internal static partial class TInterface
     internal static void TExportOwnerAttach(QExport export) => export.QExportAttach();
     internal static void TExportSelect(QExport export, string name) => export.QExportSelect(name);
     internal static void TExportEditStart(QExport export, string name) => export.QExportEditStart(name);
-    internal static void TExportEditCancel(QExport export) => export.QExportEditCancel();
+    internal static void TExportEditCancel(QExport export) => export.QExportName.QExportNameCancel();
     internal static bool TExportNameCommit(QExport export, string oldName, string newName) =>
-        export.QExportNameCommit(oldName, newName);
+        export.QExportName.QExportNameCommit(oldName, newName);
+    internal static void TExportPresetAdd(QExport export, string name, Action<string> failure) =>
+        export.QExportFailureRaise(() => name, failure);
+    internal static void TExportPresetDelete(QExport export, Action<string> failure) =>
+        export.QExportFailureRaise(failure);
+    internal static void TExportModificationApply(QExport export, Action<string> failure) =>
+        export.QExportFailureRaise(export.QExportSelected ?? string.Empty, failure);
+    internal static void TExportModificationRestore(QExport export) => export.QExportFailureRaise();
     internal static void TExportDragStart(QExport export, string name) =>
         export.QExportDrag.QExportDragStart(name, 0, 0);
     internal static bool TExportDragMove(QExport export) => export.QExportDrag.QExportDragMove();
     internal static bool TExportDragClear(QExport export) => export.QExportDrag.QExportDragClear();
     internal static void TExportSync(QExport export) => export.QExportSync();
-
     internal static QStrip TStripCreate(Func<string, string> title, Func<string, int, string> number) =>
         new(TAtelierCreate(), title, number);
     internal static QStripTab TStripTabCreate(string key) => new(key, TAtelierCreate());

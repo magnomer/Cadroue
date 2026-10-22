@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
@@ -10,16 +9,6 @@ internal static class PSCombo
 {
     internal static ComboBox PSComboBuild(int pIndex, Action<int> pChoice, params string[] pItems) =>
         PSComboShapeBuild(pItems, pItems.ElementAtOrDefault(pIndex), pChoice);
-
-    internal static ComboBox PSComboBuild(string pSelected, params LLocalizationChoice[] pItems) =>
-        PSComboShapeBuild(
-            pItems,
-            pItems.Where(pItem => string.Equals(pItem.LLocalizationChoiceToken, pSelected, StringComparison.Ordinal))
-                .Concat(pItems).FirstOrDefault(),
-            PSComboIdleHandle);
-
-    internal static string PSComboTextRead(System.Windows.Controls.Primitives.Selector pCombo) =>
-        LLocalizationChoice.LLocalizationChoiceRead(pCombo.SelectedItem);
 
     private static ComboBox PSComboShapeBuild(IEnumerable pItems, object? pSelected, Action<int> pChoice)
     {
@@ -44,8 +33,4 @@ internal static class PSCombo
 
     private static void PSComboChoiceAttach(ComboBox pCombo, Action<int> pChoice) =>
         pCombo.SelectionChanged += (_, _) => pChoice(pCombo.SelectedIndex);
-
-    private static void PSComboIdleHandle(int pIndex)
-    {
-    }
 }

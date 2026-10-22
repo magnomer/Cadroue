@@ -54,11 +54,10 @@ public sealed class QWhitebalance
         Button lReset = QContract.QContractFind<Button>(QWhitebalanceBody, QWhitebalanceResetButton);
         lReset.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceReset");
         lReset.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceResetTooltip");
-        QWhitebalanceAttach(lReset, qWhitebalanceGate.CWhitebalanceReset);
         QButton.QButtonAttach(lReset, QButtonLook.QButtonLookPanel);
 
         var lSetup = qWhitebalanceGate.CWhitebalanceSetupRead();
-        QWhitebalanceMethodBuild(
+        (Action, Action) lMethod = QWhitebalanceMethodBuild(
             lSetup.CWhitebalanceMethodKeys,
             lSetup.CWhitebalanceMethodIndex,
             qWhitebalanceGate.CWhitebalanceMethodSelect);
@@ -67,13 +66,19 @@ public sealed class QWhitebalance
             lSetup.CWhitebalanceSaturationMost,
             lSetup.CWhitebalanceSaturationOrigin);
         QCheckbox.QCheckboxAttach(qWhitebalanceSwitch);
-        QWhitebalanceActiveAttach(qWhitebalanceGate.CWhitebalanceActiveSet);
         QCheckbox.QCheckboxAttach(QWhitebalancePersistent);
-        QWhitebalancePersistentAttach(qWhitebalanceGate.CWhitebalancePersistentSet);
-        qWhitebalanceGate.CWhitebalanceChanged += QWhitebalanceStateUpdate;
-        QWhitebalanceStateUpdate();
+        QWhitebalanceBody.Resources[typeof(QWhitebalance)] = new List<(Action, Action)>
+        {
+            QWhitebalanceAttach(lReset, qWhitebalanceGate.CWhitebalanceReset),
+            lMethod,
+            (ValueTuple<Action, Action>)qWhitebalanceField.Resources[typeof(QWhitebalance)],
+            QWhitebalanceActiveAttach(qWhitebalanceGate.CWhitebalanceActiveSet),
+            QWhitebalancePersistentAttach(qWhitebalanceGate.CWhitebalancePersistentSet),
+        };
         qWhitebalanceNeutral.QWhitebalanceNeutralAttach(this);
         QWhitebalanceWheel.QWhitebalanceWheelAttach();
+        QWhitebalanceChangeAttach();
+        QWhitebalanceStateUpdate();
     }
 
     public StackPanel QWhitebalanceBody { get; }
@@ -82,7 +87,34 @@ public sealed class QWhitebalance
 
     public QWhitebalanceWheel QWhitebalanceWheel { get; }
 
-    public void QWhitebalanceChangeAttach() => qWhitebalanceGate.CWhitebalanceChanged += QWhitebalanceUpdate;
+    public void QWhitebalanceChangeAttach()
+    {
+        qWhitebalanceNeutral.QWhitebalanceNeutralAttach(true);
+        QWhitebalanceWheel.QWhitebalanceWheelAttach(true);
+        foreach ((Action lAttach, _) in
+                 (List<(Action, Action)>)QWhitebalanceBody.Resources[typeof(QWhitebalance)])
+        {
+            lAttach();
+        }
+
+        qWhitebalanceGate.CWhitebalanceChanged -= QWhitebalanceStateUpdate;
+        qWhitebalanceGate.CWhitebalanceChanged -= QWhitebalanceUpdate;
+        qWhitebalanceGate.CWhitebalanceChanged += QWhitebalanceStateUpdate;
+        qWhitebalanceGate.CWhitebalanceChanged += QWhitebalanceUpdate;
+    }
+
+    public void QWhitebalanceChangeDetach()
+    {
+        qWhitebalanceNeutral.QWhitebalanceNeutralAttach(false);
+        QWhitebalanceWheel.QWhitebalanceWheelAttach(false);
+        qWhitebalanceGate.CWhitebalanceChanged -= QWhitebalanceStateUpdate;
+        qWhitebalanceGate.CWhitebalanceChanged -= QWhitebalanceUpdate;
+        foreach ((_, Action lDetach) in
+                 (List<(Action, Action)>)QWhitebalanceBody.Resources[typeof(QWhitebalance)])
+        {
+            lDetach();
+        }
+    }
 
     public void QWhitebalanceUpdate() => qWhitebalanceNeutral.QWhitebalanceNeutralUpdate(this);
 
@@ -95,11 +127,12 @@ public sealed class QWhitebalance
     public bool QWhitebalanceGuideShown => qWhitebalanceGate.CWhitebalanceGuideShown;
 
     public QInspectorTip QWhitebalanceTip => QInspectorTip.QInspectorTipResolve(
-        qWhitebalanceGate.CWhitebalanceActive,
-        qWhitebalanceGate.CWhitebalanceCapable,
-        qWhitebalanceGate.CWhitebalancePreview,
-        "Inspector.Video.WhitebalanceRequiresEq",
-        "Inspector.Video.WhitebalancePreviewMpv",
+        CInspectorTip.CInspectorTipResolve(
+            qWhitebalanceGate.CWhitebalanceActive,
+            qWhitebalanceGate.CWhitebalanceCapable,
+            qWhitebalanceGate.CWhitebalancePreview,
+            "Inspector.Video.WhitebalanceRequiresEq",
+            "Inspector.Video.WhitebalancePreviewMpv"),
         "Inspector.Video.ApplyWhitebalance",
         "Inspector.Video.PersistWhitebalance");
 
@@ -125,13 +158,11 @@ public sealed class QWhitebalance
                 : string.Empty);
     }
 
-    public void QWhitebalanceToolCancel() => qWhitebalanceGate.CWhitebalanceToolCancel();
-
     public void QWhitebalanceToolToggle(bool lWhite, bool lArmed) =>
         qWhitebalanceGate.CWhitebalanceToolToggle(lWhite, lArmed);
 
     // The combo shows each method row's wording in the gate's order and selects through the supplied gate operation.
-    private void QWhitebalanceMethodBuild(
+    private (Action, Action) QWhitebalanceMethodBuild(
         IReadOnlyList<string> lMethodKeys,
         int lMethodIndex,
         Action<int> lSelect)
@@ -142,7 +173,15 @@ public sealed class QWhitebalance
         }
 
         qWhitebalanceMethod.SelectedIndex = lMethodIndex;
-        qWhitebalanceMethod.SelectionChanged += (_, _) => lSelect(qWhitebalanceMethod.SelectedIndex);
+        SelectionChangedEventHandler lHandler = (_, _) => lSelect(qWhitebalanceMethod.SelectedIndex);
+        Action lAttach = () =>
+        {
+            qWhitebalanceMethod.SelectionChanged -= lHandler;
+            qWhitebalanceMethod.SelectionChanged += lHandler;
+        };
+        Action lDetach = () => qWhitebalanceMethod.SelectionChanged -= lHandler;
+        lAttach();
+        return (lAttach, lDetach);
     }
 
     // The saturation field row, placed right after the method combo's field row.
@@ -156,7 +195,7 @@ public sealed class QWhitebalance
             lOrigin);
         int lRow = qWhitebalanceStack.Children.IndexOf((UIElement)qWhitebalanceMethod.Parent);
         qWhitebalanceStack.Children.Insert(lRow + 1, lField);
-        QField.QFieldAttach(
+        lField.Resources[typeof(QWhitebalance)] = QField.QFieldAttach(
             lField,
             lLeast,
             lMost,
@@ -165,20 +204,44 @@ public sealed class QWhitebalance
         return lField;
     }
 
-    private void QWhitebalanceActiveAttach(Action<bool> lSet) =>
+    private (Action, Action) QWhitebalanceActiveAttach(Action<bool> lSet) =>
         QWhitebalanceSwitchAttach(qWhitebalanceSwitch, lSet);
 
-    private void QWhitebalancePersistentAttach(Action<bool> lSet) =>
+    private (Action, Action) QWhitebalancePersistentAttach(Action<bool> lSet) =>
         QWhitebalanceSwitchAttach(QWhitebalancePersistent, lSet);
 
-    private static void QWhitebalanceAttach(Button lButton, Action lSet) =>
-        lButton.Click += (_, _) => lSet();
+    private static (Action, Action) QWhitebalanceAttach(Button lButton, Action lSet)
+    {
+        RoutedEventHandler lHandler = (_, _) => lSet();
+        Action lAttach = () =>
+        {
+            lButton.Click -= lHandler;
+            lButton.Click += lHandler;
+        };
+        Action lDetach = () => lButton.Click -= lHandler;
+        lAttach();
+        return (lAttach, lDetach);
+    }
 
     // A switch hands its check and uncheck to the gate.
-    private static void QWhitebalanceSwitchAttach(ToggleButton lSwitch, Action<bool> lSet)
+    private static (Action, Action) QWhitebalanceSwitchAttach(ToggleButton lSwitch, Action<bool> lSet)
     {
-        lSwitch.Checked += (_, _) => lSet(true);
-        lSwitch.Unchecked += (_, _) => lSet(false);
+        RoutedEventHandler lChecked = (_, _) => lSet(true);
+        RoutedEventHandler lUnchecked = (_, _) => lSet(false);
+        Action lAttach = () =>
+        {
+            lSwitch.Checked -= lChecked;
+            lSwitch.Unchecked -= lUnchecked;
+            lSwitch.Checked += lChecked;
+            lSwitch.Unchecked += lUnchecked;
+        };
+        Action lDetach = () =>
+        {
+            lSwitch.Checked -= lChecked;
+            lSwitch.Unchecked -= lUnchecked;
+        };
+        lAttach();
+        return (lAttach, lDetach);
     }
 
     private void QWhitebalanceStateUpdate()

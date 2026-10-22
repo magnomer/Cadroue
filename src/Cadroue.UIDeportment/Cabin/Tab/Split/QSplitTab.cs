@@ -48,6 +48,7 @@ public sealed class QSplitTab
 
     public void QSplitClose()
     {
+        QSplitInspector.QInspectorSensor.QSensorSweep.QSensorSweepClose();
         QSplitSweep.QSplitSweepCancel();
         QSplitHandlersDetach();
     }
@@ -55,37 +56,53 @@ public sealed class QSplitTab
     // The section is built before these subscriptions; building it raises none of their events.
     private void QSplitHandlersAttach(QViewer lViewer, QList lList)
     {
-        QSplitInspector.QInspectorSensor.QSensorChanged += QSplitChangeHandle;
+        CSweep lSweep = QSplitInspector.QInspectorGate.CInspectorSweep;
+        QSplitInspector.QInspectorGate.CInspectorDetector.CDetectorChanged += QSplitChangeHandle;
         QSplitInspector.QInspectorBlank.QBlankChanged += QSplitChangeHandle;
-        QSplitInspector.QInspectorSensor.QSensorSweep.QSensorPersistentChanged += QSplitPersistentHandle;
+        lSweep.CSweepPersistentChanged += QSplitPersistentHandle;
         QSplitInspector.QInspectorBlank.QBlankPickChanged += QSplitPickHandle;
         lViewer.QViewerNeutral.QViewerNeutralChanged += QSplitSampleHandle;
-        QSplitInspector.QInspectorSensor.QSensorSweep.QSensorRunApplied += QSplitRunHandle;
-        QSplitInspector.QInspectorSensor.QSensorSweep.QSensorStopApplied += QSplitSweep.QSplitSweepCancel;
+        lSweep.CSweepRunApplied += QSplitRunHandle;
+        lSweep.CSweepStopApplied += QSplitSweep.QSplitSweepCancel;
+        QSplitSweep.QSplitBusyApplied += QSplitBusyHandle;
         lList.QListPathChanged += lViewer.QViewerWorkspace.CWorkspaceOpen;
         lViewer.QViewerOpenRequest += QSplitOpenHandle;
         lList.QListLockChanged += QSplitLockHandle;
-        lViewer.QViewerSource.QViewerPathsDrop += lDropPaths => _ = lList.QListPathsAdd(lDropPaths);
+        lViewer.QViewerSource.QViewerPathsDrop += QSplitDropHandle;
     }
 
     private void QSplitHandlersDetach()
     {
-        QSplitInspector.QInspectorSensor.QSensorChanged -= QSplitChangeHandle;
+        CSweep lSweep = QSplitInspector.QInspectorGate.CInspectorSweep;
+        QSplitInspector.QInspectorGate.CInspectorDetector.CDetectorChanged -= QSplitChangeHandle;
         QSplitInspector.QInspectorBlank.QBlankChanged -= QSplitChangeHandle;
-        QSplitInspector.QInspectorSensor.QSensorSweep.QSensorPersistentChanged -= QSplitPersistentHandle;
+        lSweep.CSweepPersistentChanged -= QSplitPersistentHandle;
         QSplitInspector.QInspectorBlank.QBlankPickChanged -= QSplitPickHandle;
         qSplitViewer.QViewerNeutral.QViewerNeutralChanged -= QSplitSampleHandle;
+        lSweep.CSweepRunApplied -= QSplitRunHandle;
+        lSweep.CSweepStopApplied -= QSplitSweep.QSplitSweepCancel;
+        lSweep.CSweepRunningSet(false);
+        QSplitSweep.QSplitBusyApplied -= QSplitBusyHandle;
+        qSplitList.QListPathChanged -= qSplitViewer.QViewerWorkspace.CWorkspaceOpen;
         qSplitViewer.QViewerOpenRequest -= QSplitOpenHandle;
+        qSplitList.QListLockChanged -= QSplitLockHandle;
+        qSplitViewer.QViewerSource.QViewerPathsDrop -= QSplitDropHandle;
     }
 
     private void QSplitRunHandle() => _ = QSplitSweep.QSplitSweepStart();
+
+    private void QSplitBusyHandle(bool lBusy) =>
+        QSplitInspector.QInspectorGate.CInspectorSweep.CSweepRunningSet(lBusy);
+
+    private void QSplitDropHandle(IReadOnlyList<string> lDropPaths) =>
+        _ = qSplitList.QListPathsAdd(lDropPaths);
 
     public void QSplitStart() => qSplitFlow.QFlowEdit.QFlowEditSet(!qSplitList.QListLockCheck());
 
     public LSceneTabEntry QSplitLayoutRead(LSceneTabEntry lLayout)
     {
         lLayout.LSceneDetectors = LDetectorRow.LDetectorSceneFormat(QSplitDetector.QSplitStateRead());
-        lLayout.LSceneDetectPersistent = QSplitInspector.QInspectorSensor.QSensorSweep.QSensorPersistent;
+        lLayout.LSceneDetectPersistent = QSplitInspector.QInspectorGate.CInspectorSweep.CSweepPersistent;
         return lLayout;
     }
 
@@ -99,14 +116,14 @@ public sealed class QSplitTab
         }
 
         QSplitDetector.QSplitStateApply(LDetectorRow.LDetectorSceneParse(lLayout.LSceneDetectors));
-        QSplitInspector.QInspectorSensor.QSensorSweep.QSensorPersistentSet(lLayout.LSceneDetectPersistent);
+        QSplitInspector.QInspectorGate.CInspectorSweep.CSweepPersistentSet(lLayout.LSceneDetectPersistent);
         QSplitDetector.QSplitActiveUpdate();
     }
 
     // After the viewer opens a new path: its saved split state loads unless the sensor is persistent.
     private void QSplitOpenHandle(string lPath)
     {
-        if (!QSplitInspector.QInspectorSensor.QSensorSweep.QSensorPersistent)
+        if (!QSplitInspector.QInspectorGate.CInspectorSweep.CSweepPersistent)
         {
             QSplitDetector.QSplitStateLoad(lPath);
         }
@@ -137,5 +154,5 @@ public sealed class QSplitTab
     }
 
     private static QProcessingRow QSplitRowCreate(LDetectorKind lKind, string lIcon, string lLabel) =>
-        new(QSensorName.QSensorNameRead(lKind), $"/PAsset/PPanel/{lIcon}.svg", $"Processing.Step.{lLabel}");
+        new(CDetectorPlan.CDetectorNameRead(lKind), $"/PAsset/PPanel/{lIcon}.svg", $"Processing.Step.{lLabel}");
 }

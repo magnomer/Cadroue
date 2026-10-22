@@ -50,6 +50,17 @@ public sealed class QVolume
         qVolumeStack.Children.Insert(0, qVolumeField);
 
         QVolumeTextShow();
+        QVolumeBody.Resources[typeof(QVolume)] = new List<(Action, Action)>
+        {
+            QTool.QToolSwitchAttach(qVolumeActive, qVolumeGate.CVolumeActiveSet),
+            QTool.QToolSwitchAttach(QVolumePersistent, qVolumeGate.CVolumePersistentSet),
+            QField.QFieldAttach(
+                qVolumeField,
+                QVolumeLeast,
+                QVolumeMost,
+                () => qVolumeGate.CVolumeGain,
+                qVolumeGate.CVolumeGainSet),
+        };
         QVolumeHandlersAttach();
         QVolumeUpdate();
     }
@@ -68,17 +79,24 @@ public sealed class QVolume
     }
 
     // Every input goes to the gate, and every gate change comes back to the controls.
-    private void QVolumeHandlersAttach()
+    public void QVolumeHandlersAttach()
     {
-        QTool.QToolSwitchAttach(qVolumeActive, qVolumeGate.CVolumeActiveSet);
-        QTool.QToolSwitchAttach(QVolumePersistent, qVolumeGate.CVolumePersistentSet);
-        QField.QFieldAttach(
-            qVolumeField,
-            QVolumeLeast,
-            QVolumeMost,
-            () => qVolumeGate.CVolumeGain,
-            qVolumeGate.CVolumeGainSet);
+        foreach ((Action lAttach, _) in (List<(Action, Action)>)QVolumeBody.Resources[typeof(QVolume)])
+        {
+            lAttach();
+        }
+
+        qVolumeGate.CVolumeChanged -= QVolumeUpdate;
         qVolumeGate.CVolumeChanged += QVolumeUpdate;
+    }
+
+    public void QVolumeHandlersDetach()
+    {
+        qVolumeGate.CVolumeChanged -= QVolumeUpdate;
+        foreach ((_, Action lDetach) in (List<(Action, Action)>)QVolumeBody.Resources[typeof(QVolume)])
+        {
+            lDetach();
+        }
     }
 
     private void QVolumeUpdate()

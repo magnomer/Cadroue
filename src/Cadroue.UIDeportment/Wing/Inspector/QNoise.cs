@@ -59,7 +59,8 @@ public sealed class QNoise
         .ToList();
 
     // The combo shows each row's wording and selects the row the gate marked chosen.
-    public QInspectorChoice QNoiseChoiceRead() => QInspectorPlan.QInspectorChoiceBuild(qNoiseGate.CNoiseChoices);
+    public QInspectorChoice QNoiseChoiceRead() =>
+        QInspectorPlan.QInspectorChoiceBuild(CChoicePlan.CChoicePlanBuild(qNoiseGate.CNoiseChoices));
 
     public void QNoiseValueSet(int lRow, double lValue) => qNoiseGate.CNoiseValueSet(lRow, lValue);
 

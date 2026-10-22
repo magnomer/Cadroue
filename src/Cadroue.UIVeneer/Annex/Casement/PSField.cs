@@ -52,28 +52,4 @@ internal static class PSField
         pGrid.Children.Add(pContent);
         return pGrid;
     }
-
-    internal static UIElement PSFieldButtonBuild(string pLabel, Control pControl, params UIElement[] pTrailing)
-    {
-        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9), MinHeight = PSFieldControlHeight };
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSFieldLabelWidth) });
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pGrid.Children.Add(PSFieldLabelBuild(pLabel));
-
-        var pPanel = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            HorizontalAlignment = HorizontalAlignment.Left
-        };
-        pControl.MinHeight = PSFieldControlHeight;
-        pPanel.Children.Add(pControl);
-        foreach (UIElement pElement in pTrailing)
-        {
-            pPanel.Children.Add(pElement);
-        }
-
-        Grid.SetColumn(pPanel, 1);
-        pGrid.Children.Add(pPanel);
-        return pGrid;
-    }
 }

@@ -1,3 +1,4 @@
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Cadroue.Conduct;
@@ -57,7 +58,7 @@ public static class QField
     private static void QFieldInputHandle(object lSender, TextCompositionEventArgs lEvent) =>
         lEvent.Handled = !CInspectorField.CInspectorDecimalCheck(lEvent.Text);
 
-    public static void QFieldAttach(
+    public static (Action, Action) QFieldAttach(
         Grid lField, double? lLeast, double? lMost, Func<double> lRead, Action<double> lSet)
     {
         Slider lSlider = QContract.QContractFind<Slider>(lField, QFieldSliderPart);
@@ -66,10 +67,27 @@ public static class QField
         {
             [Key.Enter] = () => QFieldCommit(lValue, lLeast, lMost, lRead, lSet),
         };
-        lSlider.ValueChanged += (_, _) =>
-            CInspectorField.CInspectorSlideCommit(lSlider.Value, lRead(), lSlider.Minimum, lSlider.Maximum, lSet);
-        lValue.LostFocus += (_, _) => QFieldCommit(lValue, lLeast, lMost, lRead, lSet);
-        lValue.KeyDown += (_, lKeyEvent) => QFieldKeyHandle(lKeyEvent, lValueKeys);
+        RoutedPropertyChangedEventHandler<double> lSlide = (_, _) => CInspectorField.CInspectorSlideCommit(
+            lSlider.Value, lRead(), lSlider.Minimum, lSlider.Maximum, lSet);
+        RoutedEventHandler lCommit = (_, _) => QFieldCommit(lValue, lLeast, lMost, lRead, lSet);
+        KeyEventHandler lKey = (_, lKeyEvent) => QFieldKeyHandle(lKeyEvent, lValueKeys);
+        Action lAttach = () =>
+        {
+            lSlider.ValueChanged -= lSlide;
+            lValue.LostFocus -= lCommit;
+            lValue.KeyDown -= lKey;
+            lSlider.ValueChanged += lSlide;
+            lValue.LostFocus += lCommit;
+            lValue.KeyDown += lKey;
+        };
+        Action lDetach = () =>
+        {
+            lSlider.ValueChanged -= lSlide;
+            lValue.LostFocus -= lCommit;
+            lValue.KeyDown -= lKey;
+        };
+        lAttach();
+        return (lAttach, lDetach);
     }
 
     private static void QFieldKeyHandle(KeyEventArgs lKeyEvent, IReadOnlyDictionary<Key, Action> lValueKeys)

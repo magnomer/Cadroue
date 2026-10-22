@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
 using Cadroue.Tests.Interface;
@@ -55,7 +56,7 @@ public sealed class TSplitTabLayout
         TInterface.TBlankStepSet(
             inspector.QInspectorBlank,
             TInterface.TDetectorBlankCreate(true, LDetectorType.LDetectorTypeColor, 90, 0.4, 0.7, 0.1, 0.9, 1));
-        TInterface.TSensorPersistentSet(inspector.QInspectorSensor, true);
+        TInterface.TSensorPersistentSet(inspector, true);
 
         LSceneTabEntry layout = TInterface.TSplitLayoutRead(tab);
 
@@ -86,11 +87,14 @@ public sealed class TSplitTabLayout
         TInterface.TSensorModeSet(sensor, LDetectorStillMode.LDetectorStillTreat);
         TInterface.TSensorSpeedSet(sensor, LDetectorLuminanceMode.LDetectorLuminanceFull);
         TInterface.TSensorMetricSet(sensor, LDetectorMetricMode.LDetectorMetricRms);
+        TInterface.TSensorThresholdSet(sensor, LDetectorKind.LDetectorKindVolume, 20);
         TInterface.TBlankStepSet(
             inspector.QInspectorBlank, TInterface.TBlankStepCreate(LDetectorType.LDetectorTypeColor));
 
         LSceneTabEntry layout = TInterface.TSplitLayoutRead(source);
         (QSplitTab target, QInspector restored, QProcessing processing) = TSplitBuild();
+        int restoreNotices = 0;
+        restored.QInspectorGate.CInspectorDetector.CDetectorChanged += () => restoreNotices++;
         TInterface.TSplitLayoutApply(target, layout);
 
         QSensor restoredSensor = restored.QInspectorSensor;
@@ -102,12 +106,24 @@ public sealed class TSplitTabLayout
         Assert.Equal(LDetectorLuminanceMode.LDetectorLuminanceFull, restoredSensor.QSensorSpeed);
         Assert.Equal(LDetectorMetricMode.LDetectorMetricRms, restoredSensor.QSensorMetric);
         Assert.Equal(
+            20,
+            TInterface.TSensorStepRead(restoredSensor, LDetectorKind.LDetectorKindVolume).LDetectorStepThreshold);
+        Assert.Null(TInterface.TSensorMatchRead(restoredSensor, LDetectorKind.LDetectorKindVolume));
+        Assert.Equal(
             TInterface.TBlankStepRead(inspector.QInspectorBlank), TInterface.TBlankStepRead(restored.QInspectorBlank));
         Assert.True(TInterface.TProcessingActiveCheck(
             processing, TInterface.TSensorNameRead(LDetectorKind.LDetectorKindScene)));
         Assert.False(TInterface.TProcessingActiveCheck(
             processing, TInterface.TSensorNameRead(LDetectorKind.LDetectorKindBlank)));
         Assert.False(restored.QInspectorSaveSuspended);
+
+        int firstRestoreNotices = restoreNotices;
+        TInterface.TSplitLayoutApply(target, layout);
+
+        Assert.Equal(firstRestoreNotices, restoreNotices);
+        Assert.Equal(
+            20,
+            TInterface.TSensorStepRead(restoredSensor, LDetectorKind.LDetectorKindVolume).LDetectorStepThreshold);
     }
 
     [Fact]
@@ -116,6 +132,10 @@ public sealed class TSplitTabLayout
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
         (QSplitTab tab, QInspector inspector, QProcessing processing) = TSplitBuild();
+        inspector.QInspectorFrame.QInspectorFrameSet(true);
+        Assert.True(inspector.QInspectorMinimized);
+        inspector.QInspectorFrame.QInspectorFrameSet(false);
+        Assert.False(inspector.QInspectorMinimized);
 
         TInterface.TSplitLayoutApply(tab, null);
 
@@ -132,6 +152,20 @@ public sealed class TSplitTabLayout
         string key = TInterface.TSensorNameRead(LDetectorKind.LDetectorKindVolume);
 
         TInterface.TSensorEnabledSet(inspector.QInspectorSensor, LDetectorKind.LDetectorKindVolume, true);
+
+        Assert.True(TInterface.TProcessingActiveCheck(processing, key));
+    }
+
+    [Fact]
+    public void DetectorGateChange_UpdatesProcessingActive()
+    {
+        using TPreset presets = new();
+        presets.TPresetSeedCreate("Alpha");
+        (_, QInspector inspector, QProcessing processing) = TSplitBuild();
+        const LDetectorKind kind = LDetectorKind.LDetectorKindScene;
+        string key = CDetectorPlan.CDetectorNameRead(kind);
+
+        inspector.QInspectorGate.CInspectorDetector.CDetectorEnabledSet(kind, true);
 
         Assert.True(TInterface.TProcessingActiveCheck(processing, key));
     }

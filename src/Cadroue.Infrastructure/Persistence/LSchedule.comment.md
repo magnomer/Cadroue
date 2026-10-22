@@ -16,14 +16,3 @@ The index is rebuilt or bypassed when it is marked dirty.
 A running record this launch claimed keeps its live item, so progress shown on it survives a reload.
 A live item whose record left the running folder is dropped from the claimed table.
 Records outside this launch's scope never reach the visible list.
-
-## `public bool LSchedulePendingExist() =>`
-
-Reads the scheduled folder, not the visible list, so work another launch filed counts too.
-Only records this launch may claim count, so the answer matches what a claim would find.
-
-## `private static LWorkState LScheduleStateRead(LDepotFolder lDepotFolder, LWorkState lScheduleFileState) =>`
-
-The folder a record sits in decides its state over the state stored in its file.
-A done or failed record keeps a finer terminal state stored in its file.
-A scheduled record still stamped running reads as pending, since no runner holds it.

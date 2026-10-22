@@ -1,5 +1,8 @@
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
+using System.Reflection;
+using System.Windows.Controls;
 
 using Xunit;
 
@@ -7,6 +10,132 @@ namespace Cadroue.Tests.Windows;
 
 public sealed class TInspectorCropPreset
 {
+    [Fact]
+    public void RatioRepaint_DoesNotRequestConduct()
+    {
+        Exception? failure = null;
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                QInspector inspector = TInterfaceInspector.TInspectorCreate();
+                TInterfaceInspector.TInspectorSourceSet(inspector, 1920, 1080);
+                QInspectorRatio ratio = inspector.QInspectorRatio;
+                Action<string, object> set = (name, value) => typeof(QInspectorRatio)
+                    .GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(ratio, value);
+                set("qInspectorRatioCustom", new StackPanel());
+                set("qInspectorRatioFixed", new CheckBox { IsChecked = true });
+                var height = new TextBox { Text = "9" };
+                set("qInspectorRatioHeight", height);
+                set("qInspectorRatioLenient", new CheckBox { IsChecked = true });
+                set("qInspectorRatioNotice", new TextBlock());
+                var preset = new ComboBox();
+                foreach (int index in Enumerable.Range(0, 7)) preset.Items.Add(index);
+                set("qInspectorRatioPreset", preset);
+                var width = new TextBox { Text = "16" };
+                set("qInspectorRatioWidth", width);
+                int requests = 0;
+                TextChangedEventHandler widthHandler = (_, _) =>
+                {
+                    requests++;
+                    ratio.QInspectorRatioCommit(width.Text, height.Text, false);
+                };
+                TextChangedEventHandler heightHandler = (_, _) =>
+                {
+                    requests++;
+                    ratio.QInspectorRatioCommit(width.Text, height.Text, false);
+                };
+                SelectionChangedEventHandler presetHandler = (_, _) =>
+                {
+                    requests++;
+                    ratio.QInspectorPresetSelect(preset.SelectedIndex);
+                };
+                set("qInspectorRatioPainting", new Delegate[] { widthHandler, heightHandler, presetHandler });
+                width.TextChanged += widthHandler;
+                height.TextChanged += heightHandler;
+                preset.SelectionChanged += presetHandler;
+                var port = new TCropPort(inspector);
+                inspector.QInspectorGate.CInspectorCrop.CCropAccept(port);
+
+                ratio.QInspectorRatioUpdate();
+
+                Assert.Equal(0, requests);
+                preset.SelectedIndex = 1;
+                Assert.Equal(1, requests);
+                Assert.Equal(1, port.TCropPortRequests);
+            }
+            catch (Exception exception)
+            {
+                failure = exception;
+            }
+        });
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        thread.Join();
+        Assert.Null(failure);
+    }
+
+    [Fact]
+    public void GridRepaint_DoesNotRequestConduct()
+    {
+        Exception? failure = null;
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                QInspector inspector = TInterfaceInspector.TInspectorCreate();
+                QInspectorGrid grid = inspector.QInspectorCrop.QInspectorGrid;
+                Action<string, object> set = (name, value) => typeof(QInspectorGrid)
+                    .GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(grid, value);
+                var left = new TextBox { Text = "9" };
+                set("qInspectorGridBottom", new TextBox { Text = "9" });
+                set("qInspectorGridLeft", left);
+                set("qInspectorGridRight", new TextBox { Text = "9" });
+                set("qInspectorGridTop", new TextBox { Text = "9" });
+                set("qInspectorGridResolution", new TextBlock());
+                int requests = 0;
+                var handlers = new Dictionary<TextBox, TextChangedEventHandler>();
+                foreach ((TextBox box, int side) in new[]
+                         {
+                             (left, 0),
+                             ((TextBox)typeof(QInspectorGrid).GetField("qInspectorGridTop",
+                                 BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(grid)!, 1),
+                             ((TextBox)typeof(QInspectorGrid).GetField("qInspectorGridRight",
+                                 BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(grid)!, 2),
+                             ((TextBox)typeof(QInspectorGrid).GetField("qInspectorGridBottom",
+                                 BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(grid)!, 3),
+                         })
+                {
+                    TextChangedEventHandler handler = (_, _) =>
+                    {
+                        requests++;
+                        inspector.QInspectorCrop.QInspectorEdgeCommit(side, box.Text, true);
+                    };
+                    handlers.Add(box, handler);
+                    box.TextChanged += handler;
+                }
+                set("qInspectorGridPainting", handlers);
+                var port = new TCropPort(inspector);
+                inspector.QInspectorGate.CInspectorCrop.CCropAccept(port);
+                grid.QInspectorGridUpdate(inspector.QInspectorCrop);
+
+                Assert.Equal(0, requests);
+                Assert.Equal(0, port.TCropPortRequests);
+                left.Text = "5";
+                Assert.Equal(1, requests);
+                Assert.Equal(1, port.TCropPortRequests);
+            }
+            catch (Exception exception)
+            {
+                failure = exception;
+            }
+        });
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        thread.Join();
+        Assert.Null(failure);
+    }
+
     [Theory]
     [InlineData(1, "16", "9")]
     [InlineData(2, "9", "16")]
@@ -103,11 +232,21 @@ public sealed class TInspectorCropPreset
 
         TInterfaceInspector.TInspectorRatioCommit(inspector, "5", "4");
         TInterfaceInspector.TInspectorFixedSet(inspector, true);
+        CInspectorNotice? notice = CInspectorNotice.CInspectorNoticeResolve(
+            inspector.QInspectorGate.CInspectorCrop.CCropNotice);
 
         Assert.Equal(0, inspector.QInspectorCrop.QInspectorPresetIndex);
         Assert.True(inspector.QInspectorCrop.QInspectorCustomShown);
         Assert.True(inspector.QInspectorCrop.QInspectorNoticeShown);
         Assert.NotEqual(string.Empty, TInterfaceInspector.TInspectorNoticeRead(inspector));
+        Assert.NotNull(notice);
+        Assert.NotEmpty(notice.CInspectorNoticeArguments);
+        var arguments = new List<object?> { 7 };
+        var direct = new CInspectorNotice("Alias", arguments);
+        arguments[0] = 9;
+        Assert.Equal(7, direct.CInspectorNoticeArguments[0]);
+        Assert.False(typeof(CInspectorNotice)
+            .GetProperty(nameof(CInspectorNotice.CInspectorNoticeArguments))!.CanWrite);
     }
 
     [Fact]
@@ -126,6 +265,8 @@ public sealed class TInspectorCropPreset
 
         Assert.True(inspector.QInspectorCrop.QInspectorRatioLenient);
         Assert.False(inspector.QInspectorCrop.QInspectorNoticeShown);
+        Assert.Null(CInspectorNotice.CInspectorNoticeResolve(
+            inspector.QInspectorGate.CInspectorCrop.CCropNotice));
     }
 
     [Fact]

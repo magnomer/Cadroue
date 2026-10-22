@@ -83,9 +83,9 @@ internal static class PTabPanel
 
     private static PTabCollapse PTabCollapseCreate(PInspector pPanel) =>
         new(
-            pPanel.PInspectorMinimizedCheck,
-            pPanel.PInspectorMinimizeSet,
-            pHandler => pPanel.QInspector.QInspectorMinimizeChanged += pHandler);
+            () => pPanel.QInspectorFrame.QInspector.QInspectorMinimized,
+            pPanel.QInspectorFrame.QInspectorFrameSet,
+            pHandler => pPanel.QInspectorFrame.QInspector.QInspectorMinimizeChanged += pHandler);
 
     private static PTabCollapse PTabCollapseCreate(PClinic pPanel) =>
         new(

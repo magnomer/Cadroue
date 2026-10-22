@@ -23,8 +23,11 @@ public sealed class QInspector
         QInspectorCrop = new QInspectorCrop(this);
         QInspectorOrientation = new QInspectorOrientation(this);
         QInspectorRatio = new QInspectorRatio(this);
+        QInspectorSensor = new QSensor(QInspectorGate.CInspectorDetector, QInspectorGate.CInspectorSweep);
+        QInspectorBlank = new QBlank(QInspectorGate.CInspectorBlank);
         QInspectorSkip = new QSkip(QInspectorGate.CInspectorSkip);
         QInspectorAudio = new QInspectorAudio(QInspectorGate);
+        QInspectorFrame = new QInspectorFrame(this);
         QInspectorAttach();
     }
 
@@ -63,9 +66,11 @@ public sealed class QInspector
 
     public QInspectorAudio QInspectorAudio { get; }
 
-    public QSensor QInspectorSensor { get; } = new();
+    public QSensor QInspectorSensor { get; }
 
-    public QBlank QInspectorBlank { get; } = new();
+    public QBlank QInspectorBlank { get; }
+
+    public QInspectorFrame QInspectorFrame { get; }
 
     public bool QInspectorMinimized => QInspectorGate.CInspectorFrame.CInspectorMinimized;
 
@@ -93,6 +98,12 @@ public sealed class QInspector
 
     public bool QInspectorSensorCheck(LDetectorKind lKind) =>
         QInspectorGate.CInspectorFrame.CInspectorSensorCheck(QSensorName.QSensorNameRead(lKind));
+
+    public IReadOnlyDictionary<LDetectorKind, bool> QInspectorSensorCheck() =>
+        new System.Collections.ObjectModel.ReadOnlyDictionary<LDetectorKind, bool>(
+            QInspectorSensor.QSensorPlans.ToDictionary(
+                lPlan => lPlan.QSensorPlanKind,
+                lPlan => QInspectorSensorCheck(lPlan.QSensorPlanKind)));
 
     public string QInspectorTitleRead() =>
         QLocalizationCatalog.QLocalizationTextRead(QInspectorGate.CInspectorFrame.CInspectorTitleKey);

@@ -25,10 +25,5 @@ public sealed class TSectionHex
         Assert.Equal("#4A90D9", TInterface.TSectionColorRead(0));
         Assert.Equal("#4A90D9", TInterface.TSectionColorRead(10));
         Assert.Equal("#7F8C8D", TInterface.TSectionColorRead(-1));
-        Assert.Equal(TInterface.TSectionColorsRead("Cadroue"), TInterface.TSectionColorsRead("Nope"));
-        Assert.Equal("#5B7C99", TInterface.TSectionColorsRead("Muted")[0]);
-        Assert.Equal("Cadroue", TInterface.TSectionNamesRead()[0]);
-        Assert.True(TInterface.TSectionNativeCheck("Tableau"));
-        Assert.False(TInterface.TSectionNativeCheck("Nope"));
     }
 }

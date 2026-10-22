@@ -13,6 +13,7 @@ Wraps any index, negative ones included, so every section gets a colour from the
 
 ## `public static void LSectionRegistryLoad()`
 
+The overload with a folder loads from that folder, and the plain one loads from the depot palette folder.
 The default palette can never be hidden, so the registry always has one native entry.
 A file with no valid colour is skipped.
 A file named like an existing palette gets a numbered name, so every name stays unique.
@@ -24,6 +25,11 @@ Anything else returns null, so the caller drops it.
 
 ## `public static LSectionImportResult LSectionPaletteImport(`
 
-A name whose file name would start with a dot is refused, since dot files are reserved.
+The import asks the store to copy the file.
+The registry reloads from the same folder only when the result is a copy.
+The loaded name is looked up from the target path, so the caller selects the name the registry now holds.
+Any other result leaves the registry unchanged and gives no name.
+The store reports an unreadable palette as invalid.
+A name whose file name would start with a dot is refused as reserved, since dot files are reserved.
 A source already in the palette folder is used where it lies, not copied.
 A copy never overwrites, so it takes the next free numbered file name.

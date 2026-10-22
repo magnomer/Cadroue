@@ -2,14 +2,13 @@ using Cadroue.Conduct;
 
 namespace Cadroue.UIDeportment;
 
-// The crop notice's wording: the crop gate decides the notice, and its excess, when it has one, fills the wording.
 internal static class QInspectorNotice
 {
-    internal static string? QInspectorNoticeResolve(CCrop lGate) => lGate.CCropNotice switch
+    internal static string? QInspectorNoticeResolve(CInspectorNotice? lNotice) => lNotice switch
     {
         null => null,
-        { CCropNoticeExcess: { } lExcess } lNotice =>
-            QLocalizationCatalog.QLocalizationFormat(lNotice.CCropNoticeKey, lExcess),
-        { } lNotice => QLocalizationCatalog.QLocalizationTextRead(lNotice.CCropNoticeKey)
+        { CInspectorNoticeArguments.Count: > 0 } => QLocalizationCatalog.QLocalizationFormat(
+            lNotice.CInspectorNoticeKey, lNotice.CInspectorNoticeArguments.ToArray()),
+        _ => QLocalizationCatalog.QLocalizationTextRead(lNotice.CInspectorNoticeKey)
     };
 }

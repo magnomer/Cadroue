@@ -1,3 +1,4 @@
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
@@ -26,6 +27,7 @@ public sealed class QFilterSection
         Slider lResonance = QContract.QContractFind<Slider>(QFilterSectionBody, "PFilterResonance");
         TextBox lResonanceValue =
             QContract.QContractFind<TextBox>(QFilterSectionBody, "PFilterResonanceValue");
+        var lHandlers = new List<(Action, Action)>();
 
         lActive.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply");
         lActive.ToolTip = QLocalizationCatalog.QLocalizationTextRead(lApplyKey);
@@ -43,8 +45,8 @@ public sealed class QFilterSection
         ((TextBlock)((Grid)lPoles.Parent).Children[0]).Text =
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Pass.Poles");
 
-        QTool.QToolSwitchAttach(lActive, qFilter.QFilterActiveSet);
-        QTool.QToolSwitchAttach(QFilterSectionPersistent, qFilter.QFilterPersistentSet);
+        lHandlers.Add(QTool.QToolSwitchAttach(lActive, qFilter.QFilterActiveSet));
+        lHandlers.Add(QTool.QToolSwitchAttach(QFilterSectionPersistent, qFilter.QFilterPersistentSet));
         QDropdown.QDropdownAttach(lPreset);
         foreach (var lChoice in qFilter.QFilterChoices)
         {
@@ -62,8 +64,16 @@ public sealed class QFilterSection
         for (int lChoice = 0; lChoice < lChoices.Length; lChoice++)
         {
             int lIndex = lChoice;
-            lChoices[lIndex].SelectionChanged +=
+            SelectionChangedEventHandler lHandler =
                 (_, _) => lSelect[lIndex](lChoices[lIndex].SelectedIndex);
+            Action lAttach = () =>
+            {
+                lChoices[lIndex].SelectionChanged -= lHandler;
+                lChoices[lIndex].SelectionChanged += lHandler;
+            };
+            Action lDetach = () => lChoices[lIndex].SelectionChanged -= lHandler;
+            lAttach();
+            lHandlers.Add((lAttach, lDetach));
         }
 
         Slider[] lSliders = { lFrequency, lStages, lResonance };
@@ -80,7 +90,8 @@ public sealed class QFilterSection
             QTextbox.QTextboxAttach(lNumber);
             lNumber.PreviewTextInput +=
                 (_, lInput) => lInput.Handled = !QInspectorField.QInspectorDecimalCheck(lInput.Text);
-            lSlider.ValueChanged += (_, _) => qFilter.QFilterValueSet(lIndex, lSlider.Value);
+            RoutedPropertyChangedEventHandler<double> lSlide =
+                (_, _) => qFilter.QFilterValueSet(lIndex, lSlider.Value);
             Action lCommit = () =>
             {
                 lSlider.Value = QInspectorField.QInspectorValueCommit(
@@ -90,25 +101,64 @@ public sealed class QFilterSection
                     qFilter.QFilterMosts[lIndex]);
                 lNumber.CaretIndex = lNumber.Text.Length;
             };
-            lNumber.LostFocus += (_, _) => lCommit();
-            lNumber.KeyDown += (_, lKey) =>
+            RoutedEventHandler lLost = (_, _) => lCommit();
+            KeyEventHandler lKey = (_, lInput) =>
             {
-                if (lKey.Key == Key.Enter)
+                if (lInput.Key == Key.Enter)
                 {
                     lCommit();
                 }
 
-                lKey.Handled = lKey.Key == Key.Enter;
+                lInput.Handled = lInput.Key == Key.Enter;
             };
+            Action lAttach = () =>
+            {
+                lSlider.ValueChanged -= lSlide;
+                lNumber.LostFocus -= lLost;
+                lNumber.KeyDown -= lKey;
+                lSlider.ValueChanged += lSlide;
+                lNumber.LostFocus += lLost;
+                lNumber.KeyDown += lKey;
+            };
+            Action lDetach = () =>
+            {
+                lSlider.ValueChanged -= lSlide;
+                lNumber.LostFocus -= lLost;
+                lNumber.KeyDown -= lKey;
+            };
+            lAttach();
+            lHandlers.Add((lAttach, lDetach));
         }
         lStages.IsSnapToTickEnabled = true;
+        QFilterSectionBody.Resources[typeof(QFilterSection)] = lHandlers;
+        QFilterSectionAttach();
     }
 
     public StackPanel QFilterSectionBody { get; }
 
     public CheckBox QFilterSectionPersistent { get; }
 
-    public void QFilterSectionAttach() => qFilter.QFilterChanged += QFilterSectionUpdate;
+    public void QFilterSectionAttach()
+    {
+        foreach ((Action lAttach, _) in
+                 (List<(Action, Action)>)QFilterSectionBody.Resources[typeof(QFilterSection)])
+        {
+            lAttach();
+        }
+
+        qFilter.QFilterChanged -= QFilterSectionUpdate;
+        qFilter.QFilterChanged += QFilterSectionUpdate;
+    }
+
+    public void QFilterSectionDetach()
+    {
+        qFilter.QFilterChanged -= QFilterSectionUpdate;
+        foreach ((_, Action lDetach) in
+                 (List<(Action, Action)>)QFilterSectionBody.Resources[typeof(QFilterSection)])
+        {
+            lDetach();
+        }
+    }
 
     public void QFilterSectionUpdate()
     {

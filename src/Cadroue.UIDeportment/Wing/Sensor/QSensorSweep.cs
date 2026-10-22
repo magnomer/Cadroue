@@ -1,55 +1,101 @@
+using System.Windows;
+using System.Windows.Controls;
+using Cadroue.Conduct;
+
 namespace Cadroue.UIDeportment;
 
-// The detection sweep's switches on the sensor panel: whether it runs, whether it reruns by itself, and the run button.
+// The sweep-row driver: it turns direct user acts into requests and paints the Conduct-owned state.
 public sealed class QSensorSweep
 {
-    private bool qSensorRunning;
-    private bool qSensorPersistent;
+    private readonly CSweep qSensorSweepGate;
+    private CheckBox qSensorRunPersistent = null!;
+    private Button qSensorRunButton = null!;
+    private ProgressBar qSensorProgress = null!;
 
-    public event Action<bool>? QSensorRunningChanged;
-    public event Action<bool>? QSensorPersistentChanged;
-    public event Action? QSensorRunApplied;
-    public event Action? QSensorStopApplied;
-
-    public string QSensorRunText =>
-        QLocalizationCatalog.QLocalizationTextRead(qSensorRunning ? "Inspector.Detect.Stop" : "Inspector.Detect.Run");
-
-    public bool QSensorRunning => qSensorRunning;
-
-    public bool QSensorPersistent => qSensorPersistent;
-
-    // The run button asks for a stop while a sweep runs, else for a run; the split tab answers either.
-    public void QSensorRunHandle()
+    internal QSensorSweep(CSweep sweep)
     {
-        if (qSensorRunning)
+        qSensorSweepGate = sweep;
+    }
+
+    public Border QSensorSweepBody { get; private set; } = null!;
+
+    public void QSensorSweepBuild()
+    {
+        QSensorSweepClose();
+        QSensorSweepBody = QContract.QContractSheetFind<Border>("PSensorSweepBody");
+        qSensorRunPersistent = QContract.QContractFind<CheckBox>(QSensorSweepBody, "PSensorRunPersistent");
+        qSensorRunButton = QContract.QContractFind<Button>(QSensorSweepBody, "PSensorRunButton");
+        qSensorProgress = QContract.QContractFind<ProgressBar>(QSensorSweepBody, "PSensorProgress");
+
+        qSensorRunPersistent.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Detect.Persistent");
+        qSensorRunPersistent.ToolTip =
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Detect.PersistentTooltip");
+        QInteractionClick.QInteractionClickAttach(qSensorRunPersistent);
+        QCheckbox.QCheckboxAttach(qSensorRunPersistent);
+        QButton.QButtonAttach(qSensorRunButton, QButtonLook.QButtonLookWhite);
+        Action<bool> lRunning = _ => QSensorSweepUpdate();
+        Action<bool> lPersistent = _ => QSensorSweepUpdate();
+        Action lAttach = () =>
         {
-            QSensorStopApplied?.Invoke();
-        }
-        else
+            qSensorRunPersistent.Click -= QSensorRunAttach;
+            qSensorRunButton.Click -= QSensorRunAttach;
+            qSensorSweepGate.CSweepRunningChanged -= lRunning;
+            qSensorSweepGate.CSweepPersistentChanged -= lPersistent;
+            qSensorRunPersistent.Click += QSensorRunAttach;
+            qSensorRunButton.Click += QSensorRunAttach;
+            qSensorSweepGate.CSweepRunningChanged += lRunning;
+            qSensorSweepGate.CSweepPersistentChanged += lPersistent;
+        };
+        Action lDetach = () =>
         {
-            QSensorRunApplied?.Invoke();
+            qSensorRunPersistent.Click -= QSensorRunAttach;
+            qSensorRunButton.Click -= QSensorRunAttach;
+            qSensorSweepGate.CSweepRunningChanged -= lRunning;
+            qSensorSweepGate.CSweepPersistentChanged -= lPersistent;
+        };
+        QSensorSweepBody.Resources[typeof(QSensorSweep)] = (lAttach, lDetach);
+        QSensorSweepAttach();
+    }
+
+    public void QSensorSweepClose()
+    {
+        if (qSensorRunButton is not null
+            && QSensorSweepBody.Resources[typeof(QSensorSweep)] is ValueTuple<Action, Action> lHandlers)
+        {
+            lHandlers.Item2();
         }
     }
 
-    public void QSensorRunningSet(bool lRunning)
+    public void QSensorSweepUpdate(double progress) => qSensorProgress.Value = progress;
+
+    private void QSensorRunAttach(object lSource, RoutedEventArgs __)
     {
-        if (qSensorRunning == lRunning)
+        if (ReferenceEquals(lSource, qSensorRunPersistent))
         {
+            qSensorSweepGate.CSweepPersistentSet(qSensorRunPersistent.IsChecked == true);
             return;
         }
 
-        qSensorRunning = lRunning;
-        QSensorRunningChanged?.Invoke(lRunning);
+        qSensorSweepGate.CSweepRunHandle();
     }
 
-    public void QSensorPersistentSet(bool lPersistent)
+    public void QSensorSweepAttach()
     {
-        if (qSensorPersistent == lPersistent)
+        if (QSensorSweepBody.Resources[typeof(QSensorSweep)] is ValueTuple<Action, Action> lHandlers)
         {
-            return;
+            lHandlers.Item1();
         }
 
-        qSensorPersistent = lPersistent;
-        QSensorPersistentChanged?.Invoke(lPersistent);
+        QSensorSweepUpdate();
+    }
+
+    private void QSensorSweepUpdate()
+    {
+        qSensorRunPersistent.IsChecked = qSensorSweepGate.CSweepPersistent;
+        qSensorRunButton.Content = QLocalizationCatalog.QLocalizationTextRead(
+            qSensorSweepGate.CSweepRunning ? "Inspector.Detect.Stop" : "Inspector.Detect.Run");
+        qSensorProgress.Visibility = qSensorSweepGate.CSweepRunning
+            ? Visibility.Visible
+            : Visibility.Collapsed;
     }
 }

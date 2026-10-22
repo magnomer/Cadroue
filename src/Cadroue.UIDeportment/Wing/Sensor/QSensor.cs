@@ -1,235 +1,317 @@
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using Cadroue.Conduct;
 using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
 
-// The detector settings the sensor panel edits: each kind's step and the still, luminance and metric modes.
 public sealed class QSensor
 {
-    private readonly Dictionary<LDetectorKind, LDetectorStep> qSensorSteps = new();
-    private LDetectorStillMode qSensorMode = LDetectorStillMode.LDetectorStillDiscard;
-    private LDetectorLuminanceMode qSensorSpeed = LDetectorLuminanceMode.LDetectorLuminanceNormal;
-    private LDetectorMetricMode qSensorMetric = LDetectorMetricMode.LDetectorMetricLufs;
-
-    private static readonly LDetectorStillMode[] QSensorModes =
-    {
-        LDetectorStillMode.LDetectorStillDiscard, LDetectorStillMode.LDetectorStillTreat
-    };
-
-    private static readonly LDetectorLuminanceMode[] QSensorSpeeds =
-    {
-        LDetectorLuminanceMode.LDetectorLuminanceFast,
-        LDetectorLuminanceMode.LDetectorLuminanceNormal,
-        LDetectorLuminanceMode.LDetectorLuminanceFull
-    };
-
-    private static readonly LDetectorMetricMode[] QSensorMetrics =
-    {
-        LDetectorMetricMode.LDetectorMetricLufs, LDetectorMetricMode.LDetectorMetricRms
-    };
-
-    public event Action? QSensorChanged;
-
     public QSensor()
+        : this(new CDetector(), new CSweep())
     {
+    }
+
+    internal QSensor(CDetector detector, CSweep sweep)
+    {
+        CDetector = detector;
+        QSensorSweep = new QSensorSweep(sweep);
         QSensorPreset = new QSensorPreset(this);
-        QSensorStepPrepare();
-        QSensorPlans = qSensorSteps.Keys.Select(QSensorPlan.QSensorPlanCreate).ToList();
-        QSensorChangeAttach();
+        QSensorPlans = detector.CDetectorPlans.Select(QSensorPlan.QSensorPlanCreate).ToList();
     }
 
-    private static IEnumerable<LDetectorKind> QSensorKindsRead() =>
-        LDetector.LDetectorKinds.Where(lKind => lKind != LDetectorKind.LDetectorKindBlank);
-
-    private void QSensorStepPrepare()
-    {
-        foreach (LDetectorKind lKind in QSensorKindsRead())
-        {
-            qSensorSteps[lKind] = LDetector.LDetectorCreate(lKind);
-            QSensorPreset.QSensorKindAdd(lKind);
-        }
-    }
-
-    private void QSensorChangeAttach() => QSensorPreset.QSensorPresetChanged += () => QSensorChanged?.Invoke();
+    internal CDetector CDetector { get; }
 
     public IReadOnlyList<QSensorPlan> QSensorPlans { get; }
 
     public QSensorPreset QSensorPreset { get; }
 
-    public QSensorSweep QSensorSweep { get; } = new();
+    public QSensorSweep QSensorSweep { get; }
 
-    public int QSensorModeIndex => Array.IndexOf(QSensorModes, qSensorMode);
+    public LDetectorStillMode QSensorMode => CDetector.CDetectorMode;
 
-    public int QSensorSpeedIndex => Array.IndexOf(QSensorSpeeds, qSensorSpeed);
+    public LDetectorLuminanceMode QSensorSpeed => CDetector.CDetectorSpeed;
 
-    public int QSensorMetricIndex => Array.IndexOf(QSensorMetrics, qSensorMetric);
+    public LDetectorMetricMode QSensorMetric => CDetector.CDetectorMetric;
 
-    public LDetectorStillMode QSensorMode => qSensorMode;
+    public LDetectorStep QSensorStepRead(LDetectorKind lKind) => CDetector.CDetectorStepRead(lKind);
 
-    public LDetectorLuminanceMode QSensorSpeed => qSensorSpeed;
-
-    public LDetectorMetricMode QSensorMetric => qSensorMetric;
-
-    public LDetectorStep QSensorStepRead(LDetectorKind lKind) =>
-        qSensorSteps.TryGetValue(lKind, out LDetectorStep lStep) ? lStep : LDetector.LDetectorCreate(lKind);
-
-    public bool QSensorEnabledRead(LDetectorKind lKind) => QSensorStepRead(lKind).LDetectorStepEnabled;
-
-    public double QSensorValueRead(LDetectorKind lKind, int lRow)
+    public void QSensorBuild(LDetectorKind lKind, FrameworkElement lSurface)
     {
-        LDetectorStep lStep = QSensorStepRead(lKind);
-        return lRow switch
+        QSensorPlan lPlan = QSensorPlans.Single(lEntry => lEntry.QSensorPlanKind == lKind);
+        if (ReferenceEquals(lPlan.PSensorBody, lSurface))
         {
-            QSensorPlan.QSensorPlanWindow => lStep.LDetectorStepWindow,
-            QSensorPlan.QSensorPlanMinimum => lStep.LDetectorStepMinimum,
-            _ => lStep.LDetectorStepThreshold
-        };
-    }
-
-    public double QSensorDefaultRead(LDetectorKind lKind, int lRow) => lRow switch
-    {
-        QSensorPlan.QSensorPlanWindow => LDetector.LDetectorWindowRead(lKind).LDetectorBoundDefault,
-        QSensorPlan.QSensorPlanMinimum => LDetector.LDetectorMinimumRead(lKind).LDetectorBoundDefault,
-        _ => LDetector.LDetectorThresholdRead(lKind).LDetectorBoundDefault
-    };
-
-    public string QSensorUnitRead(LDetectorKind lKind, int lRow) =>
-        lKind == LDetectorKind.LDetectorKindVolume && lRow == QSensorPlan.QSensorPlanThreshold
-            ? (qSensorMetric == LDetectorMetricMode.LDetectorMetricRms ? "dB" : "LU")
-            : QSensorPlans.First(lPlan => lPlan.QSensorPlanKind == lKind)
-                .QSensorPlanRows.First(lEntry => lEntry.QInspectorRowIndex == lRow).QInspectorRowUnit;
-
-    public void QSensorValueSet(LDetectorKind lKind, int lRow, double lValue)
-    {
-        switch (lRow)
-        {
-            case QSensorPlan.QSensorPlanWindow:
-                QSensorWindowSet(lKind, lValue);
-                break;
-            case QSensorPlan.QSensorPlanMinimum:
-                QSensorMinimumSet(lKind, lValue);
-                break;
-            default:
-                QSensorThresholdSet(lKind, lValue);
-                break;
-        }
-    }
-
-    public void QSensorModeSelect(int lIndex)
-    {
-        if (QSensorIndexCheck(lIndex, QSensorModes.Length))
-        {
-            QSensorModeSet(QSensorModes[lIndex]);
-        }
-    }
-
-    public void QSensorSpeedSelect(int lIndex)
-    {
-        if (QSensorIndexCheck(lIndex, QSensorSpeeds.Length))
-        {
-            QSensorSpeedSet(QSensorSpeeds[lIndex]);
-        }
-    }
-
-    public void QSensorMetricSelect(int lIndex)
-    {
-        if (QSensorIndexCheck(lIndex, QSensorMetrics.Length))
-        {
-            QSensorMetricSet(QSensorMetrics[lIndex]);
-        }
-    }
-
-    private static bool QSensorIndexCheck(int lIndex, int lCount) => lIndex >= 0 && lIndex < lCount;
-
-    public void QSensorStepSet(LDetectorStep lStep)
-    {
-        if (!qSensorSteps.ContainsKey(lStep.LDetectorStepKind))
-        {
+            QSensorUpdate();
             return;
         }
 
-        QSensorStepApply(LDetector.LDetectorStepNormalize(lStep));
-    }
+        QSensorDetach();
+        lPlan.QSensorBuild(lSurface);
+        QInteractionClick.QInteractionClickAttach(lPlan.PSensorEnablement);
+        QCheckbox.QCheckboxAttach(lPlan.PSensorEnablement);
+        QDropdown.QDropdownAttach(lPlan.PSensorProfiles);
 
-    public void QSensorEnabledSet(LDetectorKind lKind, bool lEnabled) =>
-        QSensorStepApply(QSensorStepRead(lKind) with { LDetectorStepEnabled = lEnabled });
-
-    public void QSensorThresholdSet(LDetectorKind lKind, double lThreshold) =>
-        QSensorStepApply(
-            LDetector.LDetectorStepNormalize(QSensorStepRead(lKind) with { LDetectorStepThreshold = lThreshold }));
-
-    public void QSensorMinimumSet(LDetectorKind lKind, double lMinimum) =>
-        QSensorStepApply(
-            LDetector.LDetectorStepNormalize(QSensorStepRead(lKind) with { LDetectorStepMinimum = lMinimum }));
-
-    public void QSensorWindowSet(LDetectorKind lKind, double lWindow) =>
-        QSensorStepApply(
-            LDetector.LDetectorStepNormalize(QSensorStepRead(lKind) with { LDetectorStepWindow = lWindow }));
-
-    public void QSensorModeSet(LDetectorStillMode lMode)
-    {
-        if (qSensorMode == lMode)
+        QInspectorChoice lChoice = QSensorPreset.QSensorChoiceRead(lKind);
+        foreach (string lName in lChoice.QInspectorChoiceNames)
         {
-            return;
+            lPlan.PSensorProfiles.Items.Add(lName);
         }
 
-        qSensorMode = lMode;
-        QSensorChanged?.Invoke();
-    }
-
-    public void QSensorSpeedSet(LDetectorLuminanceMode lSpeed)
-    {
-        if (qSensorSpeed == lSpeed)
+        foreach (Grid lValue in new[] { lPlan.PSensorThreshold, lPlan.PSensorSpan, lPlan.PSensorMinimum })
         {
-            return;
+            var lTrack = (Slider)lValue.Children[1];
+            var lText = (TextBox)lValue.Children[3];
+            QSlider.QSliderAttach(lTrack);
+            QTextbox.QTextboxAttach(lText);
+            lText.PreviewTextInput += (_, lInput) =>
+                lInput.Handled = !QInspectorField.QInspectorDecimalCheck(lInput.Text);
+            int lRow = ReferenceEquals(lValue, lPlan.PSensorThreshold)
+                ? QSensorPlan.QSensorPlanThreshold
+                : ReferenceEquals(lValue, lPlan.PSensorSpan)
+                    ? QSensorPlan.QSensorPlanWindow
+                    : QSensorPlan.QSensorPlanMinimum;
+            QSlider.QSliderResetAttach(lTrack, () => CDetector.CDetectorDefaultRead(lKind, lRow));
         }
 
-        qSensorSpeed = lSpeed;
-        QSensorChanged?.Invoke();
+        QSensorUpdate();
+        QSensorAttach();
     }
 
-    public void QSensorMetricSet(LDetectorMetricMode lMetric)
+    public void QSensorAttach()
     {
-        if (qSensorMetric == lMetric)
+        foreach (QSensorPlan lPlan in QSensorPlans.Where(lEntry => lEntry.PSensorBody is not null))
         {
-            return;
-        }
-
-        string? lMatch = QSensorPreset.QSensorMatchRead(LDetectorKind.LDetectorKindVolume);
-        QSensorMetricCommit(lMetric);
-        if (QSensorVolumeResolve(lMatch, lMetric) is { } lNormal)
-        {
-            QSensorStepCommit(lNormal);
-        }
-
-        QSensorChanged?.Invoke();
-    }
-
-    private void QSensorMetricCommit(LDetectorMetricMode lMetric) => qSensorMetric = lMetric;
-
-    private LDetectorStep? QSensorVolumeResolve(string? lMatch, LDetectorMetricMode lMetric)
-    {
-        if (lMatch is { } lToken && LDetectorCatalog.LDetectorPresetRead(lToken) is { } lPreset)
-        {
-            LDetectorStep lStep = QSensorStepRead(LDetectorKind.LDetectorKindVolume);
-            return LDetector.LDetectorStepNormalize(lStep with
+            lPlan.PSensorEnablement.Checked -= QSensorAttach;
+            lPlan.PSensorEnablement.Unchecked -= QSensorAttach;
+            lPlan.PSensorProfiles.SelectionChanged -= QSensorAttach;
+            lPlan.PSensorEnablement.Checked += QSensorAttach;
+            lPlan.PSensorEnablement.Unchecked += QSensorAttach;
+            lPlan.PSensorProfiles.SelectionChanged += QSensorAttach;
+            foreach (Grid lGroup in new[] { lPlan.PSensorModes, lPlan.PSensorSpeeds, lPlan.PSensorMetrics })
             {
-                LDetectorStepThreshold = LDetectorCatalog.LDetectorPresetResolve(lPreset, lMetric)
-            });
+                var lOptions = (StackPanel)((Border)lGroup.Children[1]).Child;
+                foreach (RadioButton lOption in lOptions.Children)
+                {
+                    lOption.Checked -= QSensorAttach;
+                    lOption.Checked += QSensorAttach;
+                }
+            }
+
+            foreach (Grid lValue in new[] { lPlan.PSensorThreshold, lPlan.PSensorSpan, lPlan.PSensorMinimum })
+            {
+                ((Slider)lValue.Children[1]).ValueChanged -= QSensorAttach;
+                ((Slider)lValue.Children[1]).ValueChanged += QSensorAttach;
+                var lText = (TextBox)lValue.Children[3];
+                lText.LostFocus -= QSensorAttach;
+                lText.KeyDown -= QSensorAttach;
+                lText.LostFocus += QSensorAttach;
+                lText.KeyDown += QSensorAttach;
+            }
         }
 
-        return null;
+        QSensorPlan? lBuilt = QSensorPlans.FirstOrDefault(lPlan => lPlan.PSensorBody is not null);
+        if (lBuilt is not null)
+        {
+            lBuilt.PSensorBody.Resources[typeof(QSensor)] = true;
+        }
+
+        CDetector.CDetectorChanged -= QSensorUpdate;
+        CDetector.CDetectorChanged += QSensorUpdate;
     }
 
-    internal void QSensorStepCommit(LDetectorStep lNormal) => qSensorSteps[lNormal.LDetectorStepKind] = lNormal;
-
-    private void QSensorStepApply(LDetectorStep lNormal)
+    public void QSensorDetach()
     {
-        if (qSensorSteps[lNormal.LDetectorStepKind] == lNormal)
+        CDetector.CDetectorChanged -= QSensorUpdate;
+        QSensorPlan? lBuilt = QSensorPlans.FirstOrDefault(lPlan => lPlan.PSensorBody is not null);
+        if (lBuilt is not null)
+        {
+            lBuilt.PSensorBody.Resources[typeof(QSensor)] = false;
+        }
+
+        foreach (QSensorPlan lPlan in QSensorPlans.Where(lEntry => lEntry.PSensorBody is not null))
+        {
+            lPlan.PSensorEnablement.Checked -= QSensorAttach;
+            lPlan.PSensorEnablement.Unchecked -= QSensorAttach;
+            lPlan.PSensorProfiles.SelectionChanged -= QSensorAttach;
+            foreach (Grid lGroup in new[] { lPlan.PSensorModes, lPlan.PSensorSpeeds, lPlan.PSensorMetrics })
+            {
+                var lOptions = (StackPanel)((Border)lGroup.Children[1]).Child;
+                foreach (RadioButton lOption in lOptions.Children)
+                {
+                    lOption.Checked -= QSensorAttach;
+                }
+            }
+
+            foreach (Grid lValue in new[] { lPlan.PSensorThreshold, lPlan.PSensorSpan, lPlan.PSensorMinimum })
+            {
+                ((Slider)lValue.Children[1]).ValueChanged -= QSensorAttach;
+                var lText = (TextBox)lValue.Children[3];
+                lText.LostFocus -= QSensorAttach;
+                lText.KeyDown -= QSensorAttach;
+            }
+        }
+    }
+
+    private void QSensorAttach(object lSender, KeyEventArgs lKey)
+    {
+        QSensorPlan? lBuilt = QSensorPlans.FirstOrDefault(lPlan => lPlan.PSensorBody is not null);
+        if (lBuilt?.PSensorBody.Resources[typeof(QSensor)] is not true)
         {
             return;
         }
 
-        QSensorStepCommit(lNormal);
-        QSensorChanged?.Invoke();
+        if (lKey.Key == Key.Enter)
+        {
+            QSensorAttach(lSender, new RoutedEventArgs());
+        }
+
+        lKey.Handled = lKey.Key == Key.Enter;
+    }
+
+    private void QSensorAttach(object lSender, RoutedEventArgs __)
+    {
+        QSensorPlan? lBuilt = QSensorPlans.FirstOrDefault(lPlan => lPlan.PSensorBody is not null);
+        if (lBuilt?.PSensorBody.Resources[typeof(QSensor)] is not true)
+        {
+            return;
+        }
+
+        foreach (QSensorPlan lPlan in QSensorPlans.Where(lEntry => lEntry.PSensorBody is not null))
+        {
+            if (ReferenceEquals(lSender, lPlan.PSensorEnablement))
+            {
+                CDetector.CDetectorEnabledSet(lPlan.QSensorPlanKind, lPlan.PSensorEnablement.IsChecked == true);
+                return;
+            }
+
+            if (ReferenceEquals(lSender, lPlan.PSensorProfiles))
+            {
+                CDetector.CDetectorPreset.CDetectorChoiceSelect(
+                    lPlan.QSensorPlanKind, lPlan.PSensorProfiles.SelectedIndex);
+                return;
+            }
+
+            foreach ((Grid lGroup, Action<int> lSelect) in new (Grid, Action<int>)[]
+                     {
+                         (lPlan.PSensorModes, CDetector.CDetectorModeSelect),
+                         (lPlan.PSensorSpeeds, CDetector.CDetectorSpeedSelect),
+                         (lPlan.PSensorMetrics, CDetector.CDetectorMetricSelect),
+                     })
+            {
+                var lOptions = (StackPanel)((Border)lGroup.Children[1]).Child;
+                int lIndex = lOptions.Children.IndexOf((UIElement)lSender);
+                if (lIndex >= 0 && ((RadioButton)lSender).IsChecked == true)
+                {
+                    lSelect(lIndex);
+                    return;
+                }
+            }
+
+            foreach ((Grid lValue, int lRow) in new[]
+                     {
+                         (lPlan.PSensorThreshold, QSensorPlan.QSensorPlanThreshold),
+                         (lPlan.PSensorSpan, QSensorPlan.QSensorPlanWindow),
+                         (lPlan.PSensorMinimum, QSensorPlan.QSensorPlanMinimum),
+                     })
+            {
+                var lTrack = (Slider)lValue.Children[1];
+                if (ReferenceEquals(lSender, lTrack))
+                {
+                    CDetector.CDetectorValueSet(lPlan.QSensorPlanKind, lRow, lTrack.Value);
+                    return;
+                }
+
+                var lText = (TextBox)lValue.Children[3];
+                if (ReferenceEquals(lSender, lText))
+                {
+                    CDetector.CDetectorValueSet(
+                        lPlan.QSensorPlanKind,
+                        lRow,
+                        QInspectorField.QInspectorValueCommit(
+                            lText.Text,
+                            CDetector.CDetectorValueRead(lPlan.QSensorPlanKind, lRow),
+                            lTrack.Minimum,
+                            lTrack.Maximum));
+                    lText.CaretIndex = lText.Text.Length;
+                    return;
+                }
+            }
+        }
+    }
+
+    private void QSensorUpdate()
+    {
+        QSensorPlan? lBuilt = QSensorPlans.FirstOrDefault(lPlan => lPlan.PSensorBody is not null);
+        bool lAttached = lBuilt?.PSensorBody.Resources[typeof(QSensor)] is true;
+        if (lAttached)
+        {
+            lBuilt!.PSensorBody.Resources[typeof(QSensor)] = false;
+        }
+
+        try
+        {
+            foreach (QSensorPlan lPlan in QSensorPlans.Where(lEntry => lEntry.PSensorBody is not null))
+            {
+                bool lEnabled = CDetector.CDetectorEnabledRead(lPlan.QSensorPlanKind);
+                lPlan.PSensorEnablement.IsChecked = lEnabled;
+                QTool.QToolStackUpdate((StackPanel)lPlan.PSensorBody.Children[2], lEnabled);
+
+                foreach ((Grid lGroup, int lIndex) in new[]
+                         {
+                             (lPlan.PSensorModes, CDetector.CDetectorModeIndex),
+                             (lPlan.PSensorSpeeds, CDetector.CDetectorSpeedIndex),
+                             (lPlan.PSensorMetrics, CDetector.CDetectorMetricIndex),
+                         })
+                {
+                    var lOptions = (StackPanel)((Border)lGroup.Children[1]).Child;
+                    ((RadioButton)lOptions.Children[lIndex]).IsChecked = true;
+                }
+
+                QInspectorChoice lChoice = QSensorPreset.QSensorChoiceRead(lPlan.QSensorPlanKind);
+                lPlan.PSensorProfiles.Items[lChoice.QInspectorChoiceCustom] = lChoice.QInspectorChoiceText;
+                lPlan.PSensorProfiles.SelectedIndex = lChoice.QInspectorChoiceIndex;
+
+                foreach ((Grid lValue, int lRow) in new[]
+                         {
+                             (lPlan.PSensorThreshold, QSensorPlan.QSensorPlanThreshold),
+                             (lPlan.PSensorSpan, QSensorPlan.QSensorPlanWindow),
+                             (lPlan.PSensorMinimum, QSensorPlan.QSensorPlanMinimum),
+                         })
+                {
+                    if (lValue.Visibility != Visibility.Visible)
+                    {
+                        continue;
+                    }
+
+                    double lNumber = CDetector.CDetectorValueRead(lPlan.QSensorPlanKind, lRow);
+                    var lTrack = (Slider)lValue.Children[1];
+                    var lText = (TextBox)lValue.Children[3];
+                    lTrack.Value = Math.Clamp(lNumber, lTrack.Minimum, lTrack.Maximum);
+                    string lPattern = lPlan.QSensorPlanRows
+                        .Single(lEntry => lEntry.QInspectorRowIndex == lRow).QInspectorRowPattern;
+                    lText.Text = QInspectorField.QInspectorValueFormat(lText.Text, lNumber, lPattern);
+                    ((TextBlock)lValue.Children[2]).Text = CDetector.CDetectorUnitRead(
+                        lPlan.QSensorPlanKind, lRow);
+                }
+            }
+        }
+        finally
+        {
+            if (lAttached)
+            {
+                lBuilt!.PSensorBody.Resources[typeof(QSensor)] = true;
+            }
+        }
+    }
+
+    public void QSensorUpdate(IReadOnlyDictionary<LDetectorKind, bool> lShown)
+    {
+        foreach (QSensorPlan lPlan in QSensorPlans.Where(lEntry => lEntry.PSensorBody is not null))
+        {
+            lPlan.PSensorBody.Visibility = lShown[lPlan.QSensorPlanKind]
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
     }
 }

@@ -1,3 +1,4 @@
+using System.Windows;
 using System.Windows.Controls;
 
 namespace Cadroue.UIDeportment;
@@ -59,26 +60,68 @@ public sealed class QCurveSection
 
         Button lPointButton = QContract.QContractFind<Button>(QCurveSectionBody, "PCurvePointButton");
         lPointButton.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.CurveDeletePoint");
-        QCurveActionAttach(lPointButton, qCurve.QCurvePointDelete);
         Button lChannelButton = QContract.QContractFind<Button>(QCurveSectionBody, "PCurveChannelButton");
         lChannelButton.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.CurveResetChannel");
-        QCurveActionAttach(lChannelButton, qCurve.QCurveChannelReset);
         Button lResetButton = QContract.QContractFind<Button>(QCurveSectionBody, "PCurveResetButton");
         lResetButton.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.CurveResetAll");
-        QCurveActionAttach(lResetButton, qCurve.QCurveReset);
-
-        QTool.QToolSwitchAttach(qCurveActive, qCurve.QCurveActiveSet);
-        QTool.QToolSwitchAttach(QCurveSectionPersistent, qCurve.QCurvePersistentSet);
-        qCurveChoice.SelectionChanged += (_, _) => qCurve.QCurveChannelSelect(qCurveChoice.SelectedIndex);
-        qCurveInput.TextChanged += (_, _) => QCurvePointCommit();
-        qCurveOutput.TextChanged += (_, _) => QCurvePointCommit();
+        SelectionChangedEventHandler lChoice = (_, _) => qCurve.QCurveChannelSelect(qCurveChoice.SelectedIndex);
+        TextChangedEventHandler lInput = (_, _) => QCurvePointCommit();
+        TextChangedEventHandler lOutput = (_, _) => QCurvePointCommit();
+        Action lAttach = () =>
+        {
+            qCurveChoice.SelectionChanged -= lChoice;
+            qCurveInput.TextChanged -= lInput;
+            qCurveOutput.TextChanged -= lOutput;
+            qCurveChoice.SelectionChanged += lChoice;
+            qCurveInput.TextChanged += lInput;
+            qCurveOutput.TextChanged += lOutput;
+        };
+        Action lDetach = () =>
+        {
+            qCurveChoice.SelectionChanged -= lChoice;
+            qCurveInput.TextChanged -= lInput;
+            qCurveOutput.TextChanged -= lOutput;
+        };
+        lAttach();
+        QCurveSectionBody.Resources[typeof(QCurveSection)] = new List<(Action, Action)>
+        {
+            QCurveActionAttach(lPointButton, qCurve.QCurvePointDelete),
+            QCurveActionAttach(lChannelButton, qCurve.QCurveChannelReset),
+            QCurveActionAttach(lResetButton, qCurve.QCurveReset),
+            QTool.QToolSwitchAttach(qCurveActive, qCurve.QCurveActiveSet),
+            QTool.QToolSwitchAttach(QCurveSectionPersistent, qCurve.QCurvePersistentSet),
+            (lAttach, lDetach),
+        };
+        QCurveSectionAttach();
     }
 
     public StackPanel QCurveSectionBody { get; }
 
     public CheckBox QCurveSectionPersistent { get; }
 
-    public void QCurveSectionAttach() => qCurve.QCurveChanged += QCurveSectionUpdate;
+    public void QCurveSectionAttach()
+    {
+        qCurveCanvas.QCurveAttach(qCurveSectionCanvas, true);
+        foreach ((Action lAttach, _) in
+                 (List<(Action, Action)>)QCurveSectionBody.Resources[typeof(QCurveSection)])
+        {
+            lAttach();
+        }
+
+        qCurve.QCurveChanged -= QCurveSectionUpdate;
+        qCurve.QCurveChanged += QCurveSectionUpdate;
+    }
+
+    public void QCurveSectionDetach()
+    {
+        qCurveCanvas.QCurveAttach(qCurveSectionCanvas, false);
+        qCurve.QCurveChanged -= QCurveSectionUpdate;
+        foreach ((_, Action lDetach) in
+                 (List<(Action, Action)>)QCurveSectionBody.Resources[typeof(QCurveSection)])
+        {
+            lDetach();
+        }
+    }
 
     public void QCurveSectionUpdate()
     {
@@ -111,9 +154,17 @@ public sealed class QCurveSection
             QInspectorField.QInspectorValueFormat(qCurveOutput.Text, qCurve.QCurveOutputPercent, "0.#");
     }
 
-    private static void QCurveActionAttach(Button lButton, Action lAction)
+    private static (Action, Action) QCurveActionAttach(Button lButton, Action lAction)
     {
-        lButton.Click += (_, _) => lAction();
         QButton.QButtonAttach(lButton, QButtonLook.QButtonLookPanel);
+        RoutedEventHandler lHandler = (_, _) => lAction();
+        Action lAttach = () =>
+        {
+            lButton.Click -= lHandler;
+            lButton.Click += lHandler;
+        };
+        Action lDetach = () => lButton.Click -= lHandler;
+        lAttach();
+        return (lAttach, lDetach);
     }
 }

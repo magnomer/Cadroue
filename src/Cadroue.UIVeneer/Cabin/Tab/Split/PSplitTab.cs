@@ -17,7 +17,7 @@ public sealed class PSplitTab : PTabSurface
         pViewer = new PViewer(lWorkspace.QWorkspaceViewer!);
         pList = new PList(lWorkspace.QWorkspaceList!);
         QSplitTab = lWorkspace.QWorkspaceMode.QSplitTabCreate();
-        pInspector = new PInspector(QSplitTab.QSplitInspector);
+        pInspector = new PInspector(QSplitTab.QSplitInspector.QInspectorFrame);
         pProcessing = new PProcessing(QSplitTab.QSplitProcessing);
         var pSection = new PSection(QSplitTab.QSplitSection);
         var pAction = new PAction(lWorkspace.QWorkspaceMode.QWorkspaceAction!);
@@ -26,7 +26,7 @@ public sealed class PSplitTab : PTabSurface
         QSplitTab.QSplitRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
         PSplitStepsAttach();
 
-        pInspector.PInspectorSweep.PSensorRunShow();
+        pInspector.QInspectorFrame.QInspectorFrameSet(false, true);
         PSplitEventsAttach();
 
         var pExport = new PExport(lWorkspace.QWorkspaceExport, lWorkspace.QWorkspacePresetOwner);
@@ -57,22 +57,21 @@ public sealed class PSplitTab : PTabSurface
 
     private void PSplitStepsAttach()
     {
-        pProcessing.PProcessingStepChanged += pInspector.PInspectorStepShow;
-        pProcessing.PProcessingStepOpened += _ => pInspector.PInspectorMinimizeSet(false);
+        pProcessing.PProcessingStepChanged += pInspector.QInspectorFrame.QInspectorFrameSet;
+        pProcessing.PProcessingStepOpened += _ => pInspector.QInspectorFrame.QInspectorFrameSet(false);
     }
 
     private void PSplitEventsAttach()
     {
         QSplitTab.QSplitWork.QSplitPresetMissing += PExportNotice.PExportMissingShow;
         QSplitTab.QSplitSweep.QSplitBusyApplied += PSplitBusyApply;
-        QSplitTab.QSplitSweep.QSplitProgressApplied += pInspector.PInspectorSweep.PSensorProgressApply;
+        QSplitTab.QSplitSweep.QSplitProgressApplied += pInspector.QInspectorFrame.QInspectorFrameSet;
         QSplitTab.QSplitSweep.QSplitFailRaised += PSplitFailShow;
     }
 
     private void PSplitBusyApply(bool pBusy)
     {
-        pInspector.PSensorLockSet(pBusy);
-        pInspector.PInspectorSweep.PSensorProgressSet(pBusy);
+        pInspector.QInspectorFrame.QInspectorFrameSet(pBusy, true);
         pProcessing.IsEnabled = !pBusy;
     }
 

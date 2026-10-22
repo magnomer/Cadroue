@@ -12,10 +12,10 @@ using Xunit;
 
 namespace Cadroue.Tests.Windows;
 
-[CollectionDefinition("EncoderSurface", DisableParallelization = true)]
-public sealed class TEncoderSurfaceCollection;
+[CollectionDefinition(nameof(TProgramCollection), DisableParallelization = true)]
+public sealed class TProgramCollection;
 
-[Collection("EncoderSurface")]
+[Collection(nameof(TProgramCollection))]
 public sealed class TEncoderRows
 {
     private static void TEncoderRun(Action body)

@@ -1,0 +1,92 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="../Sensor/PSensor.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+    <Border x:Key="PInspector"
+            x:Shared="False"
+            Margin="{StaticResource PPanelMargin}"
+            BorderBrush="{StaticResource PPanelLine}"
+            BorderThickness="1"
+            Background="White"
+            CornerRadius="10"
+            SnapsToDevicePixels="True">
+        <Border Background="White"
+                CornerRadius="9"
+                SnapsToDevicePixels="True">
+            <Grid x:Name="PInspectorBody">
+                <DockPanel x:Name="PInspectorExpanded"
+                           LastChildFill="True">
+                    <Border DockPanel.Dock="Top"
+                            Padding="12,5,6,5"
+                            BorderBrush="{StaticResource PPanelLine}"
+                            BorderThickness="0,0,0,1"
+                            Background="White">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="PInspectorTitle"
+                                       FontSize="12"
+                                       FontFamily="{StaticResource PToolFont}"
+                                       FontWeight="SemiBold"
+                                       Foreground="#FF26364A"
+                                       VerticalAlignment="Center" />
+                            <Button x:Name="PInspectorMinimizer"
+                                    Grid.Column="1"
+                                    Width="28"
+                                    Height="26"
+                                    HorizontalAlignment="Right">
+                                <Image Width="20"
+                                       Height="20"
+                                       Stretch="Uniform" />
+                            </Button>
+                        </Grid>
+                    </Border>
+                    <ContentControl x:Name="PInspectorExecution"
+                                    DockPanel.Dock="Bottom" />
+                    <StackPanel x:Name="PInspectorPersistence"
+                                DockPanel.Dock="Bottom"
+                                Visibility="Collapsed">
+                        <Border Height="1"
+                                Background="{StaticResource PPanelLine}"
+                                Margin="12,0,12,12" />
+                    </StackPanel>
+                    <ScrollViewer x:Name="PInspectorScroller"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <Grid x:Name="PInspectorSections">
+                            <TextBlock x:Name="PInspectorVacancy"
+                                       FontSize="12"
+                                       FontFamily="{StaticResource PToolFont}"
+                                       Foreground="{StaticResource PToolMuted}"
+                                       TextWrapping="Wrap"
+                                       HorizontalAlignment="Center"
+                                       TextAlignment="Center"
+                                       Margin="16,24,16,16" />
+                            <ContentControl Content="{StaticResource PSensorBody}" />
+                            <ContentControl Content="{StaticResource PSensorBody}" />
+                            <ContentControl Content="{StaticResource PSensorBody}" />
+                            <ContentControl Content="{StaticResource PSensorBody}" />
+                            <ContentControl Content="{StaticResource PSensorBody}" />
+                        </Grid>
+                    </ScrollViewer>
+                </DockPanel>
+                <StackPanel x:Name="PInspectorNarrow"
+                            Background="White"
+                            Visibility="Collapsed">
+                    <Button x:Name="PInspectorMaximizer"
+                            Width="28"
+                            Height="26"
+                            Margin="0,6,0,0"
+                            HorizontalAlignment="Center">
+                        <Image Width="20"
+                               Height="20"
+                               Stretch="Uniform" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Border>
+</ResourceDictionary>

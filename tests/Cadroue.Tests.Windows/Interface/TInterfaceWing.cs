@@ -142,31 +142,24 @@ internal static partial class TInterface
         LNeutralCanvas.LNeutralBitmapResolve(size, value);
 
     internal static IReadOnlyList<QSensorPlan> TSensorPlansRead(QSensor sensor) => sensor.QSensorPlans;
-    internal static bool TSensorEnabledRead(QSensor sensor, LDetectorKind kind) => sensor.QSensorEnabledRead(kind);
+    internal static bool TSensorEnabledRead(QSensor sensor, LDetectorKind kind) =>
+        sensor.CDetector.CDetectorEnabledRead(kind);
     internal static double TSensorValueRead(QSensor sensor, LDetectorKind kind, int row) =>
-        sensor.QSensorValueRead(kind, row);
+        sensor.CDetector.CDetectorValueRead(kind, row);
     internal static double TSensorDefaultRead(QSensor sensor, LDetectorKind kind, int row) =>
-        sensor.QSensorDefaultRead(kind, row);
+        sensor.CDetector.CDetectorDefaultRead(kind, row);
     internal static string TSensorUnitRead(QSensor sensor, LDetectorKind kind, int row) =>
-        sensor.QSensorUnitRead(kind, row);
+        sensor.CDetector.CDetectorUnitRead(kind, row);
     internal static void TSensorValueSet(QSensor sensor, LDetectorKind kind, int row, double value) =>
-        sensor.QSensorValueSet(kind, row, value);
-    internal static void TSensorModeSelect(QSensor sensor, int index) => sensor.QSensorModeSelect(index);
-    internal static void TSensorSpeedSelect(QSensor sensor, int index) => sensor.QSensorSpeedSelect(index);
-    internal static void TSensorMetricSelect(QSensor sensor, int index) => sensor.QSensorMetricSelect(index);
+        sensor.CDetector.CDetectorValueSet(kind, row, value);
+    internal static void TSensorModeSelect(QSensor sensor, int index) => sensor.CDetector.CDetectorModeSelect(index);
+    internal static void TSensorSpeedSelect(QSensor sensor, int index) => sensor.CDetector.CDetectorSpeedSelect(index);
+    internal static void TSensorMetricSelect(QSensor sensor, int index) =>
+        sensor.CDetector.CDetectorMetricSelect(index);
     internal static QInspectorChoice TSensorChoiceRead(QSensor sensor, LDetectorKind kind) =>
         sensor.QSensorPreset.QSensorChoiceRead(kind);
     internal static void TSensorChoiceSelect(QSensor sensor, LDetectorKind kind, int index) =>
-        sensor.QSensorPreset.QSensorChoiceSelect(kind, index);
-    internal static void TSensorRunningSet(QSensor sensor, bool running) =>
-        sensor.QSensorSweep.QSensorRunningSet(running);
-    internal static void TSensorRunHandle(QSensor sensor) => sensor.QSensorSweep.QSensorRunHandle();
-    internal static void TSensorRunAttach(QSensor sensor, Action run, Action stop)
-    {
-        sensor.QSensorSweep.QSensorRunApplied += run;
-        sensor.QSensorSweep.QSensorStopApplied += stop;
-    }
-
+        sensor.CDetector.CDetectorPreset.CDetectorChoiceSelect(kind, index);
     internal static IReadOnlyList<QInspectorRow> TLoudnessRowsRead(CLoudness loudness, bool dynamic) =>
         new QLoudness(loudness).QLoudnessRowsRead(dynamic);
     internal static double TLoudnessValueRead(CLoudness loudness, bool dynamic, int index) =>
