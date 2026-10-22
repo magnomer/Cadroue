@@ -25,6 +25,7 @@ public sealed class CAtelier
     private readonly LVideoPort _cAtelierVideoPort;
     private readonly LConsoleScenePort _cAtelierScenePort;
     private readonly Func<Func<string, string>, LListPort> _cAtelierListPort;
+    private readonly LAboutPort _cAtelierAboutPort;
 
     internal CAtelier(LAtelierPort port)
     {
@@ -61,6 +62,7 @@ public sealed class CAtelier
         ArgumentNullException.ThrowIfNull(port.LAtelierTrial);
         ArgumentNullException.ThrowIfNull(port.LAtelierRepertoire);
         ArgumentNullException.ThrowIfNull(port.LAtelierEncoder);
+        ArgumentNullException.ThrowIfNull(port.LAtelierAbout);
 
         CAtelierUsher = new CUsher(port.LAtelierUsher);
         CAtelierLineage = new CLineage(port.LAtelierLineage);
@@ -90,6 +92,7 @@ public sealed class CAtelier
         _cAtelierVideoPort = port.LAtelierVideo;
         _cAtelierScenePort = port.LAtelierScene;
         _cAtelierListPort = port.LAtelierList;
+        _cAtelierAboutPort = port.LAtelierAbout;
         CAtelierRelay = new CRelay(port.LAtelierRelay, CAtelierUsher);
         CAtelierEncoder = new CSEncoder(port.LAtelierTrial, port.LAtelierRepertoire, port.LAtelierEncoder);
     }
@@ -144,4 +147,7 @@ public sealed class CAtelier
 
     // A tab's list over its own docket.
     public CList CAtelierListCreate() => new(_cAtelierListPort, CAtelierUsher);
+
+    // An About window's gate: it holds the tap count of that window alone.
+    public CSAbout CAtelierAboutCreate() => new(_cAtelierAboutPort, CAtelierUsher);
 }

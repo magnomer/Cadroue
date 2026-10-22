@@ -36,7 +36,7 @@ public sealed class QWindow
         QWindowSceneAttach();
         QWindowRelay = new QWindowRelay(this);
         QWindowStartup = new QWindowStartup(this);
-        QWindowLogo = new QLogoMenu(QWindowUsher);
+        QWindowLogo = new QLogoMenu(QWindowUsher, lAtelier.CAtelierAboutCreate);
         QWindowPart = new QWindowPart(this, lAtelier.CAtelierConsoleCreate());
     }
 

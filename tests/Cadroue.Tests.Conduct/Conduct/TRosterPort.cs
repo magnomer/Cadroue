@@ -4,11 +4,17 @@ using Cadroue.ShellEngine;
 
 namespace Cadroue.Tests;
 
-internal sealed class TRosterPort : LRosterPort, LRosterMenuPort
+internal sealed class TRosterPort : LRosterPort, LRosterMenuPort, LAboutPort
 {
     public bool TRosterShared { get; set; }
 
     public bool TRosterDone { get; set; }
+
+    public bool TRosterDeveloper { get; set; }
+
+    public bool LAboutDeveloperRead() => TRosterDeveloper;
+
+    public void LAboutDeveloperSave(bool lDeveloper) => TRosterDeveloper = lDeveloper;
 
     public List<string> TRosterCalls { get; } = [];
 

@@ -66,7 +66,22 @@ internal sealed class PSDebug : Window
         pRoot.Children.Add(PSDebugHeadingBuild("Subwindows"));
 
         var pWindows = PSDebugWrapBuild();
-        PSDebugButtonAdd(pWindows, "About", () => PSAbout.PSAboutShow(this, qLogoMenu.QLogoAboutCreate()));
+        PSDebugButtonAdd(
+            pWindows,
+            "About",
+            () => qLogoMenu
+                .QLogoAboutCreate(
+                    () => new PSAbout(),
+                    PSDialog.PSDialogBuild,
+                    pWindow =>
+                    {
+                        var pGrabber = new PSGrabber(pWindow);
+                        return (pGrabber.PSGrabberAttach, pGrabber.PSGrabberDetach);
+                    },
+                    PSWarning.PSWarningShow,
+                    PSGrabberPlacement.PSGrabberPlacementRestore,
+                    PSGrabberPlacement.PSGrabberPlacementSave)
+                .QSAboutShow(this));
         PSDebugButtonAdd(
             pWindows, "Options", () => PSOptions.PSOptionsShow(this, qLogoMenu.QLogoOptionsCreate(), null));
         PSDebugButtonAdd(pWindows, "Shortcuts", () => PSKeymap.PSKeymapShow(this, qLogoMenu.QLogoKeymapCreate(), null));

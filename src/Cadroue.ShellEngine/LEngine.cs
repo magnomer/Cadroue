@@ -59,6 +59,8 @@ public sealed class LEngine
 
     public LFlowFacade LEngineFlow { get; }
 
+    public LAboutFacade LEngineAbout { get; }
+
     public LEngine(LRig lRig)
     {
         ArgumentNullException.ThrowIfNull(lRig);
@@ -90,6 +92,7 @@ public sealed class LEngine
         LEngineLineage = new LLineageFacade();
         LEngineRosterDetail = new LRosterDetailFacade();
         LEngineFlow = new LFlowFacade(lRig.LRigFlow);
+        LEngineAbout = new LAboutFacade();
         LEngineSeam.LEngineSeamAttach(lRig);
     }
 }

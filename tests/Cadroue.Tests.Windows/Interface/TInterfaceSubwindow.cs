@@ -178,6 +178,6 @@ internal static partial class TInterface
     internal static QSVerdict TVerdictCreate(string title, IReadOnlyList<QSVerdictRow> rows) => new(title, rows);
     internal static bool TVerdictDetailCheck(QSVerdictRow row) => QSVerdict.QSVerdictDetailCheck(row);
 
-    internal static QSAbout TAboutCreate() => new(TAtelierCreate().CAtelierUsher);
-    internal static bool TAboutTapChange(QSAbout about, DateTime now) => about.QSAboutTap.QSAboutTapChange(now);
+    internal static CSAbout TAboutCreate() => TAtelierCreate().CAtelierAboutCreate();
+    internal static bool TAboutTapChange(CSAbout about, DateTime now) => about.CSAboutTapChange(now);
 }

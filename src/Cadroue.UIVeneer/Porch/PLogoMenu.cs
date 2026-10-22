@@ -13,8 +13,19 @@ internal sealed class PLogoMenu
             ["Shortcuts"] = pLogo => pLogo.PToolbarShortcutShow(),
             ["Log"] = pLogo =>
                 PLogWindow.PLogWindowShow(Window.GetWindow(pLogo.pLogoOwner)!, pLogo.qLogoMenu!.QLogoLogCreate),
-            ["About"] = pLogo =>
-                PSAbout.PSAboutShow(Window.GetWindow(pLogo.pLogoOwner)!, pLogo.qLogoMenu!.QLogoAboutCreate()),
+            ["About"] = pLogo => pLogo.qLogoMenu!
+                .QLogoAboutCreate(
+                    () => new PSAbout(),
+                    PSDialog.PSDialogBuild,
+                    pWindow =>
+                    {
+                        var pGrabber = new PSGrabber(pWindow);
+                        return (pGrabber.PSGrabberAttach, pGrabber.PSGrabberDetach);
+                    },
+                    PSWarning.PSWarningShow,
+                    PSGrabberPlacement.PSGrabberPlacementRestore,
+                    PSGrabberPlacement.PSGrabberPlacementSave)
+                .QSAboutShow(Window.GetWindow(pLogo.pLogoOwner)!),
             ["Exit"] = pLogo => Window.GetWindow(pLogo.pLogoOwner)!.Close(),
         };
 

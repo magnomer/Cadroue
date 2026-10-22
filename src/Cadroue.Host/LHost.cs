@@ -54,6 +54,7 @@ Func<LEngine, LAtelierPort> port = static engine => new LAtelierPort
     LAtelierList = LListOutlet.LListOutletCreate(LRigFactoryList.LRigListCreate()),
     LAtelierEncoder = LSEncoderOutlet.LSEncoderOutletCreate(),
     LAtelierRelay = engine.LEngineRelay,
+    LAtelierAbout = engine.LEngineAbout,
     LAtelierTrial = new LSTrialOutlet(
         LTrial.LTrialVideoRun,
         lAvailable => LTrialCatalog.LTrialSetApply(lAvailable),

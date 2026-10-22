@@ -68,4 +68,7 @@ public sealed record LAtelierPort
 
     // The video encoder repertoire and capability table every encoder window reads.
     public required LSRepertoirePort LAtelierRepertoire { get; init; }
+
+    // The developer preference the About gate reads and flips.
+    public required LAboutPort LAtelierAbout { get; init; }
 }

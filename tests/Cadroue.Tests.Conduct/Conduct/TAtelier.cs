@@ -43,6 +43,7 @@ internal static class TAtelier
             LAtelierRelay = new TRelayPort(),
             LAtelierTrial = new TTrialPort(),
             LAtelierRepertoire = new TRepertoirePort(),
+            LAtelierAbout = new TRosterPort(),
         };
         return new CAtelier(port is null ? ports : port(ports));
     }

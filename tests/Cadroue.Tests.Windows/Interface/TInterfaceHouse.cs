@@ -229,6 +229,7 @@ internal static partial class TInterface
             LAtelierList = TInterfaceList.TListOutletCreate,
             LAtelierEncoder = LSEncoderOutlet.LSEncoderOutletCreate(),
             LAtelierRelay = TInterfaceList.TRelayOutletCreate(),
+            LAtelierAbout = Interface.TInterface.TInterfaceEngine.LEngineAbout,
             LAtelierTrial = new LSTrialOutlet(
                 LTrial.LTrialVideoRun,
                 available => LTrialCatalog.LTrialSetApply(available),
