@@ -14,7 +14,7 @@ public sealed class PEditTab : PTabSurface
     private readonly PDebounce pEditColorTimer;
     private readonly PDebounce pEditHistogramTimer;
 
-    public PEditTab(QWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PEditTab(QWorkspace lWorkspace, PExport pExport, LSceneTabEntry? lPreferenceTabLayout = null)
     {
         pFlow = new PFlow(lWorkspace.QWorkspaceFlow!);
         pViewer = new PViewer(lWorkspace.QWorkspaceViewer!);
@@ -32,7 +32,6 @@ public sealed class PEditTab : PTabSurface
         PEditEventsAttach();
         QEditTab.QEditColor.QEditCapableHandle();
 
-        var pExport = new PExport(lWorkspace.QWorkspaceExport, lWorkspace.QWorkspacePresetOwner);
         PTabLock.PTabLockAttach(pList, pProcessing, pInspector, pExport);
         Content = PTabGridBuild(
             lWorkspace.QWorkspaceMode,

@@ -15,9 +15,6 @@ internal static class PSMode
 
     internal static string PSModeTextRead(Border pMode) => (string)(pMode.Tag ?? string.Empty);
 
-    internal static Border PSModeBuild(string pSelected, Action pChange, params LLocalizationChoice[] pChoices) =>
-        PSModeBuild(pSelected, pChange, out _, pChoices);
-
     internal static Border PSModeBuild(
         string pSelected,
         Action pChange,

@@ -28,8 +28,6 @@ public sealed class CClinic
 
     public string? CClinicSource => _cClinicSource;
 
-    public string? CClinicStep => _cClinicStep;
-
     public string? CClinicKind => _cClinicKind;
 
     public bool CClinicSalvageShown => _cClinicStep == CClinicSalvageStep;

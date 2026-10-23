@@ -23,6 +23,12 @@ internal sealed class PSGrabber
         psGrabberWindow = pWindow;
     }
 
+    internal static (Action, Action) PSGrabberPairBuild(Window pWindow)
+    {
+        var pGrabber = new PSGrabber(pWindow);
+        return (pGrabber.PSGrabberAttach, pGrabber.PSGrabberDetach);
+    }
+
     internal void PSGrabberAttach()
     {
         psGrabberWindow.PreviewMouseMove += PSGrabberMoveHandle;
@@ -77,17 +83,12 @@ internal sealed class PSGrabber
     {
         if (psGrabberActive)
         {
-            PSGrabberDragAccept(e);
+            PSGrabberApply(PSGrabberPointerRead(e));
+            e.Handled = true;
             return;
         }
 
         PSGrabberCursorApply(PSGrabberHoverRead(e));
-    }
-
-    private void PSGrabberDragAccept(MouseEventArgs e)
-    {
-        PSGrabberApply(PSGrabberPointerRead(e));
-        e.Handled = true;
     }
 
     private int PSGrabberHoverRead(MouseEventArgs e) =>
@@ -206,10 +207,5 @@ internal sealed class PSGrabber
     }
 
     private void PSGrabberBoundsSet(double pLeft, double pTop, double pWidth, double pHeight)
-    {
-        psGrabberWindow.Left = pLeft;
-        psGrabberWindow.Top = pTop;
-        psGrabberWindow.Width = pWidth;
-        psGrabberWindow.Height = pHeight;
-    }
+        => QSashWindow.QSashWindowApply(psGrabberWindow, new QSashBounds(pLeft, pTop, pWidth, pHeight));
 }

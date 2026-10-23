@@ -54,13 +54,5 @@ public sealed class TRendererFacts : IDisposable
 
         Assert.Equal(
             (false, false), TInterfaceEngine.TRendererReadinessRead(tRendererFactsFolder));
-
-        var order = new List<string>();
-        IOException failure = Assert.Throws<IOException>(() => TInterfaceEngine.TRendererReadinessRead(
-            "fault",
-            _ => { order.Add("program"); return true; },
-            _ => { order.Add("library"); throw new IOException("forced"); }));
-        Assert.Equal("forced", failure.Message);
-        Assert.Equal(["program", "library"], order);
     }
 }

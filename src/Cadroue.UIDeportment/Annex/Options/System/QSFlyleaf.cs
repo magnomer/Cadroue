@@ -16,6 +16,7 @@ public sealed class QSFlyleaf : CSFlyleafPort
     private Button? psFlyleafOpener;
     private QSFlyleafAnswer? qsFlyleafAnswer;
     private QSOptionsOperation? qsOptionsOperation;
+    private (Action<bool>, Action<bool, string>) qsFlyleafOutcome;
 
     public QSFlyleaf()
     {
@@ -38,7 +39,17 @@ public sealed class QSFlyleaf : CSFlyleafPort
         psFlyleafOpener = QContract.QContractFind<Button>(surface, "PSFlyleafOpener");
         ProgressBar psFlyleafProgress = QContract.QContractFind<ProgressBar>(surface, "PSFlyleafProgress");
         qsFlyleafAnswer = answer;
-        qsOptionsOperation = new QSOptionsOperation(psFlyleafInstaller, psFlyleafProgress);
+        QSOptionsOperation operation = new(psFlyleafInstaller, psFlyleafProgress);
+        qsOptionsOperation = operation;
+        qsFlyleafOutcome = (
+            installed => QSFlyleafUpdate(operation, installed, () => answer.QSFlyleafShow(
+                true,
+                QLocalizationCatalog.QLocalizationTextRead("Options.System.LocalFlyleaf"),
+                QLocalizationCatalog.QLocalizationTextRead("Flyleaf.Local.Install.Completed"))),
+            (installed, failure) => QSFlyleafUpdate(operation, installed, () => answer.QSFlyleafShow(
+                false,
+                QLocalizationCatalog.QLocalizationTextRead("Options.System.LocalFlyleaf"),
+                QLocalizationCatalog.QLocalizationFormat("Flyleaf.Local.Install.Failed", failure))));
 
         QButton.QButtonAttach(psFlyleafInstaller, QButtonLook.QButtonLookWhite);
         QButton.QButtonAttach(psFlyleafOpener, QButtonLook.QButtonLookWhite);
@@ -67,6 +78,7 @@ public sealed class QSFlyleaf : CSFlyleafPort
         }
 
         qsOptionsOperation = null;
+        qsFlyleafOutcome = default;
         psFlyleafInstaller = null;
         psFlyleafOpener = null;
         qsFlyleafAnswer = null;
@@ -75,41 +87,38 @@ public sealed class QSFlyleaf : CSFlyleafPort
     public async Task QSFlyleafStart()
     {
         QSOptionsOperation operation = qsOptionsOperation!;
-        QSFlyleafAnswer answer = qsFlyleafAnswer!;
-        operation.QSOptionsOperationStart();
+        if (operation is null)
+        {
+            throw new NullReferenceException();
+        }
         IProgress<double> progress = new Progress<double>(value =>
             QSFlyleafOperationCheck(operation)?.QSOptionsOperationApply(value));
-        bool success;
-        string failure;
-        bool installed;
         try
         {
-            (success, failure, installed) = await csFlyleaf.CSFlyleafStart(progress);
+            await csFlyleaf.CSFlyleafStart(
+                progress,
+                operation.QSOptionsOperationStart,
+                qsFlyleafOutcome.Item1,
+                qsFlyleafOutcome.Item2);
         }
         catch (Exception exception)
         {
+            QSFlyleafOperationCheck(operation)?.QSOptionsOperationHide();
             if (QSFlyleafOperationCheck(operation) is not null)
             {
                 ExceptionDispatchInfo.Capture(exception).Throw();
             }
-            return;
         }
-        finally
-        {
-            QSFlyleafOperationCheck(operation)?.QSOptionsOperationHide();
-        }
+    }
 
+    private void QSFlyleafUpdate(QSOptionsOperation operation, bool installed, Action show)
+    {
+        QSFlyleafOperationCheck(operation)?.QSOptionsOperationHide();
         QSFlyleafOperationCheck(operation)?.QSOptionsOperationApply(installer =>
         {
             QSFlyleafUpdate(installer, installed);
             installer.IsEnabled = true;
-            string title = QLocalizationCatalog.QLocalizationTextRead("Options.System.LocalFlyleaf");
-            string message = success
-                ? QLocalizationCatalog.QLocalizationTextRead("Flyleaf.Local.Install.Completed")
-                : QLocalizationCatalog.QLocalizationFormat(
-                    "Flyleaf.Local.Install.Failed",
-                    failure);
-            answer.QSFlyleafShow(success, title, message);
+            show();
         });
     }
 

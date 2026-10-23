@@ -21,21 +21,67 @@ public partial class PWindow : Window
         PWindowLookApply();
         lWindow = lWindowRoot;
         pWindowResize = new PWindowResize(this, lWindow.QWindowPart.QWindowPartSash);
-        pStrip = new PStrip(lWindow.QWindowStrip);
+        pStrip = new PStrip(
+            lWindow.QWindowStrip,
+            qExport => QExportSurface.QExportSurfaceBuild(
+                qExport,
+                new PExport(),
+                () => new PSEncoder(),
+                PSVerdict.PSVerdictShow,
+                PSWarning.PSWarningShow,
+                () => new PExportPresetGroup(),
+                () => new PExportRow(),
+                () => new PExportPreset(),
+                () => new PExportCommands()));
         pRail = new PRail(pStrip);
         pWindowDrop = new PWindowDrop(lWindow.QWindowPart.QWindowPartDrop);
         pWindowShortcut = new PWindowShortcut(this, pStrip, lWindow.QWindowPart.QWindowPartShortcut);
+        QLogoMenu qLogoMenu = lWindow.QWindowLogo;
+        QLogoAnswer qLogoAnswer = new(
+            owner => qLogoMenu
+                .QLogoAboutCreate(
+                    () => new PSAbout(),
+                    PSDialog.PSDialogBuild,
+                    PSGrabber.PSGrabberPairBuild,
+                    PSWarning.PSWarningShow,
+                    PSGrabberPlacement.PSGrabberPlacementRestore,
+                    PSGrabberPlacement.PSGrabberPlacementSave)
+                .QSAboutShow(owner),
+            (owner, applied) => QSOptionsWindow.QSOptionsWindowShow(
+                qLogoMenu.QLogoOptionsCreate(),
+                new QSOptionsAnswer(
+                    () => new PSOptions(),
+                    PSSubwindow.PSSubwindowBuild,
+                    PSSheet.PSSheetApply,
+                    PSSheet.PSSheetHeaderBuild,
+                    PSGrabber.PSGrabberPairBuild,
+                    (PSGrabberPlacement.PSGrabberPlacementRestore, PSGrabberPlacement.PSGrabberPlacementSave),
+                    (PSWarning.PSWarningShow, PSAnnouncement.PSAnnouncementShow),
+                    (window, title, question, action) => PSAlert.PSAlertConfirm(
+                        window, title, question, action),
+                    PSDiagnosis.PSDiagnosisShow,
+                    PSMode.PSModeBuild,
+                    PSMode.PSModeTextRead),
+                owner,
+                applied),
+            (owner, applied) => PSKeymap.PSKeymapShow(
+                owner, qLogoMenu.QLogoKeymapCreate(), applied),
+            owner => PLogWindow.PLogWindowShow(owner, qLogoMenu.QLogoLogCreate),
+            (owner, answer) => PSDebug.PSDebugShow(owner, qLogoMenu, answer));
+        pToolbar.PToolbarChromeSet(lWindow.QWindowPart.QWindowPartChrome);
+        qLogoMenu.QLogoMenuAttach(
+            pToolbar,
+            lWindow.QWindowPart.QWindowPartChrome,
+            qLogoAnswer,
+            lWindow.QWindowOptionsApply);
         lWindow.QWindowRelay.QWindowDispatcherAttach(PWindowDispatch);
         pConsole.PConsoleAttach(lWindow.QWindowPart.QWindowPartConsole);
         PWindowConsoleAttach();
-        PWindowNoticesAttach();
+        PWindowNoticesAttach(() => qLogoAnswer.QLogoAnswerShortcut(this, lWindow.QWindowOptionsApply));
         pStrip.QStrip.QStripDeck.QDeckAttach(pDeck);
         PWindowSizeSet(LFrameStore.LFrameStateCurrent);
         lWindow.QWindowStartup.QWindowTabsStart();
         pToolbar.PToolbarTabSet(pRail);
-        pToolbar.PToolbarLogoSet(lWindow.QWindowLogo);
-        pToolbar.PToolbarChromeSet(lWindow.QWindowPart.QWindowPartChrome);
-        pToolbar.PToolbarOptionsApplied += lWindow.QWindowOptionsApply;
         lWindow.QWindowOptionsApply();
         PWindowPositionRestore(LFrameStore.LFrameStateCurrent);
         pStrip.QStrip.QStripSelectChanged += PWindowTabHandle;
@@ -104,7 +150,7 @@ public partial class PWindow : Window
     public static PStrip? PWindowStripRead() =>
         System.Windows.Application.Current.Windows.OfType<PWindow>().FirstOrDefault()?.PStrip;
 
-    private void PWindowNoticesAttach()
+    private void PWindowNoticesAttach(Action pShortcutShow)
     {
         lWindow.QWindowTabAdded += PWindowAddHandle;
         lWindow.QWindowFunnelUpdated += PWindowFunnelUpdate;
@@ -124,7 +170,7 @@ public partial class PWindow : Window
         lWindow.QWindowPart.QWindowPartShortcut.QWindowShortcutPlayed += PWindowPlay;
         lWindow.QWindowPart.QWindowPartShortcut.QWindowShortcutPaused += PWindowPause;
         lWindow.QWindowPart.QWindowPartShortcut.QWindowShortcutAttach(
-            pToolbar.PToolbarShortcutShow,
+            pShortcutShow,
             PWindowUndo,
             PWindowRedo,
             pStrip.QStrip.QStripContentClear,
@@ -293,7 +339,6 @@ public partial class PWindow : Window
         QAskNotice.QAskRaised -= PWindowAskHandle;
         QWarningNotice.QWarningRaised -= PWindowWarningHandle;
         pStrip.QStrip.QStripSelectChanged -= PWindowTabHandle;
-        pToolbar.PToolbarOptionsApplied -= lWindow.QWindowOptionsApply;
         pWindowShortcut.PShortcutDetach();
     }
 }

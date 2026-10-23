@@ -10,8 +10,10 @@ internal static class TAuditLedger
 
     public static IReadOnlyDictionary<string, Dictionary<string, int>> TAuditLedgerRead(string file)
     {
-        string path = Path.Combine(
-            TAuditSource.TAuditRootRead(), $"tests/{TAuditNameSetting.TAuditProject}.Tests.Convention", file + ".json");
+        string folder = Path.Combine(
+            TAuditSource.TAuditRootRead(), $"tests/{TAuditNameSetting.TAuditProject}.Tests.Convention");
+        string path = Directory.EnumerateFiles(folder, file + ".json", SearchOption.AllDirectories).FirstOrDefault()
+                      ?? Path.Combine(folder, file + ".json");
         Dictionary<string, Dictionary<string, int>> ledger = new(StringComparer.Ordinal);
         using JsonDocument document = JsonDocument.Parse(File.ReadAllText(path));
         foreach (JsonProperty kind in document.RootElement.EnumerateObject())

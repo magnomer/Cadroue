@@ -158,7 +158,7 @@ function Test-NewNameWord {
         [void]$notes.Add('already registered')
     }
     else {
-        [void]$notes.Add("add to $(if ($Role -eq 'base') { 'ListObject.md table and AUDIT:BASES block' } else { 'ListVerb.md as a ### heading' })")
+        [void]$notes.Add("add to $(if ($Role -eq 'base') { 'ListObject.md under its role and in the AUDIT:BASES block of that role' } else { 'ListVerb.md as a ### heading' })")
     }
 
     return [pscustomobject]@{ Faults = $faults; Notes = $notes; Shape = $Role }

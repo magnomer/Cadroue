@@ -1,3 +1,4 @@
+using System.Windows.Threading;
 using Cadroue.Application;
 using Cadroue.Conduct;
 using Cadroue.Core;
@@ -162,7 +163,7 @@ internal static partial class TInterface
     internal static LSceneTabEntry TFixLayoutRead(QFixTab tab) => tab.QFixLayoutRead(new LSceneTabEntry());
     internal static void TFixLayoutApply(QFixTab tab, LSceneTabEntry? layout) => tab.QFixLayoutApply(layout);
     internal static void TFixPathHandle(QViewer viewer, string? path) => viewer.QViewerWorkspace.CWorkspaceOpen(path);
-    internal static void TFixDiagnosisRun(QFixTab tab) => tab.QFixDiagnosisRun();
+    internal static void TFixDiagnosisRun(QFixTab tab) => tab.QFixClinic.QClinicDiagnosisRun();
     internal static void TFixCheckupHandle(QFixTab tab, string path, LFlawKind kind, LCheckupOutcome outcome) =>
         tab.QFixCheckupHandle(new LCheckupResult(path, kind, outcome));
     internal static void TFixProgressHandle(QFixTab tab, string path, double progress) =>
@@ -176,6 +177,18 @@ internal static partial class TInterface
     internal static void TFixAllRun(QFixTab tab) => tab.QFixAllRun(default, default);
     internal static void TFixCheckupAttach(QFixTab tab, Action<LCheckupResult> handler) =>
         tab.QFixCheckup.LCheckupReady += handler;
+    internal static void TFixCheckupDetach(QFixTab tab, Action<LCheckupResult> handler) =>
+        tab.QFixCheckup.LCheckupReady -= handler;
+    internal static void TFixProgressAttach(QFixTab tab, Action<string, double> handler) =>
+        tab.QFixCheckup.LCheckupProgress += handler;
+    internal static void TFixProgressDetach(QFixTab tab, Action<string, double> handler) =>
+        tab.QFixCheckup.LCheckupProgress -= handler;
+    internal static void TFixCheckupStart(QFixTab tab, string path) =>
+        tab.QFixCheckup.LCheckupStart(
+            [path], [LFlawKind.LFlawKindContainer], lCheckupForce: true);
+    internal static void TFixFaceAttach(QFixTab tab, Dispatcher dispatcher) =>
+        tab.QFixFaceAttach(dispatcher, () => { });
+    internal static void TFixFaceDetach(QFixTab tab) => tab.QFixFace.QFixFaceDetach();
     internal static void TClinicSaveSuspend(CClinic clinic) => clinic.CClinicSaveSuspend();
     internal static void TClinicSaveResume(CClinic clinic) => clinic.CClinicSaveResume();
     internal static void TFixScannerAttach(Action<string>? scanner)

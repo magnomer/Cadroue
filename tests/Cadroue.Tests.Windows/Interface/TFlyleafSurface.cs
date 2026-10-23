@@ -23,6 +23,7 @@ public sealed class TFlyleafSurface : CSFlyleafPort, CSMpvPort, LUsherPort
     private Exception? tFlyleafSurfaceFailure;
     private TaskCompletionSource<(bool, string, bool)>? tFlyleafSurfaceResult;
     private IProgress<double>? tFlyleafSurfaceProgress;
+    private int tFlyleafSurfaceStarts;
     private string? tFlyleafSurfaceOpened;
     private int tFlyleafSurfaceOpenings;
     private readonly List<(bool, string, string)> tFlyleafSurfaceNotices = [];
@@ -308,6 +309,7 @@ public sealed class TFlyleafSurface : CSFlyleafPort, CSMpvPort, LUsherPort
                     () => { },
                     (title, message) => tFlyleafSurfaceNotices.Add((true, title, message)),
                     (title, message) => tFlyleafSurfaceNotices.Add((false, title, message))));
+            Task replacement = tFlyleafSurfaceDriver.QSFlyleafStart();
             tFlyleafSurfaceResult.SetResult((true, string.Empty, true));
             while (!operation.IsCompleted)
             {
@@ -318,7 +320,9 @@ public sealed class TFlyleafSurface : CSFlyleafPort, CSMpvPort, LUsherPort
                 Dispatcher.PushFrame(frame);
             }
             operation.GetAwaiter().GetResult();
+            replacement.GetAwaiter().GetResult();
 
+            Assert.Equal(1, tFlyleafSurfaceStarts);
             Assert.Equal(
                 QLocalizationCatalog.QLocalizationTextRead("Options.System.InstallFlyleaf"),
                 tFlyleafSurfaceInstaller.Content);
@@ -330,6 +334,7 @@ public sealed class TFlyleafSurface : CSFlyleafPort, CSMpvPort, LUsherPort
 
     Task<(bool, string, bool)> CSFlyleafPort.CSFlyleafStart(IProgress<double> progress)
     {
+        tFlyleafSurfaceStarts++;
         tFlyleafSurfaceProgress = progress;
         return tFlyleafSurfaceFailure is null
             ? tFlyleafSurfaceResult!.Task

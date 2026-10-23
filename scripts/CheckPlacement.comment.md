@@ -21,7 +21,7 @@
 A single part may go on the command line instead of a file:
 
 ```
-checkplacement -Plan kind=action entry=new-element result=existing-element asks-user=no held-state=conduct rules=conduct data=none conduct-type=none text=none platform=none
+checkplacement -Plan kind=action entry=new-element result=existing-element asks-user=no held-state=<value> rules=<value> data=none conduct-type=none text=none platform=none
 ```
 
 `checkplacement -Schema` prints every gate, its values and what opens it.
@@ -41,10 +41,9 @@ checkplacement -Help
 
 ## Purpose
 
-Suggests, before any code is written, which source projects under `src` a GUI work touches, what each carries, and what may pass between them.
+Suggests, before any code is written, which source projects a GUI work touches, what each carries, and what may pass between them.
 It names source projects only, never a folder inside one, a type or a name.
 The result is advisory; the structure document decides.
-The CUI projects are outside its scope for now.
 
 ## Tokens
 
@@ -64,12 +63,12 @@ The JSON is written by the script's own serializer, so Windows PowerShell 5.1 an
 
 ## Settings
 
-`CheckPlacement.json` beside the script holds every project-specific value: each role's source project, which project names which, the twins, the projects outside its scope, the locale files and the test projects.
+`CheckPlacement.json` beside the script holds every project-specific value.
 The script text names no project and is the same in every project.
-The script hashes the structure document on every run and sets `stale` when the hash differs from the sidecar's.
+The script hashes the structure document on every run.
+It sets `stale` when the hash differs from the one recorded in `CheckPlacement.json`, or when the document is missing.
 
 ## Family
 
 The header reads `# CHECKPLACEMENT - CHECK GENERATION 1.`
 It is a planner, not a gate, so `Check.ps1` does not run it.
-The design is in `docs-work/SuggestionScript.md`.

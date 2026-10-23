@@ -1,75 +1,54 @@
 # PWindow.xaml.cs
-Hash: `32353b610cc09443`
 
 ## `public partial class PWindow : Window`
 
-The main window shell.
-It wires the strip, rail, toolbar, console and deck together and answers `QWindow` notices with control calls.
-Partial peers hold the drop, shortcut and resize handlers.
+The main window is the concrete composition root for its WPF shell.
+It wires the strip, rail, toolbar, console and deck to the supplied `QWindow`.
+Partial peers isolate drop, shortcut, resize and native-window handling.
 
-## `public PWindow()`
+## `public PWindow(QWindow lWindowRoot)`
 
-Order matters.
-Notices are attached before the deck and before the tabs start, so no tab add is missed.
-Size is set before the first tab, and the position is restored after the options apply.
-The relay starts once the tabs and their selection exist, so a handoff has a tab to land in.
+The window supplies `PStrip` with the one concrete Export factory.
+That factory creates `PExport` and prepares it through `QExportSurface`.
+It supplies the production encoder, verdict, warning, preset-group, row, preset and command implementations.
+Concrete WPF choices remain at the shell root while the strip requests a prepared surface for each workspace's `QExport`.
 
-## `public static PStrip? PWindowStripRead() =>`
+The window also supplies `QLogoAnswer` with the concrete About, Options, Shortcuts, Log and Debug presentations.
+`QLogoMenu` receives that passive packet, the toolbar contract and the shared Chrome state, then owns menu construction and selection routing.
 
-Reaches the strip of the first main window from code that holds no window.
-Returns null when no main window is open.
+Construction attaches the window dispatcher and console before notices.
+It attaches the deck before startup creates tabs and restores size before tab startup.
+Options apply before position restoration.
+The selected tab is sent to `QWindow` before the relay starts.
 
 ## `private void PWindowNoticesAttach()`
 
-Subscribes every `QWindow`, `QSash` and ask notice in one place.
-The close handler undoes the ask subscription and the peers' handlers.
-
-## `private bool PWindowDispatch(Func<bool> pBody) => Dispatcher.Invoke(pBody);`
-
-The seam that lets the deportment run a body on the UI thread without referencing the Dispatcher.
-
-## `private void PWindowAskHandle(QAsk lAsk, Action<bool> lAnswer) => PSAlert.PSAlertConfirm(this, lAsk, lAnswer);`
-
-The only place a destructive question becomes a modal.
-The answer returns to the deportment through the callback.
-
-## `private void PWindowTabHandle(QStripTab? lStripTab) =>`
-
-Hands the deportment the selected tab and the viewer of its workspace.
-A tab without a workspace passes a null viewer.
-
-## `private void PWindowAddHandle(QWindowTab lTab)`
-
-Creates the tab with its restored preset and layout, then applies its saved name.
-
-## `private void PWindowMediaDefer(string pPath) =>`
-
-Runs at Loaded priority.
-So a launch with a media path opens it after the first layout pass.
+The window translates `QWindow`, drop, shortcut, ask and warning notifications into control operations and presentations.
+The shortcut route receives the same immutable logo answer used by pointer selection.
+Close detaches the global ask and warning notices, selection, shortcut hook, drop and resize handlers, then closes every deck workspace.
 
 ## `private void PWindowTabAttach(QStripTab lTab, double pFlowHeight)`
 
-Applies the command state to the newly selected workspace and follows its width.
-The window width is resolved at once, so it fits the new tab.
-
-## `private void PWindowTabDetach(QStripTab lTab)`
-
-Stops following the width before the command state is reset.
-
-## `private void PWindowLayoutApply(bool pVertical)`
-
-Detaches the rail and the scene cluster first.
-The vertical or horizontal notice that follows puts them back in the new place.
-
-## `private void PWindowWidthApply()`
-
-The deportment resolves the minimum and the width, this only assigns them.
+Tab attachment applies workspace flow and viewer state before following the surface width.
+Detachment stops that width subscription before resetting workspace commands.
 
 ## `private void PWindowExitHandle(object? sender, System.ComponentModel.CancelEventArgs eventArgs)`
 
-A refused close confirmation cancels the window close.
+A refused strip-close confirmation cancels the window close.
+An accepted close saves normal and restore bounds before closing the window deportment and UI workspaces.
 
-## `private void PWindowCloseHandle(object? sender, EventArgs eventArgs)`
+## PWindowDrop.cs, PWindowResize.cs and PWindowShortcut.cs
 
-Saves the frame, closes the deportment, releases the window's subscriptions and closes each workspace.
-The restore bounds are saved beside the live ones, so a maximized window reopens at its normal size.
+The peer adapters translate WPF drag, pointer, capture and native key state into their UIDeportment owners.
+They apply returned handled, cursor, render and bounds state to WPF and expose explicit removal or detachment during close.
+
+## PWindowDwm.cs
+
+Native-window setup suppresses erase-background handling, requests rounded corners and caption color, and reapplies the executable icon after rendering.
+A missing `HwndSource` skips erase-hook attachment.
+Native attribute and icon-call return values are ignored.
+
+## PWindow.xaml
+
+Markup owns the borderless window grid and named toolbar, rail host, console and deck surfaces.
+Runtime behavior and composition remain in code-behind and its peers.

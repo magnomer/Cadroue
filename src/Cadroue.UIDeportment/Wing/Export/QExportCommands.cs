@@ -175,16 +175,21 @@ public sealed class QExportCommands(
             new Rect(0, 0, innerBorder.ActualWidth, innerBorder.ActualHeight),
             9,
             9);
-        export.QExportPresetsChanged += () => surface.Dispatcher.Invoke(update);
+        Action qExportPublication = () => surface.Dispatcher.Invoke(update);
+        export.QExportPresetsChanged += qExportPublication;
         presetAttach();
         update();
         surface.Loaded += (_, _) =>
         {
+            export.QExportPresetsChanged -= qExportPublication;
+            export.QExportPresetsChanged += qExportPublication;
+            presetAttach();
             export.QExportAttach();
             surface.Dispatcher.Invoke(update);
         };
         surface.Unloaded += (_, _) =>
         {
+            export.QExportPresetsChanged -= qExportPublication;
             presetDetach();
             export.QExportDetach();
         };

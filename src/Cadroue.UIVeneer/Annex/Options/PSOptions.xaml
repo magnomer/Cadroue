@@ -1,0 +1,85 @@
+<Window x:Class="Cadroue.UIVeneer.PSOptions"
+        x:ClassModifier="internal"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:Cadroue.UIVeneer"
+        Width="900"
+        Height="660"
+        MinWidth="780"
+        MinHeight="520">
+    <Window.Resources>
+        <local:PSFlyleaf x:Key="PSFlyleaf" />
+        <local:PSMpv x:Key="PSMpv" />
+        <local:PSSpectrum x:Key="PSSpectrum" />
+    </Window.Resources>
+    <DockPanel x:Name="PSOptionsBody"
+               Background="White">
+        <StackPanel DockPanel.Dock="Bottom"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="12">
+            <Button x:Name="PSOptionsApplier"
+                    Width="84"
+                    Height="32"
+                    Margin="4" />
+            <Button x:Name="PSOptionsConfirmer"
+                    Width="84"
+                    Height="32"
+                    Margin="4" />
+            <Button x:Name="PSOptionsCanceller"
+                    Width="84"
+                    Height="32"
+                    Margin="4" />
+        </StackPanel>
+        <TabControl x:Name="PSOptionsDeck"
+                    Background="White"
+                    BorderBrush="Transparent"
+                    BorderThickness="0">
+            <TabItem>
+                <DockPanel Background="White">
+                    <ScrollViewer Margin="18"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <local:PSGeneral x:Name="PSGeneral" />
+                    </ScrollViewer>
+                </DockPanel>
+            </TabItem>
+            <TabItem>
+                <DockPanel Background="White">
+                    <ScrollViewer Margin="18"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <local:PSOptionsSystem x:Name="PSOptionsSystem" />
+                    </ScrollViewer>
+                </DockPanel>
+            </TabItem>
+            <TabItem>
+                <DockPanel Background="White">
+                    <ScrollViewer Margin="18"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <local:PSOptionsPlayback x:Name="PSOptionsPlayback" />
+                    </ScrollViewer>
+                </DockPanel>
+            </TabItem>
+            <TabItem>
+                <DockPanel Background="White">
+                    <ScrollViewer Margin="18"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <local:PSOptionsTimeline x:Name="PSOptionsTimeline" />
+                    </ScrollViewer>
+                </DockPanel>
+            </TabItem>
+            <TabItem>
+                <DockPanel Background="White">
+                    <ScrollViewer Margin="18"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <local:PSOptionsWork x:Name="PSOptionsWork" />
+                    </ScrollViewer>
+                </DockPanel>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</Window>

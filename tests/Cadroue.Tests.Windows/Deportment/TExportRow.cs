@@ -82,7 +82,7 @@ public sealed class TExportRow
                 {
                     save = TInterface.TInterfaceExportRead();
                     TInterface.TInterfaceExportRead(false);
-                    (surface, iconState) = TInterface.TInterfaceExportRead(export, selection);
+                    (surface, iconState) = TInterface.TExportSurfaceRead(export);
                     owner = new Window { Content = surface };
                     owner.Show();
                     owner.Hide();

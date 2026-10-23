@@ -1,73 +1,86 @@
 # Options
 
-This folder holds the policy of the Options window.
-It decides and leaves every control and dialog to Deportment.
-Outside facts reach it through two request functions and three port interfaces, so tests pass fakes.
+This folder owns Options decisions while UI stays with callers and external operations stay behind collaborators.
 
 ## CSOptions.cs
 
-`CSOptions` holds the draft preference and a staged snapshot of the General fields.
-It reaches the depot's folders, sizes and clears only through the read and apply request functions.
-  The save goes through `LPreference`, and folder opening through the usher.
+`CSOptions` holds the supplied preference draft, a staged `LOptionsSnapshot` and separate read and apply request functions.
+Construction materializes the first snapshot from the draft.
+Later snapshot refreshes preserve staged General values while rereading the remaining values from the draft.
+Snapshot reads copy the selection into a read-only array so callers cannot mutate staged selection through the returned list.
 
-The General fields stay in the snapshot until apply copies them into the draft.
-Every other field is read from the draft on each refresh, so an edit made after construction is not lost.
-Test `RecordCheck_PreservesPendingGeneralEdits` pins the General half.
-Test `Apply_PreservesCompatibilityDraftEditsAfterConstruction` pins the draft half.
+General changes stage in the snapshot through the `CSOptionsUpdate` overloads.
+Playback, Timeline, Work and System sheets commit directly to the draft through `CSOptionsSheetCommit`.
+Applying refreshes the snapshot and copies every snapshot value and custody level into the draft.
+It saves a clone and sends a renderer apply request with the selected engine.
+The renderer request still runs when saving returns false, and the result reports only the save result.
 
-Apply saves a clone of the draft, then sends the renderer request that switches the engine.
-The engine switch runs even when the save failed.
-Test `Apply_PreservesPersistenceRendererCallbackOrder` pins the order and the failed-save case.
+Workspace resolution resolves the requested and current folders before checking occupancy.
+When both resolved paths match without case, resolution skips occupancy.
+An occupied alternative keeps the current folder.
+Otherwise resolution keeps the requested text.
+Workspace commit writes that kept value to the draft.
 
-Resolving a workspace folder sends two resolution requests, then one occupancy request.
-An occupied destination keeps the current folder and reports the destination through the callback.
-A destination that resolves to the current folder skips the occupancy request.
-Test `WorkspaceResolve_KeepsCurrentWhenDestinationOccupied` pins the request order and the kept folder.
+The applied check resolves a folder and compares it without case with the root returned by the read request.
+The running check invokes neither callback for an unapplied folder.
+For an applied folder, it reports either running or the resolved root as stopped.
+Default resolution substitutes the default returned by the read request only for blank text.
+Folder opening delegates to `CUsher`, using either an explicit fallback or the resolved default.
 
-The commit writes the kept folder into the draft.
+Done and workspace clears apply their clear request before reading and returning the remaining size.
+Sidecar clear returns the apply fact count.
+Record mode recognizes only the exact token `Workspace`.
+Changing it returns the corresponding localization key and the current sidecar location.
 
-The workspace resolve and the applied, default and running checks report through callbacks.
-A driver therefore cannot fold two answers into one.
-The applied check resolves the folder and compares it with the depot root.
-The running check does the applied check first, and an unapplied folder answers neither callback.
-The default check reports the default case when the text is blank.
-Only a blank folder resolves to something else.
-
-The done and workspace clears send the clear request, then a second request that reads the size.
-The returned count and size therefore describe the state after the clear.
-Test `DoneClear_Accepted_PreservesEffectOrder` pins that the size shown at the announcement is the cleared size.
-
-The engine read returns Mpv only when the caller says mpv is usable and the snapshot asks for it.
-Test `Engine_FallsBackToFlyleaf_WithoutMpv` pins the fallback.
+Engine selection returns `Mpv` only when the caller enables it and the staged engine is exactly `Mpv`.
+Every other case returns `Flyleaf`.
+Language resolution accepts an exact configured key, then falls back to the first configured key, then to an empty string.
+Restart detection compares normalized stored language with the active localization language without case.
 
 ## CSFlyleaf.cs
 
-The gate forwards the installed check and the install to its port.
-The install answers a tuple of success, message and installed state.
+`CSFlyleaf` rejects a null port and delegates the installed check.
+Each instance admits only one active start, so a rejected overlapping request neither projects a start nor calls the port.
+The gate is released in `finally` after the accepted port call and before its outcome callback.
+A successful port tuple routes only to `completed`.
+Failure routes only to `failed` with the port's installed state and message.
+
+## CSFlyleafPort.cs
+
+The port separates the synchronous installed fact from an asynchronous start operation with progress reporting.
 
 ## CSMpv.cs
 
-The gate adds an availability check beside the installed check and the install.
-The availability check is a separate port call, so installed and usable stay apart.
+`CSMpv` rejects a null port and delegates installed and availability checks separately.
+Each instance admits only one active start, so a rejected overlapping request neither projects a start nor calls the port.
+The gate is released in `finally` after the accepted port call and before its outcome callback.
+Start then awaits exactly one asynchronous completion or failure callback selected by the success flag.
+
+## CSMpvPort.cs
+
+The port keeps installed state, runtime availability and the asynchronous start operation separate.
 
 ## CSRenderer.cs
 
-A blank path reports the blank state without asking the port.
-Otherwise the program and library facts map to ready, program only, library only or missing.
-Test `CSRendererRead` pins the blank state and the four fact mappings.
+`CSRenderer` rejects a null port.
+A blank path produces `CSRendererStateBlank` without probing the port.
+For nonblank paths it always checks both program and library.
+Both present is ready.
+Program alone or library alone has its matching partial state.
+Neither present is missing.
+The returned snapshot retains the supplied path.
 
-## Port files
+## CSRendererPort.cs
 
-Only the renderer port file declares its fact type beside its interface.
-The Deportment driver implements each port with the real library, and tests pass fakes.
+The renderer port exposes independent program and library checks for a candidate folder.
 
 ## Stamp
 
-Commit: `b84e5458de50`
-- `CSFlyleaf.cs` `cedcd83201f1480f`
+Commit: `9a34a722aa84`
+- `CSFlyleaf.cs` `eee496e7818e525e`
 - `CSFlyleafPort.cs` `c73803637dfa35df`
-- `CSMpv.cs` `b88e1a034631c511`
+- `CSMpv.cs` `5a6f606e4d7c4385`
 - `CSMpvPort.cs` `8dd65242d53748a4`
-- `CSOptions.cs` `6a7d54810955b46c`
-- `CSRenderer.cs` `735d02a075387767`
-- `CSRendererPort.cs` `fda5b123de977a35`
+- `CSOptions.cs` `405f2006e426ca08`
+- `CSRenderer.cs` `87f6d92c287b0711`
+- `CSRendererPort.cs` `1b1e5ce2face5c50`

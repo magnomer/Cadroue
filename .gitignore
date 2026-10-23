@@ -203,6 +203,7 @@ $RECYCLE.BIN/
 !/scripts/StatsWords.json
 !/scripts/StatsWords.ps1
 !/scripts/Stop.ps1
+!/scripts/Test.comment.md
 !/scripts/Test.json
 !/scripts/Test.ps1
 !/scripts/TimeMachine.ps1

@@ -248,7 +248,7 @@ public sealed class TExportPresetSelection
                 presets.TPresetSeedCreate("Alpha");
                 LPresetSelection selection = TInterface.TPresetSelectionCreate("Alpha");
                 QExport export = TInterface.TExportCreate(selection, "Convert");
-                (PExport surface, object[] state) = TInterface.TInterfaceExportRead(export, selection);
+                (PExport surface, object[] state) = TInterface.TExportSurfaceRead(export);
                 TInterface.TInterfaceExportRead(surface, false, state);
                 TInterface.TPresetSelectionClose(selection);
                 Assert.Equal(0, TInterface.TInterfaceExportRead(state, 0));

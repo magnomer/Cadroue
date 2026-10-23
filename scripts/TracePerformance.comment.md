@@ -1,8 +1,8 @@
 # TracePerformance.ps1
 Hash: `a9ac71f6ed6b0d52`
 
-Times patchable, nongenerated target methods and ranks completed calls by mean duration.
-The target is `src/Cadroue.Application` by default.
+Times every method of the target project and ranks them from the slowest to the fastest.
+The target is the project the `target` setting names by default.
 It only measures and reports.
 It gates nothing and stays out of `Check.ps1`, so it has no convention test counterpart.
 
@@ -17,8 +17,8 @@ traceperformance -Help
 
 ```
 traceperformance
-traceperformance -Filter "FullyQualifiedName~TEditor" -Repeat 3
-traceperformance -Project Cadroue.Tests -Top 100
+traceperformance -Filter "FullyQualifiedName~<Class>" -Repeat 3
+traceperformance -Project <TestProject> -Top 100
 ```
 
 ## Methods

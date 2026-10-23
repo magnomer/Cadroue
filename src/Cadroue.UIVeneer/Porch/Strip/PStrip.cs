@@ -7,16 +7,28 @@ namespace Cadroue.UIVeneer;
 
 public sealed class PStrip
 {
-    public PStrip(QStrip lStrip)
+    public PStrip(QStrip lStrip, Func<QExport, PExport> pExportBuild)
     {
         QStrip = lStrip;
         QDeckCatalog lCatalog = QStrip.QStripDeck.QDeckCatalog;
-        lCatalog.QDeckBuilderAdd("Split", (lWorkspace, lLayout) => new PSplitTab(lWorkspace, lLayout));
-        lCatalog.QDeckBuilderAdd("Edit", (lWorkspace, lLayout) => new PEditTab(lWorkspace, lLayout));
-        lCatalog.QDeckBuilderAdd("Fix", (lWorkspace, lLayout) => new PFixTab(lWorkspace, lLayout));
-        lCatalog.QDeckBuilderAdd("Audio", (lWorkspace, lLayout) => new PAudioTab(lWorkspace, lLayout));
-        lCatalog.QDeckBuilderAdd("Convert", (lWorkspace, lLayout) => new PConvertTab(lWorkspace, lLayout));
-        lCatalog.QDeckBuilderAdd("Merge", (lWorkspace, lLayout) => new PMergeTab(lWorkspace, lLayout));
+        lCatalog.QDeckBuilderAdd(
+            "Split", (lWorkspace, lLayout) =>
+                new PSplitTab(lWorkspace, pExportBuild(lWorkspace.QWorkspaceExport), lLayout));
+        lCatalog.QDeckBuilderAdd(
+            "Edit", (lWorkspace, lLayout) =>
+                new PEditTab(lWorkspace, pExportBuild(lWorkspace.QWorkspaceExport), lLayout));
+        lCatalog.QDeckBuilderAdd(
+            "Fix", (lWorkspace, lLayout) =>
+                new PFixTab(lWorkspace, pExportBuild(lWorkspace.QWorkspaceExport), lLayout));
+        lCatalog.QDeckBuilderAdd(
+            "Audio", (lWorkspace, lLayout) =>
+                new PAudioTab(lWorkspace, pExportBuild(lWorkspace.QWorkspaceExport), lLayout));
+        lCatalog.QDeckBuilderAdd(
+            "Convert", (lWorkspace, lLayout) =>
+                new PConvertTab(lWorkspace, pExportBuild(lWorkspace.QWorkspaceExport), lLayout));
+        lCatalog.QDeckBuilderAdd(
+            "Merge", (lWorkspace, lLayout) =>
+                new PMergeTab(lWorkspace, pExportBuild(lWorkspace.QWorkspaceExport), lLayout));
         lCatalog.QDeckBuilderAdd("Funnel", (lWorkspace, lLayout) => new PFunnelTab(lWorkspace, lLayout));
         lCatalog.QDeckBuilderAdd(
             "Worklist", (lWorkspace, lLayout) => new PWorklistTab(lWorkspace.QWorkspaceRoster!, lLayout));

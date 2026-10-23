@@ -165,7 +165,7 @@ public sealed class TExportTransfer
                 selection.LPresetSelectionValue = beta;
                 TInterface.TExportSelect(export, "Alpha");
                 int[] routes = new int[5];
-                var (surface, iconState) = TInterface.TInterfaceExportRead(export, selection, routes);
+                var (surface, iconState) = TInterface.TExportSurfaceRead(export, routes);
 
                 try
                 {

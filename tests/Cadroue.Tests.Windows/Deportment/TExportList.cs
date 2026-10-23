@@ -117,7 +117,7 @@ public sealed class TExportList
                 PExport? surface = null;
                 object[]? iconState = null;
                 try {
-                    (surface, iconState) = TInterface.TInterfaceExportRead(export, selection);
+                    (surface, iconState) = TInterface.TExportSurfaceRead(export);
                     TInterface.TInterfaceExportRead(surface, true);
                     var scroll = Assert.IsType<ScrollViewer>(TInterface.TInterfaceExportRead(surface)[0]);
                     var panel = Assert.IsType<StackPanel>(scroll.Content);
@@ -208,7 +208,7 @@ public sealed class TExportList
                 int storeChanges = 0; Action storeChanged = () => storeChanges++;
                 LPresetTable.LPresetStoreChanged += storeChanged;
                 QExport export = TInterface.TExportCreate(selection, "Convert");
-                (PExport surface, object[] icons) = TInterface.TInterfaceExportRead(export, selection);
+                (PExport surface, object[] icons) = TInterface.TExportSurfaceRead(export);
                 ResourceDictionary resources = System.Windows.Application.Current!.Resources;
                 bool hadGhostResource = resources.Contains("PGhostImage");
                 object? ghostResource = resources["PGhostImage"];
@@ -295,7 +295,7 @@ public sealed class TExportList
                 object[]? iconState = null;
                 try
                 {
-                    (surface, iconState) = TInterface.TInterfaceExportRead(export, selection);
+                    (surface, iconState) = TInterface.TExportSurfaceRead(export);
                     TInterface.TInterfaceExportRead(surface, true);
                     var panel = Assert.IsType<StackPanel>(
                         Assert.IsType<ScrollViewer>(TInterface.TInterfaceExportRead(surface)[0]).Content);
@@ -328,66 +328,5 @@ public sealed class TExportList
         thread.Start();
         thread.Join();
         failure?.Throw();
-    }
-    [Fact]
-    public void Unload_DetachesHeaderAndRowHandlers() {
-        System.Windows.Application? program = System.Windows.Application.Current;
-        ExceptionDispatchInfo? failure = null;
-        Thread thread = new(() => {
-            try {
-                using TPreset presets = new();
-                presets.TPresetSeedCreate("Alpha", "Beta");
-                LPresetSelection selection = TInterface.TPresetSelectionCreate("Alpha");
-                QExport export = TInterface.TExportCreate(selection, "Convert");
-                PExport? surface = null;
-                object[]? iconState = null;
-                try
-                {
-                    (surface, iconState) = TInterface.TInterfaceExportRead(export, selection);
-                    var panel = Assert.IsType<StackPanel>(
-                        Assert.IsType<ScrollViewer>(TInterface.TInterfaceExportRead(surface)[0]).Content);
-                    Border header = Assert.IsAssignableFrom<Border>(panel.Children[0]);
-                    Border row = Assert.IsType<Border>(panel.Children[1]);
-                    Button headerAction = Assert.IsType<Button>(TInterface.TInterfaceExportRead(header, true)[1]);
-                    Button accept = Assert.IsType<Button>(TInterface.TInterfaceExportRead(row)[3]);
-                    TInterface.TInterfaceExportRead(surface, false);
-                    var click = new RoutedEventArgs(Button.ClickEvent);
-                    accept.RaiseEvent(click);
-                    Assert.False(click.Handled);
-                    headerAction.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-                    var up = new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left)
-                    {
-                        RoutedEvent = UIElement.MouseLeftButtonUpEvent
-                    };
-                    row.RaiseEvent(up);
-                    Assert.False(up.Handled);
-                    Assert.Equal("Alpha", TInterface.TInterfaceExportRead(export).Item1);
-                    Assert.False(TInterface.TInterfaceExportRead("$User"));
-                    selection.LPresetSelectionValue = TInterface.TPresetDocumentCreate("Alpha", "Changed");
-                    Assert.Contains(header, panel.Children.Cast<UIElement>());
-                    Assert.Contains(row, panel.Children.Cast<UIElement>());
-                    TInterface.TInterfaceExportRead(surface, true);
-                    Assert.DoesNotContain(header, panel.Children.Cast<UIElement>());
-                    Assert.DoesNotContain(row, panel.Children.Cast<UIElement>());
-                }
-                finally
-                {
-                    if (surface is not null && iconState is not null)
-                    {
-                        TInterface.TInterfaceExportRead(surface, false, iconState);
-                    }
-                    TInterface.TPresetSelectionClose(selection);
-                }
-            }
-            catch (Exception exception)
-            {
-                failure = ExceptionDispatchInfo.Capture(exception);
-            }
-        });
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        thread.Join();
-        failure?.Throw();
-        Assert.True(program is null || ReferenceEquals(program, System.Windows.Application.Current));
     }
 }

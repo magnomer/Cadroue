@@ -3,13 +3,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:Cadroue.UIVeneer"
              FocusVisualStyle="{x:Null}">
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="PExportTextBrush" Color="#FF1D2A3D" />
+        <SolidColorBrush x:Key="PExportMutedBrush" Color="#FF626F83" />
+    </UserControl.Resources>
     <Border Margin="8"
             BorderBrush="#FFD9DEE7"
             BorderThickness="1"
             Background="#FFF7F9FC"
             CornerRadius="10"
             SnapsToDevicePixels="True">
-        <Border Background="#FFF7F9FC"
+        <Border x:Name="PExportFrame"
+                Background="#FFF7F9FC"
                 CornerRadius="9"
                 SnapsToDevicePixels="True">
             <Grid>

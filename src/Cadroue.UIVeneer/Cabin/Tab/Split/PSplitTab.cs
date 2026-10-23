@@ -11,7 +11,7 @@ public sealed class PSplitTab : PTabSurface
     private readonly PProcessing pProcessing;
     private readonly PInspector pInspector;
 
-    public PSplitTab(QWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PSplitTab(QWorkspace lWorkspace, PExport pExport, LSceneTabEntry? lPreferenceTabLayout = null)
     {
         pFlow = new PFlow(lWorkspace.QWorkspaceFlow!);
         pViewer = new PViewer(lWorkspace.QWorkspaceViewer!);
@@ -29,7 +29,6 @@ public sealed class PSplitTab : PTabSurface
         pInspector.QInspectorFrame.QInspectorFrameSet(false, true);
         PSplitEventsAttach();
 
-        var pExport = new PExport(lWorkspace.QWorkspaceExport, lWorkspace.QWorkspacePresetOwner);
         PTabLock.PTabLockAttach(pList, pSection, pProcessing, pInspector, pExport);
         Content = PTabGridBuild(
             lWorkspace.QWorkspaceMode,

@@ -32,8 +32,9 @@ public sealed class CSRenderer
             return new CSRendererSnapshot(path, CSRendererState.CSRendererStateBlank);
         }
 
-        CSRendererFact fact = _csRendererPort.CSRendererPortRead(path);
-        CSRendererState state = (fact.CSRendererFactProgram, fact.CSRendererFactLibrary) switch
+        bool program = _csRendererPort.CSRendererProgramCheck(path);
+        bool library = _csRendererPort.CSRendererLibraryCheck(path);
+        CSRendererState state = (program, library) switch
         {
             (true, true) => CSRendererState.CSRendererStateReady,
             (true, false) => CSRendererState.CSRendererStateProgram,

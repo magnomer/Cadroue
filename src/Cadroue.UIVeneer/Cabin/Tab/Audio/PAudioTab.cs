@@ -12,7 +12,7 @@ public sealed class PAudioTab : PTabSurface
     private readonly PInspector pInspector;
     private readonly PDebounce pAudioViewerTimer;
 
-    public PAudioTab(QWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PAudioTab(QWorkspace lWorkspace, PExport pExport, LSceneTabEntry? lPreferenceTabLayout = null)
     {
         pFlow = new PFlow(lWorkspace.QWorkspaceFlow!);
         pViewer = new PViewer(lWorkspace.QWorkspaceViewer!);
@@ -30,7 +30,6 @@ public sealed class PAudioTab : PTabSurface
 
         PAudioEventsAttach();
 
-        var pExport = new PExport(lWorkspace.QWorkspaceExport, lWorkspace.QWorkspacePresetOwner);
         PTabLock.PTabLockAttach(pList, pProcessing, pInspector, pExport);
         Content = PTabGridBuild(
             lWorkspace.QWorkspaceMode,

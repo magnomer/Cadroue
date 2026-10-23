@@ -1,8 +1,7 @@
 # Check.ps1
 
 Runs the whole done gate in one call and prints one tally line.
-It covers the build, the full `Test.ps1`, and the ten audits.
-Its `!/scripts/Check.ps1` allowlist entry keeps it visible to Git without making it tracked.
+It covers the build, the full `Test.ps1`, and the audits its `$audits` list names.
 
 ## Usage
 
@@ -13,13 +12,13 @@ check [-Grep <pattern>[,<pattern>...]] [-NoBuild] [-NoTest] [-NoAudit] [-Open] [
 `-Grep` searches `src` and `tests` `.cs` and `.xaml` files for leftover names.
 Every grep hit counts as a failure.
 `-NoBuild`, `-NoTest` and `-NoAudit` skip a stage for quick loops.
-Skip flags omit stages without forcing a failing verdict, so an OK tally may represent only a partial run.
+A run with any skip flag never counts as done.
 `-Open` lets each audit that writes a page open it.
 Without it, every audit that declares `-NoOpen` gets that flag, so a check run opens nothing.
 `-Verbose` prints up to 200 lines of an audit's output when it fails a counter or is unparsed.
 `-Help` prints the usage and exits without running anything.
-`-?` aliases `-Help`, printing the same explicit usage without running any stage.
-The declared help forms are `-Help` and `-?`.
+`-?` prints only the PowerShell syntax line and also runs nothing.
+`--help` binds to `-Grep` as a pattern and runs the whole gate.
 
 ## Output
 
@@ -35,8 +34,8 @@ Every `OK` or `FAIL` row adds to the audit's sum, and any sum above zero fails t
 A `WARN` row adds to a separate warning sum, shown as `WARN n` after the audit's counter.
 A warning never fails the run, since each audit decides itself when a warning becomes `FAIL`.
 An output without a `Result` line or with an unreadable row shows `UNPARSED` and fails the run.
-A missing script, thrown error or unexpected nonzero exit fails the run.
-Exit 1 with positive failure counters is reported as findings rather than a script error.
+A missing script, a thrown error, or a non-zero exit also fails the run.
+An audit exits 1 when it finds violations, which shows as counters and not as a script error.
 The build takes the one `.slnx` or `.sln` file at the root, so no project name is written in.
 The build is judged by the exit code and by warning or error codes.
 Tests are judged by the exit code and the pass or fail summary lines.

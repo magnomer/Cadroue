@@ -15,7 +15,7 @@ namespace Cadroue.Tests.Windows;
 [Collection("Preference")]
 public sealed class TRendererSurface : CSRendererPort, LUsherPort
 {
-    private CSRendererFact tRendererSurfaceFact = new(false, false);
+    private (bool, bool) tRendererSurfaceFact = (false, false);
     private int tRendererSurfaceReads;
 
     [Fact]
@@ -127,15 +127,15 @@ public sealed class TRendererSurface : CSRendererPort, LUsherPort
                 Assert.Equal(
                     QLocalizationCatalog.QLocalizationTextRead("Options.System.FFmpegBlank"), status.Text);
 
-                (CSRendererFact, CSRendererState, string)[] states =
+                ((bool, bool), CSRendererState, string)[] states =
                 [
-                    (new CSRendererFact(true, true), CSRendererState.CSRendererStateReady,
+                    ((true, true), CSRendererState.CSRendererStateReady,
                         "Options.System.FFmpegReady"),
-                    (new CSRendererFact(true, false), CSRendererState.CSRendererStateProgram,
+                    ((true, false), CSRendererState.CSRendererStateProgram,
                         "Options.System.FFmpegProgramOnly"),
-                    (new CSRendererFact(false, true), CSRendererState.CSRendererStateLibrary,
+                    ((false, true), CSRendererState.CSRendererStateLibrary,
                         "Options.System.FFmpegLibraryOnly"),
-                    (new CSRendererFact(false, false), CSRendererState.CSRendererStateMissing,
+                    ((false, false), CSRendererState.CSRendererStateMissing,
                         "Options.System.FFmpegMissing")
                 ];
                 foreach (var state in states)
@@ -230,7 +230,7 @@ public sealed class TRendererSurface : CSRendererPort, LUsherPort
         Assert.Null(failure);
     }
 
-    CSRendererFact CSRendererPort.CSRendererPortRead(string path)
+    bool CSRendererPort.CSRendererProgramCheck(string path)
     {
         tRendererSurfaceReads++;
         if (path == "new raw")
@@ -238,8 +238,10 @@ public sealed class TRendererSurface : CSRendererPort, LUsherPort
             throw new IOException("forced readiness failure");
         }
 
-        return tRendererSurfaceFact;
+        return tRendererSurfaceFact.Item1;
     }
+
+    bool CSRendererPort.CSRendererLibraryCheck(string path) => tRendererSurfaceFact.Item2;
 
     bool LUsherPort.LUsherFileExist(string? lPath) => throw new NotSupportedException();
 

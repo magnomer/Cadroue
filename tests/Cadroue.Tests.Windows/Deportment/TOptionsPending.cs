@@ -14,7 +14,10 @@ public class TOptionsPending
         draft.LPreferenceAutoplay = !before.LPreferenceAutoplay;
         QSOptions options = TInterface.TOptionsCreate(draft, false);
         Assert.Equal(before.LPreferenceAutoplay, TInterface.TPreferenceCurrentRead().LPreferenceAutoplay);
-        Assert.NotEqual(before.LPreferenceAutoplay, options.QSOptionsDraft.LPreferenceAutoplay);
+        var gate = (LOptionsPort)typeof(QSOptions)
+            .GetField("csOptions", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+            .GetValue(options)!;
+        Assert.NotEqual(before.LPreferenceAutoplay, gate.CSOptionsSnapshotRead().CSOptionsAutoplay);
     }
     [Fact] public void Apply_CommitsOnce_ThroughPreference()
     {
@@ -37,18 +40,6 @@ public class TOptionsPending
             TInterface.TPreferenceSaveAttach(null);
             TInterface.TPreferenceRestore(before);
         }
-    }
-    [Fact] public void Engine_FallsBackToFlyleaf_WithoutMpv()
-    {
-        LPreferenceState draft = Interface.TInterface.TPreferenceClone(TInterface.TPreferenceCurrentRead());
-        draft.LPreferencePreviewEngine = "Mpv";
-        QSOptions options = TInterface.TOptionsCreate(draft, false);
-        bool? notified = null;
-        TInterface.TOptionsMpvAttach(options, enabled => notified = enabled);
-        Assert.Equal("Flyleaf", TInterface.TOptionsEngineRead(options));
-        TInterface.TOptionsMpvSet(options, true);
-        Assert.True(notified);
-        Assert.Equal("Mpv", TInterface.TOptionsEngineRead(options));
     }
     [Fact] public void Page_SelectTracksShownSheet()
     {

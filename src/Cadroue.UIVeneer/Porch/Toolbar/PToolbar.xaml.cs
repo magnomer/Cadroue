@@ -26,26 +26,10 @@ public partial class PToolbar : UserControl
             [false] = pToolbar => { },
         };
 
-    private static readonly IReadOnlyDictionary<bool, Action<PToolbar>> pChromeLogos =
-        new Dictionary<bool, Action<PToolbar>>
-        {
-            [true] = pToolbar => pToolbar.pLogoMenu.PLogoMenuShow(pToolbar.pLogoHost),
-            [false] = pToolbar => { },
-        };
-
-    private readonly PLogoMenu pLogoMenu;
-
     private QChrome lChrome = null!;
-
-    public event Action? PToolbarOptionsApplied
-    {
-        add => pLogoMenu.PToolbarOptionsApplied += value;
-        remove => pLogoMenu.PToolbarOptionsApplied -= value;
-    }
 
     public PToolbar()
     {
-        pLogoMenu = new PLogoMenu(this);
         InitializeComponent();
         PChromeButtonsApply();
     }
@@ -70,19 +54,9 @@ public partial class PToolbar : UserControl
         pSceneHost.Visibility = PLook.PLookVisible[pVertical];
     }
 
-    public void PToolbarLogoSet(QLogoMenu qLogoMenuOwner)
-    {
-        pLogoMenu.PLogoMenuSet(qLogoMenuOwner);
-    }
-
     public void PToolbarChromeSet(QChrome lChromeOwner)
     {
         lChrome = lChromeOwner;
-    }
-
-    public void PToolbarShortcutShow()
-    {
-        pLogoMenu.PToolbarShortcutShow();
     }
 
     private void PChromeButtonsApply()
@@ -157,12 +131,6 @@ public partial class PToolbar : UserControl
         lChrome.QChromeReset();
     }
 
-    protected override void OnPreviewMouseLeftButtonUp(MouseButtonEventArgs e)
-    {
-        base.OnPreviewMouseLeftButtonUp(e);
-        pChromeLogos[lChrome.QChromeReleaseResolve(PChromeLogoCheck(e.OriginalSource as DependencyObject))](this);
-    }
-
     private bool PChromeCaptionCheck(DependencyObject? pChromeSource) =>
         QChrome.QChromeCaptionResolve(
             QSashGuard.QSashGuardCheck(pChromeSource),
@@ -171,8 +139,4 @@ public partial class PToolbar : UserControl
 
     private bool PChromeSelfMatch(DependencyObject pChromeNode) => ReferenceEquals(pChromeNode, this);
 
-    private bool PChromeLogoMatch(DependencyObject pChromeNode) => ReferenceEquals(pChromeNode, pLogoHost);
-
-    private bool PChromeLogoCheck(DependencyObject? pChromeSource) =>
-        QWalk.QWalkParentCheck(pChromeSource, PChromeLogoMatch);
 }

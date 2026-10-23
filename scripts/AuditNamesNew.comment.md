@@ -2,14 +2,15 @@
 
 Checks proposed names against the naming convention before any code uses them.
 It reads the same bases, verbs, exemptions and settings as `AuditNames.ps1`, but touches no source.
-It runs in plain PowerShell, so it answers in about a second.
+It runs in plain PowerShell.
 
 ## Registry
 
 The bases, verbs and exemptions come from `scripts/AuditNames.registry.json`, never from `docs-internal`.
 `SyncNames.ps1` is the only reader of `docs-internal`.
-It writes that JSON registry for the audits and `TAuditNameRegistry.cs` for the convention tests.
-The chain is `docs-internal` -> `SyncNames.ps1` -> registry JSON (audits) and `TAuditNameRegistry.cs` (tests).
+It writes that JSON registry for the audits and the `TAudit*Registry.cs` files under `Name/Registry` for the convention tests.
+Those are `TAuditLogicRegistry.cs`, `TAuditUIRegistry.cs`, `TAuditSharedRegistry.cs` and `TAuditTestRegistry.cs`, one per base role, then `TAuditVerbRegistry.cs` and `TAuditExemptRegistry.cs`.
+The chain is `docs-internal` -> `SyncNames.ps1` -> registry JSON (audits) and the six `TAudit*Registry.cs` files (tests).
 A missing or malformed registry fails the run and asks you to run `SyncNames.ps1`.
 Run `SyncNames.ps1` after every edit to `docs-internal`, or this check sees stale names.
 
@@ -24,9 +25,9 @@ Tokens from `-File` and from the command line are checked together.
 
 | Token | Meaning |
 |---|---|
-| `PHelper` | A name whose kind is guessed from its last component. |
-| `method:LHelperRead` | A method name, which must end in a registered verb. |
-| `data:PHelperFont` | A data or type name, which must not end in a verb. |
+| `<prefix>Helper` | A name whose kind is guessed from its last component. |
+| `method:<prefix>HelperRead` | A method name, which must end in a registered verb. |
+| `data:<prefix>HelperFont` | A data or type name, which must not end in a verb. |
 | `test:Load_Empty_Throws` | A test method name, checked only against the test-prefix gate. |
 | `base:Helper` | A proposed new base, checked and treated as registered for this run. |
 | `verb:Tidy` | A proposed new verb, checked and treated as registered for this run. |
@@ -35,8 +36,8 @@ Tokens from `-File` and from the command line are checked together.
 
 ```
 AuditNamesNew tester
-AuditNamesNew PHelper base:Helper
-AuditNamesNew method:LHelperRead data:PHelperFont base:Helper
+AuditNamesNew <prefix>Helper base:Helper
+AuditNamesNew method:<prefix>HelperRead data:<prefix>HelperFont base:Helper
 AuditNamesNew -File names.txt
 ```
 
@@ -49,20 +50,20 @@ Blank lines are ignored.
 ```
 # New names
 base:Helper
-PHelper
-method:LHelperRead
-data:PHelperFont
+<prefix>Helper
+method:<prefix>HelperRead
+data:<prefix>HelperFont
 ```
 
 ## Checks on a name
 
 - A name in the `AUDIT:EXEMPT` block passes with a note naming the files its row grants.
-- The name carries a prefix from `AuditNames.json`, in any of its listed cases.
+- The name opens with a prefix from `naming.prefixes` in `AuditNames.json`, then an uppercase letter, a digit or an underscore.
 - Leading underscores are skipped before the prefix is read.
 - The rest splits cleanly into PascalCase components.
 - The first component is a registered base, or one passed with `base:`.
 - The component count stays within `componentLimit` after the prefix.
-- A count at `componentReview` passes with a note.
+- A count from `componentReview` up to the limit passes with a note.
 - A method ends in a registered verb.
 - A data or type name does not end in a verb, whatever its component count.
 - A guessed kind is a method when it has two or more components and the last is a verb.

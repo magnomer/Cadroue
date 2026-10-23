@@ -15,9 +15,8 @@ internal sealed class PSDebug : Window
     private static PSDebug? psDebugCurrent;
 
     private readonly PWindow psDebugApplicationOwner;
-    private readonly QLogoMenu qLogoMenu;
 
-    internal static void PSDebugShow(Window pOwner, QLogoMenu qLogoMenuOwner)
+    internal static void PSDebugShow(Window pOwner, QLogoMenu qLogoMenuOwner, QLogoAnswer qLogoAnswerOwner)
     {
         if (psDebugCurrent is not null)
         {
@@ -25,21 +24,20 @@ internal sealed class PSDebug : Window
             return;
         }
 
-        var pDebug = new PSDebug(pOwner, qLogoMenuOwner);
+        var pDebug = new PSDebug(pOwner, qLogoMenuOwner, qLogoAnswerOwner);
         PSDebugCurrentSet(pDebug);
         pDebug.Show();
     }
 
     private static void PSDebugCurrentSet(PSDebug? pDebug) => psDebugCurrent = pDebug;
 
-    private PSDebug(Window pOwner, QLogoMenu qLogoMenuOwner)
+    private PSDebug(Window pOwner, QLogoMenu qLogoMenuOwner, QLogoAnswer qLogoAnswerOwner)
     {
         psDebugApplicationOwner = (PWindow)pOwner;
-        qLogoMenu = qLogoMenuOwner;
         PSDebugTitleSet();
         PSDebugOwnerApply(pOwner);
         PSDebugFrameApply();
-        PSDebugBuild();
+        PSDebugBuild(qLogoMenuOwner, qLogoAnswerOwner);
         PSDebugClosedAttach();
     }
 
@@ -60,7 +58,7 @@ internal sealed class PSDebug : Window
 
     private void PSDebugClosedAttach() => Closed += (_, _) => PSDebugCurrentSet(null);
 
-    private void PSDebugBuild()
+    private void PSDebugBuild(QLogoMenu qLogoMenuOwner, QLogoAnswer qLogoAnswerOwner)
     {
         var pRoot = new StackPanel { Margin = new Thickness(18) };
         pRoot.Children.Add(PSDebugHeadingBuild("Subwindows"));
@@ -69,38 +67,33 @@ internal sealed class PSDebug : Window
         PSDebugButtonAdd(
             pWindows,
             "About",
-            () => qLogoMenu
-                .QLogoAboutCreate(
-                    () => new PSAbout(),
-                    PSDialog.PSDialogBuild,
-                    pWindow =>
-                    {
-                        var pGrabber = new PSGrabber(pWindow);
-                        return (pGrabber.PSGrabberAttach, pGrabber.PSGrabberDetach);
-                    },
-                    PSWarning.PSWarningShow,
-                    PSGrabberPlacement.PSGrabberPlacementRestore,
-                    PSGrabberPlacement.PSGrabberPlacementSave)
-                .QSAboutShow(this));
+            () => qLogoAnswerOwner.QLogoAnswerAbout(this));
         PSDebugButtonAdd(
-            pWindows, "Options", () => PSOptions.PSOptionsShow(this, qLogoMenu.QLogoOptionsCreate(), null));
-        PSDebugButtonAdd(pWindows, "Shortcuts", () => PSKeymap.PSKeymapShow(this, qLogoMenu.QLogoKeymapCreate(), null));
+            pWindows,
+            "Options",
+            () => qLogoAnswerOwner.QLogoAnswerOptions(this, null));
+        PSDebugButtonAdd(pWindows, "Shortcuts", () => qLogoAnswerOwner.QLogoAnswerShortcut(this, null));
         PSDebugButtonAdd(
             pWindows,
             "Log",
-            () => PLogWindow.PLogWindowShow(psDebugApplicationOwner, qLogoMenu.QLogoLogCreate));
+            () => qLogoAnswerOwner.QLogoAnswerLog(psDebugApplicationOwner));
         PSDebugButtonAdd(
             pWindows,
             "Diagnosis",
-            () => PSDiagnosis.PSDiagnosisShow(this, () => qLogoMenu.QLogoOptionsCreate().QSOptionsDiagnosisCreate()));
+            () => PSDiagnosis.PSDiagnosisShow(
+                this,
+                () => qLogoMenuOwner.QLogoOptionsCreate().QSOptionsDiagnosisCreate()));
         PSDebugButtonAdd(pWindows, "Encoder", PSDebugEncoderShow);
-        PSDebugButtonAdd(pWindows, "Verdict", () => PSVerdict.PSVerdictShow(this, qLogoMenu.QLogoVerdictCreate()));
+        PSDebugButtonAdd(
+            pWindows,
+            "Verdict",
+            () => PSVerdict.PSVerdictShow(this, qLogoMenuOwner.QLogoVerdictCreate()));
         PSDebugButtonAdd(
             pWindows, "Loupe", () => PSLoupe.PSLoupeShow(
                 this,
                 psDebugApplicationOwner.QWindow.QWindowPairCreate().QWorkspaceViewer
                     .QViewerMedia.QViewerLoupe.QViewerLoupeCreate()));
-        PSDebugButtonAdd(pWindows, "Monitor", PSDebugMonitorShow);
+        PSDebugButtonAdd(pWindows, "Monitor", () => PSDebugMonitorShow(qLogoMenuOwner));
         PSDebugButtonAdd(pWindows, "Destructive alert", () => PSAlert.PSAlertConfirm(
             this,
             "Debug alert",
@@ -149,9 +142,9 @@ internal sealed class PSDebug : Window
         pEncoder.ShowDialog();
     }
 
-    private void PSDebugMonitorShow()
+    private void PSDebugMonitorShow(QLogoMenu qLogoMenuOwner)
     {
-        QSMonitor pSource = qLogoMenu.QLogoMonitorCreate();
+        QSMonitor pSource = qLogoMenuOwner.QLogoMonitorCreate();
         QWorkspacePair qPair = psDebugApplicationOwner.QWindow.QWindowPairCreate();
         var pFlow = new PFlow(qPair.QWorkspaceFlow);
         var pViewer = new PViewer(qPair.QWorkspaceViewer);

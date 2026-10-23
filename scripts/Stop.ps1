@@ -9,8 +9,9 @@
     Slot folders nothing runs from any more are reaped afterwards.
 
     With a version, only the instances of that version are ended. With -All, the
-    processes running the project's executable from under the project root that
-    the ledger does not know - launched by hand - are ended too.
+    processes running the project's executable, or a launcher carrying its base
+    name, from under the project root that the ledger does not know - launched
+    by hand - are ended too.
 
     Every project-specific value - executable name, ledger path, folder names -
     lives in Execution.json. This script carries none, so the file is identical
@@ -36,21 +37,23 @@
     Kill every instance under the project root, known or not, without asking it to close.
 #>
 #requires -Version 5.1
-# STOP - EXECUTION GENERATION 2.
+# STOP - EXECUTION GENERATION 3.
 # A generation is not a revision count. It names functionality, not edits, so editing one of these
 # files is never on its own a reason to raise it. Raise it only when the executed outcome changes.
 # A generation names what the family builds, where it installs, and what it launches. Two projects on
 # the same generation publish the same way and their folders lay out the same, whatever else differs
 # between the files. A publish flag, a destination, a temp isolation rule, or a launch step added,
 # removed, or changed is a new generation; wording, plumbing, and refactoring leave it alone.
-# Generation 2: the family lives in scripts/ with Execution.json beside it and is invoked by bare name
-# through the dispatchers Install.ps1 installs; current source publishes Release, self-contained, with
-# the configured properties into run/, build/, or snapshots/<version>/; a historical version climbs
-# the ladder - snapshot executable, local commit, fetched commit, nearest lower - and a commit is
-# exported and published into snapshots/<version>/; debug publishes Debug into debug/; when a live
-# process runs from the install folder the build goes into an eight-digit slot inside it instead, and
-# slots nothing runs from are reaped first; every launch is written to the ledger so Stop.ps1 can end
-# it; every intermediate file lives under <work root>/temp, removed on success and kept on failure.
+# Generation 3: the family lives in scripts/ with Execution.json beside it and is invoked by bare name
+# through the dispatchers Install.ps1 installs; current source publishes Release, self-contained, in
+# the configured shape - a folder holding every published file, other launchers included, or a single
+# file - with the configured properties into run/, build/, or snapshots/<version>/; a historical
+# version climbs the ladder - snapshot executable found by name, local commit, fetched commit, nearest
+# lower - and a commit is exported and published into snapshots/<version>/; debug publishes Debug in
+# the same shape into debug/; when a live process runs any launcher from the install folder the build
+# goes into an eight-digit slot inside it instead, and slots nothing runs from are reaped first; every
+# launch is written to the ledger so Stop.ps1 can end it; every intermediate file lives under
+# <work root>/temp, removed on success and kept on failure.
 # Every project-specific value lives in Execution.json, so this file is identical in every project at
 # this generation.
 [CmdletBinding()]

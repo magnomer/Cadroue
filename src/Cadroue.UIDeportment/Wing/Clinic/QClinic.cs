@@ -30,6 +30,8 @@ public sealed class QClinic
         remove => qClinicGate.CClinicMinimizeChanged -= value;
     }
 
+    public event Action? QClinicDiagnosisRequested;
+
     public bool QClinicSalvageShown => qClinicGate.CClinicSalvageShown;
 
     public bool QClinicKnown => qClinicGate.CClinicKnown;
@@ -72,6 +74,8 @@ public sealed class QClinic
     public void QClinicActiveSet(bool lActive) => qClinicGate.CClinicRepairSet(lActive);
 
     public void QClinicPersistentSet(bool lPersistent) => qClinicGate.CClinicPersistentSet(lPersistent);
+
+    public void QClinicDiagnosisRun() => QClinicDiagnosisRequested?.Invoke();
 
     private static string QClinicTextRead(string? lKey) =>
         lKey is null ? string.Empty : QLocalizationCatalog.QLocalizationTextRead(lKey);

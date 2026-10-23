@@ -10,7 +10,7 @@
     folder as its working directory; the console returns at once.
 
     Every project-specific value - project file, executable, runtime, publish
-    properties, folder names - lives in Execution.json. This script carries
+    shape and properties, folder names - lives in Execution.json. This script carries
     none, so the file is identical in every project at the same generation.
 .PARAMETER Runtime
     Runtime identifier for the .NET publish. Defaults to the configured publish runtime.
@@ -24,21 +24,23 @@
     Publish and launch a Windows ARM64 Debug build.
 #>
 #requires -Version 5.1
-# DEBUG - EXECUTION GENERATION 2.
+# DEBUG - EXECUTION GENERATION 3.
 # A generation is not a revision count. It names functionality, not edits, so editing one of these
 # files is never on its own a reason to raise it. Raise it only when the executed outcome changes.
 # A generation names what the family builds, where it installs, and what it launches. Two projects on
 # the same generation publish the same way and their folders lay out the same, whatever else differs
 # between the files. A publish flag, a destination, a temp isolation rule, or a launch step added,
 # removed, or changed is a new generation; wording, plumbing, and refactoring leave it alone.
-# Generation 2: the family lives in scripts/ with Execution.json beside it and is invoked by bare name
-# through the dispatchers Install.ps1 installs; current source publishes Release, self-contained, with
-# the configured properties into run/, build/, or snapshots/<version>/; a historical version climbs
-# the ladder - snapshot executable, local commit, fetched commit, nearest lower - and a commit is
-# exported and published into snapshots/<version>/; debug publishes Debug into debug/; when a live
-# process runs from the install folder the build goes into an eight-digit slot inside it instead, and
-# slots nothing runs from are reaped first; every launch is written to the ledger so Stop.ps1 can end
-# it; every intermediate file lives under <work root>/temp, removed on success and kept on failure.
+# Generation 3: the family lives in scripts/ with Execution.json beside it and is invoked by bare name
+# through the dispatchers Install.ps1 installs; current source publishes Release, self-contained, in
+# the configured shape - a folder holding every published file, other launchers included, or a single
+# file - with the configured properties into run/, build/, or snapshots/<version>/; a historical
+# version climbs the ladder - snapshot executable found by name, local commit, fetched commit, nearest
+# lower - and a commit is exported and published into snapshots/<version>/; debug publishes Debug in
+# the same shape into debug/; when a live process runs any launcher from the install folder the build
+# goes into an eight-digit slot inside it instead, and slots nothing runs from are reaped first; every
+# launch is written to the ledger so Stop.ps1 can end it; every intermediate file lives under
+# <work root>/temp, removed on success and kept on failure.
 # Every project-specific value lives in Execution.json, so this file is identical in every project at
 # this generation.
 [CmdletBinding()]
@@ -102,7 +104,7 @@ $artifactsDir = Join-Path $tempDir 'artifacts'
 $executableName = $config.source.executable
 $installDir = $debugDir
 $exe = Join-Path $debugDir $executableName
-$publishProperties = @($config.publish.properties | ForEach-Object { "-p:$_" })
+$publishProperties = Get-ExecutionPublishArguments -Config $config
 $selfContained = $config.publish.selfContained.ToString().ToLowerInvariant()
 $publish = $null
 $failure = $null
@@ -188,7 +190,7 @@ catch {
 
 $fields = [ordered]@{
     'Source' = 'working tree, built now'
-    'Build'  = "Debug $Runtime" + $(if ($config.publish.selfContained) { ' self-contained' } else { '' })
+    'Build'  = "Debug $Runtime" + $(if ($config.publish.selfContained) { ' self-contained' } else { '' }) + " $($config.publish.shape)"
     'Folder' = $installDir
 }
 if (Test-Path -LiteralPath $exe -PathType Leaf) {

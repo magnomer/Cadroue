@@ -7,7 +7,7 @@ namespace Cadroue.Tests.Conduct;
 
 public sealed class TRendererPolicy : CSRendererPort
 {
-    private CSRendererFact tRendererPolicyFact = new(false, false);
+    private (bool, bool) tRendererPolicyFact = (false, false);
     private Exception? tRendererPolicyFailure;
     private int tRendererPolicyReads;
 
@@ -21,12 +21,12 @@ public sealed class TRendererPolicy : CSRendererPort
         Assert.Equal(CSRendererState.CSRendererStateBlank, blank.CSRendererSnapshotState);
         Assert.Equal(0, tRendererPolicyReads);
 
-        (CSRendererFact, CSRendererState)[] states =
+        ((bool, bool), CSRendererState)[] states =
         [
-            (new CSRendererFact(true, true), CSRendererState.CSRendererStateReady),
-            (new CSRendererFact(true, false), CSRendererState.CSRendererStateProgram),
-            (new CSRendererFact(false, true), CSRendererState.CSRendererStateLibrary),
-            (new CSRendererFact(false, false), CSRendererState.CSRendererStateMissing)
+            ((true, true), CSRendererState.CSRendererStateReady),
+            ((true, false), CSRendererState.CSRendererStateProgram),
+            ((false, true), CSRendererState.CSRendererStateLibrary),
+            ((false, false), CSRendererState.CSRendererStateMissing)
         ];
         foreach (var state in states)
         {
@@ -43,7 +43,7 @@ public sealed class TRendererPolicy : CSRendererPort
         Assert.Equal("forced", failure.Message);
     }
 
-    CSRendererFact CSRendererPort.CSRendererPortRead(string path)
+    bool CSRendererPort.CSRendererProgramCheck(string path)
     {
         tRendererPolicyReads++;
         if (tRendererPolicyFailure is not null)
@@ -51,6 +51,8 @@ public sealed class TRendererPolicy : CSRendererPort
             throw tRendererPolicyFailure;
         }
 
-        return tRendererPolicyFact;
+        return tRendererPolicyFact.Item1;
     }
+
+    bool CSRendererPort.CSRendererLibraryCheck(string path) => tRendererPolicyFact.Item2;
 }

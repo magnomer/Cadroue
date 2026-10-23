@@ -1,3 +1,4 @@
+using System.Windows.Threading;
 using Cadroue.Application;
 using Cadroue.Conduct;
 using Cadroue.Core;
@@ -25,6 +26,7 @@ public sealed class QFixTab
         qFixViewer = lViewer;
         qFixList = lList;
         qFixDocket = lList.QListDocket;
+        QFixFace = new QFixFace(this);
         QFixProcessing.QProcessingOrderedSet(false);
         QFixAttach();
     }
@@ -39,8 +41,14 @@ public sealed class QFixTab
 
     public LCheckup QFixCheckup { get; } = new();
 
+    public QFixFace QFixFace { get; }
+
+    public void QFixFaceAttach(Dispatcher lDispatcher, Action lMissingNotice) =>
+        QFixFace.QFixFaceAttach(QFixCheckup, lDispatcher, lMissingNotice);
+
     public void QFixClose()
     {
+        QFixFace.QFixFaceDetach();
         QFixDetach();
         QFixCheckup.Dispose();
     }
@@ -53,15 +61,26 @@ public sealed class QFixTab
         qFixViewer.QViewerOpenRequest += QFixPlanRestore;
         qFixList.QListItemsAdded += QFixItemsHandle;
         qFixList.QListClearChanged += QFixClearHandle;
-        qFixViewer.QViewerSource.QViewerPathsDrop += lDropPaths => _ = qFixList.QListPathsAdd(lDropPaths);
+        qFixViewer.QViewerSource.QViewerPathsDrop += QFixDropHandle;
+        QFixProcessing.QProcessingStepChanged += QFixClinic.QClinicStepSet;
+        QFixClinic.QClinicDiagnosisRequested += QFixDiagnosisRun;
     }
 
     private void QFixDetach()
     {
         QFixClinicGate.CClinicPlanChanged -= QFixChangeHandle;
+        qFixList.QListPathChanged -= qFixViewer.QViewerWorkspace.CWorkspaceOpen;
         qFixViewer.QViewerOpenNotice -= QFixOpenHandle;
         qFixViewer.QViewerOpenRequest -= QFixPlanRestore;
+        qFixList.QListItemsAdded -= QFixItemsHandle;
+        qFixList.QListClearChanged -= QFixClearHandle;
+        qFixViewer.QViewerSource.QViewerPathsDrop -= QFixDropHandle;
+        QFixProcessing.QProcessingStepChanged -= QFixClinic.QClinicStepSet;
+        QFixClinic.QClinicDiagnosisRequested -= QFixDiagnosisRun;
     }
+
+    private void QFixDropHandle(IReadOnlyList<string> lDropPaths) =>
+        _ = qFixList.QListPathsAdd(lDropPaths);
 
     public LSceneTabEntry QFixLayoutRead(LSceneTabEntry lLayout)
     {

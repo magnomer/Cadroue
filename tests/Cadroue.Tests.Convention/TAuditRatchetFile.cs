@@ -15,7 +15,7 @@ internal static class TAuditRatchetFile
     public static IReadOnlyList<string> TAuditTreeRead()
     {
         string folder = Path.Combine(TAuditSource.TAuditRootRead(), TAuditSettingFolder);
-        return Directory.EnumerateFiles(folder)
+        return Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories)
             .Select(path => Path.GetFileName(path))
             .Where(TAuditHeldCheck)
             .Order(StringComparer.Ordinal)
@@ -24,7 +24,7 @@ internal static class TAuditRatchetFile
 
     public static IReadOnlyList<string> TAuditHeadRead()
     {
-        string? listing = TAuditGitRead("ls-tree", "--name-only", "HEAD", TAuditSettingFolder);
+        string? listing = TAuditGitRead("ls-tree", "-r", "--name-only", "HEAD", TAuditSettingFolder);
         Assert.True(listing is not null, TAuditConvention.TAuditReportFormat(
             TAuditRatchet.TAuditRatchetAudit,
             $"git cannot list {TAuditSettingFolder} at HEAD, so no setting can be held."));
@@ -44,7 +44,17 @@ internal static class TAuditRatchetFile
 
     public static string TAuditWorkingRead(string name)
     {
-        return File.ReadAllText(Path.Combine(TAuditSource.TAuditRootRead(), TAuditSettingFolder, name));
+        string folder = Path.Combine(TAuditSource.TAuditRootRead(), TAuditSettingFolder);
+        return File.ReadAllText(Directory.EnumerateFiles(folder, name, SearchOption.AllDirectories).FirstOrDefault()
+                                ?? Path.Combine(folder, name));
+    }
+
+    public static string TAuditHeadFind(string name)
+    {
+        string? listing = TAuditGitRead("ls-tree", "-r", "--name-only", "HEAD", TAuditSettingFolder);
+        return listing?.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                   .FirstOrDefault(path => path.EndsWith("/" + name, StringComparison.Ordinal))
+               ?? TAuditSettingFolder + name;
     }
 
     public static string? TAuditCommittedRead(string path)

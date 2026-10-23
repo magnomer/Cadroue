@@ -18,7 +18,7 @@ The sources are the tracked and untracked `.cs` files under the source root, nev
 The generated `.g.cs` files of every project join them, `_wpftmp` copies left out.
 A project that holds markup but has no generated folder fails, since the solution was not built.
 The references are the shared frameworks beside the helper runtime and the host build output, own assemblies left out.
-The helper framework picks those shared frameworks, so AuditFake and AuditObject pin it to the test framework.
+The helper framework picks those shared frameworks, so each script sets `helper.framework` in its own configuration.
 A compile error fails the bind, so an unbound name can never slip past an audit.
 
 ## Trees

@@ -1,9 +1,9 @@
 # TInterfaceEngine.cs
-Hash: `18d64291a9b16177`
 
-## `internal static void TInterfaceEngineStart() =>`
+## TInterfaceEngineStart
 
-Runs the module start of `Cadroue.Tests.Interface` before any Engine test runs.
-That start redirects the production home to a fresh temporary folder.
-An Engine test may reach a store before it touches the facade.
-Without this start, such a test would write into the real application-data folder.
+The module initializer runs the `Cadroue.Tests.Interface` module constructor.
+
+## TRendererReadinessRead
+
+Renderer readiness projects Infrastructure's program and library-folder decisions without adding test-specific policy.

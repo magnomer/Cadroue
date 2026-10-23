@@ -35,11 +35,6 @@ internal static partial class TInterface
         CSFlyleafPort flyleaf,
         CSMpvPort mpvPort) =>
         new(new CUsher(usher), draft, mpv, flyleaf, mpvPort);
-    internal static void TOptionsMpvAttach(QSOptions options, Action<bool> handler) =>
-        options.QSMpv.QSMpvChanged += handler;
-    internal static void TOptionsMpvSet(QSOptions options, bool enabled) =>
-        options.QSMpv.QSMpvUpdate(enabled);
-    internal static string TOptionsEngineRead(QSOptions options) => options.QSOptionsEngineRead();
     internal static void TOptionsPageSelect(QSOptions options, QSOptionsPage page) =>
         options.QSOptionsPageSelect(page);
     internal static bool TOptionsApply(QSOptions options) => options.QSOptionsApply();

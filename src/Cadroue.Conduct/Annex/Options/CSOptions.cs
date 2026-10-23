@@ -6,6 +6,30 @@ using Cadroue.Core;
 
 namespace Cadroue.Conduct;
 
+public sealed record CSOptionsPlayback(
+    bool CSOptionsPlaybackAutoplay,
+    string CSOptionsPlaybackScope,
+    double CSOptionsPlaybackVolume,
+    string CSOptionsPlaybackWheel,
+    bool CSOptionsPlaybackDrag,
+    string CSOptionsPlaybackEngine);
+
+public sealed record CSOptionsTimeline(
+    string CSOptionsTimelineOrder,
+    double CSOptionsTimelineKeyframe,
+    double CSOptionsTimelineDelay,
+    string CSOptionsTimelinePalette,
+    bool CSOptionsTimelineOverlap,
+    bool CSOptionsTimelineWaveform);
+
+public sealed record CSOptionsWork(bool CSOptionsWorkFailure, bool CSOptionsWorkRetry, double CSOptionsWorkMaximum);
+
+public sealed record CSOptionsSystem(
+    string CSOptionsSystemStorage,
+    bool CSOptionsSystemCleanup,
+    double CSOptionsSystemDays,
+    string CSOptionsSystemRenderer);
+
 public sealed class CSOptions : LOptionsPort
 {
     private readonly (Func<LOptionsRequest, LOptionsFact>, Func<LOptionsRequest, LOptionsFact>) csOptionsPort;
@@ -34,9 +58,6 @@ public sealed class CSOptions : LOptionsPort
             CSOptionsSelection = Array.AsReadOnly(CSOptionsSnapshot.CSOptionsSelection.ToArray())
         };
     }
-
-    public LOptionsState CSOptionsDraftRead<LOptionsState>() where LOptionsState : class =>
-        (LOptionsState)(object)csOptionsDraft;
 
     public LOptionsApplyResult CSOptionsApply()
     {
@@ -69,6 +90,15 @@ public sealed class CSOptions : LOptionsPort
             LLocalization.LLocalizationLanguageNormalize(LPreference.LPreferenceStateCurrent.LPreferenceLanguage),
             LLocalization.LLocalizationLanguageRead(),
             StringComparison.OrdinalIgnoreCase);
+
+    public string CSOptionsLanguageResolve()
+    {
+        IReadOnlyDictionary<string, string> languages = LLocalization.LLocalizationLanguagesRead();
+        string language = CSOptionsSnapshot.CSOptionsLanguage;
+        return languages.Keys.FirstOrDefault(key => string.Equals(key, language, StringComparison.Ordinal))
+            ?? languages.Keys.FirstOrDefault()
+            ?? string.Empty;
+    }
 
     public bool CSOptionsFolderExist(string folder) => csOptionsUsher.CUsherFolderExist(folder);
 
@@ -104,6 +134,58 @@ public sealed class CSOptions : LOptionsPort
         csOptionsDraft.LPreferenceLevelSet(family, level);
         CSOptionsUpdate();
     }
+
+    public void CSOptionsSheetCommit(
+        CSOptionsPlayback playback,
+        CSOptionsTimeline timeline,
+        CSOptionsWork work,
+        CSOptionsSystem system)
+    {
+        csOptionsDraft.LPreferenceAutoplay = playback.CSOptionsPlaybackAutoplay;
+        csOptionsDraft.LPreferenceVolumeMode = playback.CSOptionsPlaybackScope;
+        csOptionsDraft.LPreferenceVolume = playback.CSOptionsPlaybackVolume;
+        csOptionsDraft.LPreferenceWheelAction = playback.CSOptionsPlaybackWheel;
+        csOptionsDraft.LPreferenceDragPaused = playback.CSOptionsPlaybackDrag;
+        csOptionsDraft.LPreferencePreviewEngine = playback.CSOptionsPlaybackEngine;
+        csOptionsDraft.LPreferenceTimelineOrder = timeline.CSOptionsTimelineOrder;
+        csOptionsDraft.LPreferenceKeyframePixels = timeline.CSOptionsTimelineKeyframe;
+        csOptionsDraft.LPreferenceKeyframeDelay = timeline.CSOptionsTimelineDelay;
+        csOptionsDraft.LPreferenceSectionPalette = timeline.CSOptionsTimelinePalette;
+        csOptionsDraft.LPreferenceOverlapAllowed = timeline.CSOptionsTimelineOverlap;
+        csOptionsDraft.LPreferenceWaveform = timeline.CSOptionsTimelineWaveform;
+        csOptionsDraft.LPreferenceFailurePaused = work.CSOptionsWorkFailure;
+        csOptionsDraft.LPreferenceRetryAllowed = work.CSOptionsWorkRetry;
+        csOptionsDraft.LPreferenceRetryMaximum = work.CSOptionsWorkMaximum;
+        csOptionsDraft.LPreferenceRecordWorkspace = CSOptionsRecordCheck(system.CSOptionsSystemStorage);
+        csOptionsDraft.LPreferenceCleanupActive = system.CSOptionsSystemCleanup;
+        csOptionsDraft.LPreferenceCleanupDays = (int)Math.Round(system.CSOptionsSystemDays);
+        csOptionsDraft.LPreferenceFfmpegFolder = system.CSOptionsSystemRenderer;
+    }
+
+    public string CSOptionsRecordRead() => CSOptionsRecordCheck() ? "Workspace" : "FileLocation";
+
+    public (string, string) CSOptionsRecordResolve(string record)
+    {
+        csOptionsDraft.LPreferenceRecordWorkspace = CSOptionsRecordCheck(record);
+        return (CSOptionsRecordResolve(), CSOptionsSidecarRead());
+    }
+
+    public void CSOptionsSidecarCheck(Action<string> present, Action absent)
+    {
+        string folder = CSOptionsRequestRead(LOptionsRequestKind.LOptionsRequestSidecar).LOptionsFactPath;
+        if (CSOptionsFolderExist(folder))
+        {
+            present(folder);
+            return;
+        }
+        absent();
+    }
+
+    public int CSOptionsSidecarClear() =>
+        CSOptionsRequestApply(LOptionsRequestKind.LOptionsRequestSidecar).LOptionsFactCount;
+
+    private static bool CSOptionsRecordCheck(string record) =>
+        string.Equals(record, "Workspace", StringComparison.Ordinal);
 
     public bool CSOptionsRecordCheck()
     {

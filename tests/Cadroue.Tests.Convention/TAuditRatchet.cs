@@ -48,7 +48,7 @@ public sealed class TAuditRatchet
         Dictionary<string, Dictionary<string, List<string>>?> before = TAuditRatchetValue.TAuditValueRead(
             shared.ToDictionary(
                 name => name,
-                name => TAuditRatchetFile.TAuditCommittedRead(TAuditRatchetFile.TAuditSettingFolder + name)));
+                name => TAuditRatchetFile.TAuditCommittedRead(TAuditRatchetFile.TAuditHeadFind(name))));
         Dictionary<string, Dictionary<string, List<string>>?> after = TAuditRatchetValue.TAuditValueRead(
             shared.ToDictionary(name => name, name => (string?)TAuditRatchetFile.TAuditWorkingRead(name)));
         foreach (string key in before.Keys.Union(after.Keys).Order(StringComparer.Ordinal))

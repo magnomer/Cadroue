@@ -1,6 +1,5 @@
 using Cadroue.Application;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
@@ -13,7 +12,7 @@ public sealed class PFixTab : PTabSurface
     private readonly PList pList;
     private readonly PProcessing pProcessing;
 
-    public PFixTab(QWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PFixTab(QWorkspace lWorkspace, PExport pExport, LSceneTabEntry? lPreferenceTabLayout = null)
     {
         pFlow = new PFlow(lWorkspace.QWorkspaceFlow!);
         pViewer = new PViewer(lWorkspace.QWorkspaceViewer!);
@@ -25,9 +24,8 @@ public sealed class PFixTab : PTabSurface
         pAction.PActionAllSet(true, QLocalizationCatalog.QLocalizationTextRead("Action.EditAll.Tooltip"));
 
         QFixCatalog.QFixRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
-        PFixEventsAttach();
+        QFixTab.QFixFaceAttach(Dispatcher, PExportNotice.PExportMissingShow);
 
-        var pExport = new PExport(lWorkspace.QWorkspaceExport, lWorkspace.QWorkspacePresetOwner);
         PTabLock.PTabLockAttach(pList, pProcessing, pClinic, pExport);
         Content = PTabGridBuild(
             lWorkspace.QWorkspaceMode,
@@ -50,30 +48,9 @@ public sealed class PFixTab : PTabSurface
     public override void PTabClose()
     {
         base.PTabClose();
-        PFixEventsDetach();
         QFixTab.QFixClose();
     }
 
     public override LSceneTabEntry PTabLayoutRead() => QFixTab.QFixLayoutRead(PTabLayoutCreate());
 
-    private void PFixEventsAttach()
-    {
-        pProcessing.PProcessingStepChanged += pClinic.PClinicStepShow;
-        pClinic.PClinicDiagnosisExecuted += QFixTab.QFixDiagnosisRun;
-        QFixTab.QFixCheckup.LCheckupReady += PFixCheckupHandle;
-        QFixTab.QFixCheckup.LCheckupProgress += PFixProgressHandle;
-        QFixTab.QFixPresetMissing += PExportNotice.PExportMissingShow;
-    }
-
-    private void PFixEventsDetach()
-    {
-        QFixTab.QFixCheckup.LCheckupReady -= PFixCheckupHandle;
-        QFixTab.QFixCheckup.LCheckupProgress -= PFixProgressHandle;
-    }
-
-    private void PFixCheckupHandle(LCheckupResult lResult) =>
-        Dispatcher.BeginInvoke(() => QFixTab.QFixCheckupHandle(lResult));
-
-    private void PFixProgressHandle(string lPath, double lProgress) =>
-        Dispatcher.BeginInvoke(() => QFixTab.QFixProgressHandle(lPath, lProgress));
 }

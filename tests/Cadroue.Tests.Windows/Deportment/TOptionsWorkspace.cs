@@ -168,10 +168,8 @@ public class TOptionsWorkspace
                 var size = (TextBlock)LogicalTreeHelper.FindLogicalNode(surface, "PSWorkspaceSize");
                 var done = (Button)LogicalTreeHelper.FindLogicalNode(surface, "PSSystemDone");
                 Assert.Equal(("2 B", true), (size.Text, done.IsEnabled));
-                object system = TOptionsPendingAttach(options);
                 TInterface.TDepotRootSet(Path.Combine(root, "elsewhere"));
-                system.GetType().GetMethod("PSSystemAppliedUpdate", BindingFlags.Instance | BindingFlags.NonPublic)!
-                    .Invoke(system, [options]);
+                options.QSOptionsSystem.QSOptionsSystemUpdate();
                 Assert.Equal(("2 B", false), (size.Text, done.IsEnabled));
                 TInterface.TWorkspaceDetach(options.QSWorkspace);
             }
@@ -191,12 +189,10 @@ public class TOptionsWorkspace
                 var size = (TextBlock)LogicalTreeHelper.FindLogicalNode(surface, "PSWorkspaceSize");
                 var done = (Button)LogicalTreeHelper.FindLogicalNode(surface, "PSSystemDone");
                 Assert.Equal(("2 B", true), (size.Text, done.IsEnabled));
-                object system = TOptionsPendingAttach(options);
-                object sidecar = system.GetType()
-                    .GetField("psOptionsSidecar", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(system)!;
-                var refresh = (Action)sidecar.GetType()
-                    .GetField("psSidecarSizeHandler", BindingFlags.Instance | BindingFlags.NonPublic)!
-                    .GetValue(sidecar)!;
+                var workspace = (QSWorkspace)typeof(QSOptionsSystem)
+                    .GetField("qsWorkspace", BindingFlags.Instance | BindingFlags.NonPublic)!
+                    .GetValue(options.QSOptionsSystem)!;
+                Action refresh = workspace.QSWorkspaceSizeUpdate;
                 TInterface.TDepotRootSet(Path.Combine(root, "elsewhere"));
                 refresh();
                 Assert.Equal(("0 B", true), (size.Text, done.IsEnabled));
@@ -254,6 +250,24 @@ public class TOptionsWorkspace
             clear.RaiseEvent(new RoutedEventArgs(Button.ClickEvent, clear));
             Assert.Equal(new[] { "confirm", "reset", "rebuild", "compact", "size", "announce" }, order);
             Assert.Equal("1 MB", ((TextBlock)LogicalTreeHelper.FindLogicalNode(surface, "PSWorkspaceSize")).Text);
+            TInterface.TWorkspaceDetach(driver);
+        });
+    }
+    [Theory] [InlineData(true)] [InlineData(false)] public void Commit_Occupied_KeepsCurrentAndWarns(bool occupied) {
+        ((Action<Action>)tOptionsPending[0])(() =>
+        {
+            var warnings = new List<(string, string)>();
+            (QSWorkspace driver, FrameworkElement surface) = TOptionsPendingAttach("C:\\Occupied",
+                TInterface.TWorkspaceAnswerCreate((_, _, _) => { }, (_, _, _, _) => { },
+                    (title, message) => warnings.Add((title, message)), (_, _) => { }),
+                request => request == "occupied" ? occupied : TOptionsPendingRead(request));
+            driver.QSWorkspaceCommit();
+            string current = TInterface.TPreferenceCurrentRead().LPreferenceWorkspaceFolder;
+            Assert.Equal(occupied ? current : "C:\\Occupied",
+                ((TextBox)LogicalTreeHelper.FindLogicalNode(surface, "PSWorkspaceBox")).Text);
+            Assert.Equal(occupied ? new[] { (Interface.TInterface.TLocalizationTextRead("Options.System.Workspace"),
+                QLocalizationCatalog.QLocalizationFormat("Options.System.WorkspaceOccupied", "C:\\Occupied")) }
+                : Array.Empty<(string, string)>(), warnings);
             TInterface.TWorkspaceDetach(driver);
         });
     }
@@ -331,6 +345,8 @@ public class TOptionsWorkspace
                     TInterface.TOptionsFactCreate(string.Empty, 0, (long)request("size")!, false),
                 LOptionsRequestKind.LOptionsRequestRunning =>
                     TInterface.TOptionsFactCreate(string.Empty, 0, 0, (bool)request("running")!),
+                LOptionsRequestKind.LOptionsRequestOccupancy =>
+                    TInterface.TOptionsFactCreate(string.Empty, 0, 0, (bool)request("occupied")!),
                 _ => throw new NotSupportedException(fact.LOptionsRequestKind.ToString())
             },
             fact => fact.LOptionsRequestKind switch
@@ -368,22 +384,6 @@ public class TOptionsWorkspace
         (_, FrameworkElement surface) = TOptionsPendingAttach(options, root,
             TInterface.TWorkspaceAnswerCreate((_, _, _) => { }, (_, _, _, _) => { }, (_, _) => { }, (_, _) => { }));
         return (options, surface, root, previous);
-    }
-    private static object TOptionsPendingAttach(QSOptions options)
-    {
-        System.Windows.Application program = System.Windows.Application.Current;
-        foreach (string sheet in new[] { "PCheckbox", "PSlider" }.Where(key => !program.Resources.Contains(key)))
-        {
-            using var reader = System.Xml.XmlReader.Create(new StringReader(File.ReadAllText(Path.GetFullPath(
-                Path.Combine(AppContext.BaseDirectory, $"../../../../../src/Cadroue.UIVeneer/Kit/{sheet}.xaml")))));
-            program.Resources.MergedDictionaries.Add((ResourceDictionary)XamlReader.Load(reader));
-        }
-        return Activator.CreateInstance(
-            TOptionsPendingRead().GetType("Cadroue.UIVeneer.PSOptionsSystem", true)!,
-            BindingFlags.Instance | BindingFlags.NonPublic,
-            null,
-            [options, new Window()],
-            null)!;
     }
     private static Assembly TOptionsPendingRead() => Assembly.LoadFrom(Path.GetFullPath(Path.Combine(
         AppContext.BaseDirectory,

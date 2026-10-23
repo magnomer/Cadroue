@@ -1,0 +1,27 @@
+namespace Convention.Tests;
+
+internal sealed class TAuditRegistry
+{
+    public required HashSet<string> TAuditBases { get; init; }
+    public required HashSet<string> TAuditVerbs { get; init; }
+    public required Dictionary<string, HashSet<string>> TAuditExempt { get; init; }
+
+    public bool TAuditExemptValidate(string name, string sourcePath) =>
+        TAuditExempt.TryGetValue(name, out HashSet<string>? files) &&
+        (files.Contains("*") || files.Contains(Path.GetFileName(sourcePath)));
+
+    public static TAuditRegistry TAuditLoad() => new()
+    {
+        TAuditBases = new HashSet<string>(
+            TAuditLogicRegistry.TAuditBases
+                .Concat(TAuditUIRegistry.TAuditBases)
+                .Concat(TAuditSharedRegistry.TAuditBases)
+                .Concat(TAuditTestRegistry.TAuditBases),
+            StringComparer.Ordinal),
+        TAuditVerbs = new HashSet<string>(TAuditVerbRegistry.TAuditVerbs, StringComparer.Ordinal),
+        TAuditExempt = TAuditExemptRegistry.TAuditExempt.ToDictionary(
+            entry => entry.Key,
+            entry => new HashSet<string>(entry.Value, StringComparer.OrdinalIgnoreCase),
+            StringComparer.Ordinal)
+    };
+}

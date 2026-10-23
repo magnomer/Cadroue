@@ -229,9 +229,12 @@ public sealed class TGeneralSurface
                 draft.LPreferenceConfirmDestructive = true;
                 draft.LPreferenceRelayEmpty = false;
                 draft.LPreferenceVerticalTabs = false;
+                draft.LPreferenceLanguage = "zz-Unoffered";
                 string originalLanguage = draft.LPreferenceLanguage;
                 QSOptions options = TInterface.TOptionsCreate(draft, false);
                 options.QSOptionsGeneral.QSGeneralAttach(surface);
+                Assert.Equal(LLocalization.LLocalizationLanguagesRead().First().Key,
+                    (string)QContract.QContractFind<ComboBox>(surface, "PSGeneralLanguage").SelectedValue);
 
                 ContentControl startup = QContract.QContractFind<ContentControl>(surface, "PSGeneralStartup");
                 ((Panel)((Border)startup.Content).Child).Children.OfType<RadioButton>().Last().IsChecked = true;

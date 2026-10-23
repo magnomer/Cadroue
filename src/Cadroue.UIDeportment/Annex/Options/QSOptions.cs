@@ -2,6 +2,7 @@ using Cadroue.Application;
 using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
+using System.Windows.Controls;
 
 namespace Cadroue.UIDeportment;
 
@@ -14,10 +15,11 @@ public enum QSOptionsPage
     QSOptionsPageWork
 }
 
-public sealed record QSOptionsLevel(
-    string QSOptionsLevelText,
-    int QSOptionsLevelIndex,
-    Action<int> QSOptionsLevelChoice);
+public delegate Border QSOptionsMode(
+    string selected,
+    Action change,
+    out Action<string, bool> enable,
+    params LLocalizationChoice[] choices);
 
 public sealed class QSOptions
 {
@@ -44,9 +46,13 @@ public sealed class QSOptions
                 snapshot.CSOptionsSafety,
                 snapshot.CSOptionsVacancy,
                 snapshot.CSOptionsOrientation,
-                snapshot.CSOptionsLanguage),
+                csOptions.CSOptionsLanguageResolve()),
             csOptions);
         QSRenderer = new QSRenderer(snapshot.CSOptionsRenderer);
+        QSOptionsSystem = new QSOptionsSystem(csOptions, QSWorkspace, QSRenderer);
+        QSOptionsPlayback = new QSOptionsPlayback(csOptions, QSMpv);
+        QSOptionsTimeline = new QSOptionsTimeline(csOptions);
+        QSOptionsWork = new QSOptionsWork(csOptions);
     }
 
     public QSOptions(
@@ -69,13 +75,14 @@ public sealed class QSOptions
                 snapshot.CSOptionsSafety,
                 snapshot.CSOptionsVacancy,
                 snapshot.CSOptionsOrientation,
-                snapshot.CSOptionsLanguage),
+                csOptions.CSOptionsLanguageResolve()),
             csOptions);
         QSRenderer = new QSRenderer(snapshot.CSOptionsRenderer);
+        QSOptionsSystem = new QSOptionsSystem(csOptions, QSWorkspace, QSRenderer);
+        QSOptionsPlayback = new QSOptionsPlayback(csOptions, QSMpv);
+        QSOptionsTimeline = new QSOptionsTimeline(csOptions);
+        QSOptionsWork = new QSOptionsWork(csOptions);
     }
-
-    public LPreferenceState QSOptionsDraft =>
-        ((LOptionsPort)csOptions).CSOptionsDraftRead<LPreferenceState>();
 
     public QSOptionsPage QSOptionsPage => qsOptionsPage;
 
@@ -89,7 +96,21 @@ public sealed class QSOptions
 
     public QSRenderer QSRenderer { get; }
 
-    public void QSOptionsPageSelect(QSOptionsPage lPage) => qsOptionsPage = lPage;
+    public QSOptionsPlayback QSOptionsPlayback { get; }
+
+    public QSOptionsTimeline QSOptionsTimeline { get; }
+
+    public QSOptionsWork QSOptionsWork { get; }
+
+    public QSOptionsSystem QSOptionsSystem { get; }
+
+    public void QSOptionsPageSelect(QSOptionsPage lPage)
+    {
+        if (lPage >= QSOptionsPage.QSOptionsPageGeneral)
+        {
+            qsOptionsPage = lPage;
+        }
+    }
 
     public QSDiagnosis QSOptionsDiagnosisCreate() => new();
 
@@ -98,14 +119,8 @@ public sealed class QSOptions
             ((LOptionsPort)csOptions).CSOptionsSnapshotRead().CSOptionsPalette,
             ((LOptionsPort)csOptions).CSOptionsPaletteRead);
 
-    public bool QSOptionsFolderExist(string lFolder) =>
-        ((LOptionsPort)csOptions).CSOptionsFolderExist(lFolder);
-
     public string? QSOptionsFolderOpen(string lFolder, string lFallback) =>
         ((LOptionsPort)csOptions).CSOptionsFolderOpen(lFolder, lFallback);
-
-    public string QSOptionsEngineRead() =>
-        ((LOptionsPort)csOptions).CSOptionsEngineRead()(QSMpv.QSMpvEnabled);
 
     public static string QSOptionsLevelTitle => QLocalizationCatalog.QLocalizationTextRead("Options.Work.Priority");
 
@@ -116,42 +131,22 @@ public sealed class QSOptions
         QLocalizationCatalog.QLocalizationTextRead("Options.Work.PriorityHigh")
     ];
 
-    public IReadOnlyList<QSOptionsLevel> QSOptionsLevelsRead()
+    public void QSOptionsCommit()
     {
-        LOptionsSnapshot snapshot = ((LOptionsPort)csOptions).CSOptionsSnapshotRead();
-        return
-        [
-            QSOptionsLevelCreate(
-                LCustodyFamily.LCustodyFamilyEncode,
-                "Options.Work.PriorityEncode",
-                snapshot.CSOptionsEncodeLevel),
-            QSOptionsLevelCreate(
-                LCustodyFamily.LCustodyFamilyKeyframe,
-                "Options.Work.PriorityKeyframe",
-                snapshot.CSOptionsKeyframeLevel),
-            QSOptionsLevelCreate(
-                LCustodyFamily.LCustodyFamilyWaveform,
-                "Options.Work.PriorityWaveform",
-                snapshot.CSOptionsWaveformLevel)
-        ];
+        csOptions.CSOptionsSheetCommit(
+            QSOptionsPlayback.QSOptionsPlaybackRead(),
+            QSOptionsTimeline.QSOptionsTimelineRead(),
+            QSOptionsWork.QSOptionsWorkRead(),
+            QSOptionsSystem.QSOptionsSystemRead());
+        QSWorkspace.QSWorkspaceCommit();
     }
 
-    private QSOptionsLevel QSOptionsLevelCreate(LCustodyFamily lFamily, string lKey, int lLevel) =>
-        new(
-            QLocalizationCatalog.QLocalizationTextRead(lKey),
-            lLevel,
-            lChoice => ((LOptionsPort)csOptions).CSOptionsLevelSet(lFamily, lChoice));
-
-    public string QSOptionsRecordResolve() => ((LOptionsPort)csOptions).CSOptionsRecordResolve();
-
-    public static string QSOptionsSidecarRead()
+    public void QSOptionsDetach()
     {
-        LOptionsPort options = new CSOptions(
-            null!,
-            LPreference.LPreferenceStateCurrent.LPreferenceClone(),
-            LSOptions.LSOptionsRead,
-            LSOptions.LSOptionsApply);
-        return options.CSOptionsSidecarRead();
+        QSOptionsPlayback.QSOptionsPlaybackDetach();
+        QSOptionsTimeline.QSOptionsTimelineDetach();
+        QSOptionsWork.QSOptionsWorkDetach();
+        QSOptionsSystem.QSOptionsSystemDetach();
     }
 
     public bool QSOptionsApply()

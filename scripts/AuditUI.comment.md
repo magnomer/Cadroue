@@ -9,7 +9,7 @@ Both hold the same rules and ceilings, so each still tells the truth when the ot
 
 The walkers live in the script as C# text, ported rule for rule from the test walkers.
 The script writes them beside `AuditBinder.cs` into a helper project and builds it once per text and SDK.
-The helper binds the source through the shared binder with Roslyn 4.14.0, the version the tests pin.
+The helper binds the source through the shared binder with the Roslyn version the tests pin.
 The build is cached under the temp folder, so a later run pays for the binding alone.
 
 ## Reports
@@ -28,32 +28,25 @@ Its `helper.framework` pins the framework the helper targets.
 `AuditUI.ledger.json` holds the ceiling of every kind per file, one block for Strict and one for Truth.
 The binder settings and the exclusions come from `AuditBinder.json`.
 `strict.tetheringSlots` lists the attributes that tether logic, whether set directly or through `Setter Property=`.
-It holds `Command`, `CommandParameter`, `CommandTarget`, `DisplayMemberPath`, `SelectedValuePath` and `RelativeSource`.
 `strict.tetheringLiterals` lists the attributes that tether only when their value is a plain literal.
-It holds `Tag`, since a literal tag is a value the code branches on.
+A literal in such an attribute is a value the code branches on.
 A markup extension value is left to the extension rules instead.
-Generation 14 added these slots and the literal rule.
 `strict.veneerNamespace` names the surface types, so an `x:Class` naming another type is tethering.
 `strict.hardwiringMarkers`, `strict.masqueradingTypes` and `strict.contractIds` drive the `Hardwiring`, `Masquerading` and `Dangling` kinds.
-`strict.contractType` names Deportment's door to the scaffold, whose string arguments are contract IDs.
+`strict.contractType` names the driver's door to the scaffold, whose string arguments are contract IDs.
 A call written inside the contract type's own declaration is not judged, since it only forwards its caller's ID.
 The skip goes by the enclosing type declaration's symbol, never by method name or by a forwarded parameter.
 So a caller elsewhere that forwards its own parameter into the contract type is still a hit.
 A type nested inside the contract type is another type and is judged as before.
-Generation 15 added these kinds.
-Generation 16 added the Unsealing kind to the structure audit.
-Generation 17 renames the kinds to one vocabulary, so every setting carries 17.
-Generation 18 stops five false truth findings, so every setting carries 18.
-Generation 18 also sees a field passed by `ref` and a delegate stored from a parameter.
+Findings use one vocabulary of -ing kinds and plain measure names.
+The truth walk skips a literal bool comparison and a name inside `nameof`.
+It sees a field passed by `ref` and a delegate stored from a parameter.
 It sees an interface event, a static Conduct value and a surface loaded through a built URI.
 It traces a delegate handed in from any tracked source, such as the composition root.
-Generation 19 adds the comment hash check, so every setting carries 19.
-Generation 20 adds `truth.informative`, so every setting carries 20.
-It maps a truth kind to the driver folders it waits on.
+`truth.informative` maps a truth kind to the driver folders it waits on.
 The kind gates nothing while a listed folder holds no tracked source.
 Its hits still reach the report, under a line naming the kind as informative.
-Mismatching waits on `src/Cadroue.UIDemeanor`, so it holds no ledger rows.
-Once Demeanor holds a source, every mismatching hit fails.
+Once every listed folder holds a source, the kind fails like any other.
 `truth.controlPrefixes` maps each driver ring folder to its control prefix.
 A driver type whose name starts with its ring's prefix is a control type.
 Puppeteering names every control member in the relay set, one hit per member.
@@ -61,14 +54,12 @@ Its relay set is the fixed point grown before any event joins.
 A control raising its own event signals, and the driver handling it requests.
 A local function or local stays with its member, and a Conduct record property read is no request.
 `TAuditTruthSetting.TAuditControlPrefix` holds the same rows, copied by hand.
-Puppeteering holds no ledger rows, since no control type requests logic.
 Zeroing reports a literal `0`, `0L` or `default` a driver sends toward a gate.
 It looks through parentheses, casts, both arms of `?:` and the right side of `??`.
 A literal compared with a member read inside a hot argument, or with a logic member, is a hit too.
 Zeroing reads `LAuditZeroingNames`, a copy of `LAuditHotNames` grown with constructors and stored parameters.
 The copy is built after the relay read and never written back, so Replaying keeps its narrower map.
 `TAuditZeroingNames` holds the same rule, written by hand.
-Zeroing holds no ledger rows, since no driver sends a literal zero toward a gate.
 A `break` in a switch skips only the rest of its own section.
 An `if` without `else` leaves only when its body always reaches a `return`, `throw`, `break` or `continue`.
 Such a jump has only plain blocks between it and the `if`.
@@ -86,8 +77,6 @@ A pattern designation never carries, and a call that takes a control is not a re
 A type pattern naming a control reads it, even on a value typed `object` such as `sender`.
 `truth.inputBase` names the base type of every control that takes user input.
 The laundering walk colours a `truth.inputMembers` read only on a receiver deriving from it.
-So `Run.Text` or `TextBlock.Text` is no control input, since the driver wrote it.
-Caret and selection positions stay off the list, since a driver keeps caret, focus and placement work.
 `TAuditTruthSetting.TAuditInputMembers` holds the same list, copied by hand.
 An error type, a `dynamic` receiver or a missing type keeps the colour, as `LAuditInputCheck` reads it.
 A namespace receiver, as in `System.Text`, reads no value and is not coloured.
@@ -135,5 +124,4 @@ A file above the ceiling of a kind fails, and a ceiling above its count is stale
 Every fact the tests gate is one counter, and the counters sum to zero exactly when those tests pass.
 The report lists every hit in the line format of the test reports, so the two diff directly.
 The `enforced` flag of the `strict` and `truth` settings gates the kinds of each audit.
-Both flags are set now.
 An informative kind that waits on an empty driver adds no row to its counter.

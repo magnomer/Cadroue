@@ -3,7 +3,7 @@ Hash: `3f18f39720d7d14e`
 
 Checks every tracked text file for one encoding form, without the convention tests.
 It is the standalone counterpart of `TAuditEncoding` and reports the same hits.
-It runs in plain PowerShell with git alone, so it answers in a second or two.
+It runs in plain PowerShell with git alone.
 
 ## Usage
 
@@ -21,7 +21,7 @@ AuditEncoding [-Root <path>] [-ConfigPath <path>] [-Open] [-NoOpen] [-Help]
 Files come from `git ls-files --cached --others --exclude-standard`, as in the test.
 Each include is a git pathspec matched without case.
 A file under an excluded segment or with a skipped name drops out.
-Ignored files are never read, so the local scripts outside the allowlist stay out of scope.
+Ignored files are never read.
 Files sort by full path, ordinal and without case, as the test sorts them.
 A path git lists twice is read once.
 
@@ -61,10 +61,9 @@ It shows the verdict, the Result table, tiles, scope, extension totals, every hi
 Its data is JSON written by hand in ASCII, so both PowerShell versions write the same bytes.
 The page opens with `Start-Process` unless `-NoOpen` is given.
 The console ends with one `Report:` line per written file, the Markdown report first.
-The report folder lies inside git scope, so the Markdown report must itself pass this audit.
 
 ## Parity
 
 The invalid offset is walked by hand, since .NET Framework counts its decoder index from an internal buffer.
 The walk reports the start of the ill-formed sequence, as the .NET decoder does in the test.
-Offsets and lines count bytes through the Latin-1 page, so each character is one byte.
+The mark offset and the non-ASCII line count through the Latin-1 page, so each character is one byte.

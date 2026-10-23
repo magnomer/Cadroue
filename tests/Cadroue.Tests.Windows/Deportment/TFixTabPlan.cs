@@ -237,4 +237,74 @@ public sealed class TFixTabPlan
 
         Assert.Equal(2, missing);
     }
+
+    [Fact]
+    public void Close_ThenItemsAdded_DoesNotSavePersistentPlan()
+    {
+        using TPreset presets = new();
+        presets.TPresetSeedCreate("Alpha");
+        (QFixTab tab, CClinic clinic, _, LDocket docket, _) = TFixBuild();
+        TInterface.TClinicPlanApply(clinic, TFixPlanCreate(LFlawKind.LFlawKindIndex, true, true));
+        var written = new List<string>();
+        TInterface.TFixLibrarianAttach(_ => null, (path, _) => { written.Add(path); return true; });
+        try
+        {
+            TInterface.TFixClose(tab);
+
+            TInterfaceList.TDocketPathsAdd(docket, TFixSource);
+
+            Assert.Empty(written);
+        }
+        finally
+        {
+            TInterface.TFixLibrarianAttach(null, null);
+        }
+    }
+
+    [Fact]
+    public void RepeatedCreateAndClose_ItemsAddedReachesOnlyCurrentTab()
+    {
+        using TPreset presets = new();
+        presets.TPresetSeedCreate("Alpha");
+        QViewer viewer = TInterfaceViewer.TViewerCreate();
+        QList list = TInterfaceList.TListCreate();
+        LDocket docket = list.QListDocket;
+        QFixTab closed = TInterface.TFixTabCreate(TInterface.TPresetSelectionCreate("Alpha"), viewer, list);
+        TInterface.TClinicPlanApply(
+            TInterface.TFixClinicRead(closed),
+            TFixPlanCreate(LFlawKind.LFlawKindIndex, true, true));
+        TInterface.TFixClose(closed);
+        QFixTab current = TInterface.TFixTabCreate(TInterface.TPresetSelectionCreate("Alpha"), viewer, list);
+        TInterface.TClinicPlanApply(
+            TInterface.TFixClinicRead(current),
+            TFixPlanCreate(LFlawKind.LFlawKindIndex, true, true));
+        var written = new List<string>();
+        TInterface.TFixLibrarianAttach(_ => null, (path, _) => { written.Add(path); return true; });
+        try
+        {
+            TInterfaceList.TDocketPathsAdd(docket, TFixSource);
+
+            Assert.Equal([TFixSource], written);
+        }
+        finally
+        {
+            TInterface.TFixClose(current);
+            TInterface.TFixLibrarianAttach(null, null);
+        }
+    }
+
+    [Fact]
+    public void Close_ThenStepSelectionDoesNotReachClinic()
+    {
+        using TPreset presets = new();
+        presets.TPresetSeedCreate("Alpha");
+        (QFixTab tab, _, _, _, _) = TFixBuild();
+        Assert.True(tab.QFixProcessing.QProcessingStepSelect("Index"));
+        string title = tab.QFixClinic.QClinicTitleRead();
+
+        TInterface.TFixClose(tab);
+        Assert.True(tab.QFixProcessing.QProcessingStepSelect("Timing"));
+
+        Assert.Equal(title, tab.QFixClinic.QClinicTitleRead());
+    }
 }

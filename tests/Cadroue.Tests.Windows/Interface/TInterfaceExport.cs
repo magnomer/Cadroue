@@ -174,10 +174,10 @@ internal static partial class TInterface
     internal static (LPreset, QExportDigest) TExportSummaryRead(QExport export) =>
         (export.QExportWorkingRead(), export.QExportSummaryRead());
 
-    internal static (PExport, object[]) TInterfaceExportRead(
+    internal static (PExport, object[]) TExportSurfaceRead(
         QExport export,
-        LPresetSelection selection,
-        int[]? routes = null)
+        int[]? routes = null,
+        int[]? rebuildCount = null)
     {
         bool program = System.Windows.Application.Current is null;
         var resolvers = (Dictionary<bool, Func<string, double, string?>>)typeof(QIcon)
@@ -236,21 +236,31 @@ internal static partial class TInterface
                 image.Freeze();
                 return image;
             };
-            PExport surface = routes is null
-                ? new PExport(export, selection)
-                : (PExport)Activator.CreateInstance(
-                    typeof(PExport),
-                    BindingFlags.Instance | BindingFlags.NonPublic,
-                    null,
-                    [
-                        export,
-                        new RoutedEventHandler((_, _) => routes[0]++),
-                        new RoutedEventHandler((_, _) => routes[1]++),
-                        new RoutedEventHandler((_, _) => routes[2]++),
-                        new RoutedEventHandler((_, _) => routes[3]++),
-                        new RoutedEventHandler((_, _) => routes[4]++)
-                    ],
-                    null)!;
+            Func<string, object> shellCreate = name => Activator.CreateInstance(
+                typeof(PExport).Assembly.GetType($"Cadroue.UIVeneer.{name}")!, true)!;
+            PExport surface = QExportSurface.QExportSurfaceBuild(
+                export,
+                new PExport(),
+                () => new PSEncoder(),
+                (_, _) => { },
+                (_, _, _) => { },
+                () =>
+                {
+                    if (rebuildCount is not null)
+                    {
+                        rebuildCount[0]++;
+                    }
+
+                    return (Border)shellCreate("PExportPresetGroup");
+                },
+                () => (ResourceDictionary)shellCreate("PExportRow"),
+                () => (ResourceDictionary)shellCreate("PExportPreset"),
+                () => (ResourceDictionary)shellCreate("PExportCommands"),
+                routes is null ? null : new RoutedEventHandler((_, _) => routes[0]++),
+                routes is null ? null : new RoutedEventHandler((_, _) => routes[1]++),
+                routes is null ? null : new RoutedEventHandler((_, _) => routes[2]++),
+                routes is null ? null : new RoutedEventHandler((_, _) => routes[3]++),
+                routes is null ? null : new RoutedEventHandler((_, _) => routes[4]++));
             return (surface, [resolvers, readers, resolver, reader, program, cache, cacheKeys]);
         }
         catch
@@ -356,15 +366,6 @@ internal static partial class TInterface
         foreach (string key in cache.Keys.Where(key => !cacheKeys.Contains(key)))
         {
             _ = cache.TryRemove(key, out _);
-        }
-        Type theme = typeof(PExport).Assembly.GetType("Cadroue.UIVeneer.PExportTheme")!;
-        foreach (Freezable value in theme
-            .GetFields(BindingFlags.Static | BindingFlags.NonPublic)
-            .Select(field => field.GetValue(null))
-            .OfType<Freezable>()
-            .Where(value => value.CanFreeze))
-        {
-            value.Freeze();
         }
     }
 }

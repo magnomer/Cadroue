@@ -29,7 +29,7 @@ public sealed class QExportPreset(
 
     public void QExportPresetRebuild()
     {
-        QExportPresetDetach();
+        QExportPresetClear();
         QExportRows rows = lExport.QExportRowsRead();
         IReadOnlyList<QExportEntry> entries = lExport.QExportList.QExportListRead();
         qExportPresetPanel.Children.Clear();
@@ -68,6 +68,12 @@ public sealed class QExportPreset(
     }
 
     public void QExportPresetDetach()
+    {
+        QExportPresetClear();
+        lExport.QExportDrag.QExportDragDetach();
+    }
+
+    private void QExportPresetClear()
     {
         qExportPresetHeaders.ForEach(header => header.QExportHeaderDetach());
         qExportPresetHeaders.Clear();

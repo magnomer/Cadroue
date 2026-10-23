@@ -17,6 +17,7 @@ public sealed class QSMpv : CSMpvPort
     private Button? psMpvOpener;
     private QSMpvAnswer? qsMpvAnswer;
     private QSOptionsOperation? qsOptionsOperation;
+    private (Func<bool, Task>, Func<bool, string, Task>) qsMpvOutcome;
 
     public QSMpv(bool enabled)
     {
@@ -45,7 +46,17 @@ public sealed class QSMpv : CSMpvPort
         psMpvOpener = QContract.QContractFind<Button>(surface, "PSMpvOpener");
         ProgressBar psMpvProgress = QContract.QContractFind<ProgressBar>(surface, "PSMpvProgress");
         qsMpvAnswer = answer;
-        qsOptionsOperation = new QSOptionsOperation(psMpvInstaller, psMpvProgress);
+        QSOptionsOperation operation = new(psMpvInstaller, psMpvProgress);
+        qsOptionsOperation = operation;
+        qsMpvOutcome = (
+            installed => QSMpvUpdate(operation, installed, () => answer.QSMpvShow(
+                true,
+                QLocalizationCatalog.QLocalizationTextRead("Options.System.LocalMpv"),
+                QLocalizationCatalog.QLocalizationTextRead("Mpv.Local.Install.Completed"))),
+            (installed, failure) => QSMpvUpdate(operation, installed, () => answer.QSMpvShow(
+                false,
+                QLocalizationCatalog.QLocalizationTextRead("Options.System.LocalMpv"),
+                QLocalizationCatalog.QLocalizationFormat("Mpv.Local.Install.Failed", failure))));
 
         QButton.QButtonAttach(psMpvInstaller, QButtonLook.QButtonLookWhite);
         QButton.QButtonAttach(psMpvOpener, QButtonLook.QButtonLookWhite);
@@ -74,6 +85,7 @@ public sealed class QSMpv : CSMpvPort
         }
 
         qsOptionsOperation = null;
+        qsMpvOutcome = default;
         psMpvInstaller = null;
         psMpvOpener = null;
         qsMpvAnswer = null;
@@ -104,44 +116,40 @@ public sealed class QSMpv : CSMpvPort
     public async Task QSMpvStart()
     {
         QSOptionsOperation operation = qsOptionsOperation!;
-        QSMpvAnswer answer = qsMpvAnswer!;
-        operation.QSOptionsOperationStart();
+        if (operation is null)
+        {
+            throw new NullReferenceException();
+        }
         IProgress<double> progress = new Progress<double>(value =>
             QSMpvOperationCheck(operation)?.QSOptionsOperationApply(value));
-        bool success;
-        string failure;
-        bool installed;
         try
         {
-            (success, failure, installed) = await csMpv.CSMpvStart(progress);
+            await csMpv.CSMpvStart(
+                progress,
+                operation.QSOptionsOperationStart,
+                qsMpvOutcome.Item1,
+                qsMpvOutcome.Item2);
         }
         catch (Exception exception)
         {
+            QSMpvOperationCheck(operation)?.QSOptionsOperationHide();
             if (QSMpvOperationCheck(operation) is not null)
             {
                 ExceptionDispatchInfo.Capture(exception).Throw();
             }
-            return;
         }
-        finally
-        {
-            QSMpvOperationCheck(operation)?.QSOptionsOperationHide();
-        }
+    }
 
+    private async Task QSMpvUpdate(QSOptionsOperation operation, bool installed, Action show)
+    {
+        QSMpvOperationCheck(operation)?.QSOptionsOperationHide();
         QSMpvOperationCheck(operation)?.QSOptionsOperationApply(installer =>
         {
             QSMpvUpdate(installer, installed);
             installer.IsEnabled = true;
         });
         await QSMpvUpdate(operation);
-        QSMpvOperationCheck(operation)?.QSOptionsOperationApply(_ =>
-        {
-            string title = QLocalizationCatalog.QLocalizationTextRead("Options.System.LocalMpv");
-            string message = success
-                ? QLocalizationCatalog.QLocalizationTextRead("Mpv.Local.Install.Completed")
-                : QLocalizationCatalog.QLocalizationFormat("Mpv.Local.Install.Failed", failure);
-            answer.QSMpvShow(success, title, message);
-        });
+        QSMpvOperationCheck(operation)?.QSOptionsOperationApply(_ => show());
     }
 
     public void QSMpvOpen() => qsMpvAnswer!.QSMpvOpen();

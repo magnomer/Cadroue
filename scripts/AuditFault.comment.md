@@ -1,7 +1,7 @@
 # AuditFault.ps1
 Hash: `ba08597c744bdfbe`
 
-Counts the catch clauses below Conduct that swallow a fault, without the convention tests.
+Counts the catch clauses in the configured rings that swallow a fault, without the convention tests.
 It is the standalone counterpart of `TAuditFault` and reports the same hits.
 It binds the sources through the shared binder, so build the solution first.
 
@@ -32,7 +32,7 @@ Every other clause is a `Swallowing` hit.
 
 ## Settings
 
-`AuditFault.json` is copied by hand from `TAuditFaultSetting`, and the two never read each other.
+`AuditFault.json` is copied by hand from the test's settings, and the two never read each other.
 `rings` names the projects under the binder source root whose files are walked.
 `ceilings` holds one count per ring, exempt hits left out.
 `exempt` holds `path:EnclosingMethod` rows whose hits count against no ceiling.
@@ -60,4 +60,4 @@ The page opens with `Start-Process` unless `-NoOpen` is given.
 ## Helper
 
 The helper program is compiled once per text, binder, framework and SDK into the temp folder.
-It targets `helper.framework`, the framework of the convention tests.
+It targets `helper.framework` from the script configuration.

@@ -17,29 +17,27 @@ internal static class PSSheet
 
     internal static TabControl PSSheetControlBuild(double pTabWidth, params TabItem[] pSheets)
     {
-        TabControl pTabs = PSSheetTabsBuild(pTabWidth, pSheets);
-        PSSheetSelectionAttach(pTabs);
-        PSSheetSeparatorUpdate(pTabs);
-        return pTabs;
-    }
-
-    private static TabControl PSSheetTabsBuild(double pTabWidth, TabItem[] pSheets)
-    {
         var pTabs = new TabControl
         {
             Background = Brushes.White,
             BorderBrush = Brushes.Transparent,
-            BorderThickness = new Thickness(0),
-            Template = PSSheetTemplateBuild(),
-            ItemContainerStyle = PSSheetStyleBuild(pTabWidth)
+            BorderThickness = new Thickness(0)
         };
-
         foreach (TabItem pSheet in pSheets)
         {
             pTabs.Items.Add(pSheet);
         }
 
+        PSSheetApply(pTabs, pTabWidth);
         return pTabs;
+    }
+
+    internal static void PSSheetApply(TabControl pTabs, double pTabWidth)
+    {
+        pTabs.Template = PSSheetTemplateBuild();
+        pTabs.ItemContainerStyle = PSSheetStyleBuild(pTabWidth);
+        PSSheetSelectionAttach(pTabs);
+        PSSheetSeparatorUpdate(pTabs);
     }
 
     private static void PSSheetSelectionAttach(TabControl pTabs) =>

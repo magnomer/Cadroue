@@ -11,7 +11,7 @@ public sealed class PMergeTab : PTabSurface
     private readonly PList pList;
     private readonly PGroup pGroup;
 
-    public PMergeTab(QWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PMergeTab(QWorkspace lWorkspace, PExport pExport, LSceneTabEntry? lPreferenceTabLayout = null)
     {
         pFlow = new PFlow(lWorkspace.QWorkspaceFlow!);
         pViewer = new PViewer(lWorkspace.QWorkspaceViewer!);
@@ -20,7 +20,6 @@ public sealed class PMergeTab : PTabSurface
         pGroup = new PGroup(QMergeTab.QMergeGroup);
         var pAction = new PAction(lWorkspace.QWorkspaceMode.QWorkspaceAction!);
         PMergeEventsAttach();
-        var pExport = new PExport(lWorkspace.QWorkspaceExport, lWorkspace.QWorkspacePresetOwner);
         PTabLock.PTabLockAttach(pList, pExport);
         Content = PTabGridBuild(
             lWorkspace.QWorkspaceMode,

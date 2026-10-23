@@ -130,7 +130,6 @@ public sealed class QSGeneral
         language.DisplayMemberPath = "Value";
         language.SelectedValuePath = "Key";
         language.SelectedValue = QSGeneralSnapshot.QSGeneralSnapshotLanguage;
-        language.SelectedIndex = Math.Max(language.SelectedIndex, 0);
         QSGeneralUpdate(QSGeneralSnapshot with
         {
             QSGeneralSnapshotLanguage = (string?)language.SelectedValue ?? string.Empty

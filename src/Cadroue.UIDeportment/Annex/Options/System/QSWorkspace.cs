@@ -12,6 +12,7 @@ public sealed class QSWorkspace
     private readonly Delegate[] qsWorkspace;
     private FrameworkElement? psWorkspace;
     private QSWorkspaceAnswer? qsWorkspaceAnswer;
+    private Action[] qsWorkspacePending = [];
 
     public QSWorkspace(CSOptions options)
     {
@@ -37,6 +38,7 @@ public sealed class QSWorkspace
         qsWorkspaceAnswer = answer;
         var path = QContract.QContractFind<TextBox>(surface, "PSWorkspaceBox");
         path.Text = folder;
+        qsWorkspacePending = [QSWorkspaceDoneConfirm, QSWorkspaceClearConfirm];
         Button browse = QContract.QContractFind<Button>(surface, "PSWorkspaceBrowse");
         Button open = QContract.QContractFind<Button>(surface, "PSWorkspaceOpener");
         Button clear = QContract.QContractFind<Button>(surface, "PSWorkspaceCleaner");
@@ -88,18 +90,16 @@ public sealed class QSWorkspace
         ((Button)psWorkspace.FindResource("PSSystemDone")).Click -= (RoutedEventHandler)qsWorkspace[3];
         QContract.QContractFind<Button>(psWorkspace, "PSWorkspaceCleaner").Click -=
             (RoutedEventHandler)qsWorkspace[4];
+        qsWorkspacePending[0] = qsWorkspacePending[1] = static () => { };
         psWorkspace = null;
         qsWorkspaceAnswer = null;
     }
 
-    public void QSWorkspaceUpdate()
-    {
-        var path = QContract.QContractFind<TextBox>(psWorkspace!, "PSWorkspaceBox");
+    public void QSWorkspaceUpdate() =>
         ((LOptionsPort)csOptions).CSOptionsAppliedCheck(
-            path.Text,
-            _ => QSWorkspaceUpdate(path, true),
-            () => QSWorkspaceUpdate(path, false));
-    }
+            QSWorkspaceFolderRead(),
+            _ => QSWorkspaceUpdate(true),
+            () => QSWorkspaceUpdate(false));
 
     public void QSWorkspaceSizeUpdate()
     {
@@ -107,24 +107,20 @@ public sealed class QSWorkspace
         QContract.QContractFind<TextBlock>(psWorkspace!, "PSWorkspaceSize").Text = QSWorkspaceUpdate(size);
     }
 
-    public void QSWorkspaceCommit()
+    public void QSWorkspaceCommit() =>
+        ((LOptionsPort)csOptions).CSOptionsWorkspaceCommit(QSWorkspaceFolderRead(), QSWorkspaceCommit);
+
+    private void QSWorkspaceCommit(string kept, string destination)
     {
-        QSWorkspaceAnswer answer = qsWorkspaceAnswer!;
-        var path = QContract.QContractFind<TextBox>(psWorkspace!, "PSWorkspaceBox");
-        ((LOptionsPort)csOptions).CSOptionsWorkspaceCommit(
-            path.Text,
-            (kept, destination) =>
-            {
-                path.Text = kept;
-                answer.QSWorkspaceWarningShow(
-                    QLocalizationCatalog.QLocalizationTextRead("Options.System.Workspace"),
-                    QLocalizationCatalog.QLocalizationFormat("Options.System.WorkspaceOccupied", destination));
-            });
+        QContract.QContractFind<TextBox>(psWorkspace!, "PSWorkspaceBox").Text = kept;
+        qsWorkspaceAnswer!.QSWorkspaceWarningShow(
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.Workspace"),
+            QLocalizationCatalog.QLocalizationFormat("Options.System.WorkspaceOccupied", destination));
     }
 
     private void QSWorkspaceUpdate(object sender, TextChangedEventArgs _) => QSWorkspaceUpdate();
 
-    private void QSWorkspaceUpdate(TextBox path, bool applied)
+    private void QSWorkspaceUpdate(bool applied)
     {
         ((Button)psWorkspace!.FindResource("PSSystemDone")).IsEnabled = applied;
         QContract.QContractFind<Button>(psWorkspace, "PSWorkspaceCleaner").IsEnabled = applied;
@@ -132,7 +128,7 @@ public sealed class QSWorkspace
             applied ? Visibility.Collapsed : Visibility.Visible;
         UIElement notice = QContract.QContractFind<UIElement>(psWorkspace, "PSWorkspaceDefault");
         ((LOptionsPort)csOptions).CSOptionsDefaultCheck(
-            path.Text,
+            QSWorkspaceFolderRead(),
             () => notice.Visibility = Visibility.Visible,
             () => notice.Visibility = Visibility.Collapsed);
     }
@@ -164,7 +160,7 @@ public sealed class QSWorkspace
         var path = QContract.QContractFind<TextBox>(psWorkspace!, "PSWorkspaceBox");
         answer.QSWorkspaceFolderShow(
             QLocalizationCatalog.QLocalizationTextRead("Options.System.ChooseWorkspace"),
-            ((LOptionsPort)csOptions).CSOptionsDefaultRead(path.Text),
+            ((LOptionsPort)csOptions).CSOptionsDefaultRead(QSWorkspaceFolderRead()),
             folder => QSWorkspaceFolderRead(answer, path, folder));
     }
 
@@ -177,61 +173,57 @@ public sealed class QSWorkspace
     }
 
     private void QSWorkspaceFolderRead(RoutedEventArgs _) =>
-        ((LOptionsPort)csOptions).CSOptionsFolderOpen(
-            QContract.QContractFind<TextBox>(psWorkspace!, "PSWorkspaceBox").Text);
+        ((LOptionsPort)csOptions).CSOptionsFolderOpen(QSWorkspaceFolderRead());
 
-    private void QSWorkspaceDoneClear(object sender, RoutedEventArgs _)
+    private string QSWorkspaceFolderRead() => QContract.QContractFind<TextBox>(psWorkspace!, "PSWorkspaceBox").Text;
+
+    private void QSWorkspaceDoneClear(object sender, RoutedEventArgs _) =>
+        ((LOptionsPort)csOptions).CSOptionsAppliedCheck(QSWorkspaceFolderRead(), QSWorkspaceDoneClear, () => { });
+
+    private void QSWorkspaceDoneClear(string root)
     {
-        QSWorkspaceAnswer answer = qsWorkspaceAnswer!;
-        ((LOptionsPort)csOptions).CSOptionsAppliedCheck(
-            QContract.QContractFind<TextBox>(psWorkspace!, "PSWorkspaceBox").Text,
-            root => answer.QSWorkspaceConfirmationShow(
-                QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearDoneTitle"),
-                QLocalizationCatalog.QLocalizationFormat("Options.System.ClearDoneConfirm", root),
-                QLocalizationCatalog.QLocalizationTextRead("Terms.Delete"),
-                () => QSWorkspaceDoneConfirm(answer)),
-            () => { });
+        Action[] pending = qsWorkspacePending;
+        qsWorkspaceAnswer!.QSWorkspaceConfirmationShow(
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearDoneTitle"),
+            QLocalizationCatalog.QLocalizationFormat("Options.System.ClearDoneConfirm", root),
+            QLocalizationCatalog.QLocalizationTextRead("Terms.Delete"),
+            () => pending[0]());
     }
 
-    private void QSWorkspaceDoneConfirm(QSWorkspaceAnswer answer)
+    private void QSWorkspaceDoneConfirm()
     {
-        if (!ReferenceEquals(answer, qsWorkspaceAnswer))
-        {
-            return;
-        }
         LOptionsFact result = ((LOptionsPort)csOptions).CSOptionsDoneClear();
         QContract.QContractFind<TextBlock>(psWorkspace!, "PSWorkspaceSize").Text =
             QSWorkspaceUpdate(result.LOptionsFactSize);
-        answer.QSWorkspaceAnnouncementShow(
+        qsWorkspaceAnswer!.QSWorkspaceAnnouncementShow(
             QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearDoneTitle"),
             QLocalizationCatalog.QLocalizationFormat("Options.System.WorkRecordsRemoved", result.LOptionsFactCount));
     }
 
-    private void QSWorkspaceClear(object sender, RoutedEventArgs _)
+    private void QSWorkspaceClear(object sender, RoutedEventArgs _) =>
+        ((LOptionsPort)csOptions).CSOptionsRunningCheck(QSWorkspaceFolderRead(), QSWorkspaceClear, QSWorkspaceClear);
+
+    private void QSWorkspaceClear(string root)
     {
-        QSWorkspaceAnswer answer = qsWorkspaceAnswer!;
-        ((LOptionsPort)csOptions).CSOptionsRunningCheck(
-            QContract.QContractFind<TextBox>(psWorkspace!, "PSWorkspaceBox").Text,
-            root => answer.QSWorkspaceConfirmationShow(
-                QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearWorkspaceTitle"),
-                QLocalizationCatalog.QLocalizationFormat("Options.System.ClearWorkspaceConfirm", root),
-                QLocalizationCatalog.QLocalizationTextRead("Terms.Reset"),
-                () => QSWorkspaceClearConfirm(answer)),
-            () => answer.QSWorkspaceWarningShow(
-                QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearWorkspaceTitle"),
-                QLocalizationCatalog.QLocalizationTextRead("Options.System.WorkspaceRunning")));
+        Action[] pending = qsWorkspacePending;
+        qsWorkspaceAnswer!.QSWorkspaceConfirmationShow(
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearWorkspaceTitle"),
+            QLocalizationCatalog.QLocalizationFormat("Options.System.ClearWorkspaceConfirm", root),
+            QLocalizationCatalog.QLocalizationTextRead("Terms.Reset"),
+            () => pending[1]());
     }
 
-    private void QSWorkspaceClearConfirm(QSWorkspaceAnswer answer)
+    private void QSWorkspaceClear() =>
+        qsWorkspaceAnswer!.QSWorkspaceWarningShow(
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearWorkspaceTitle"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.WorkspaceRunning"));
+
+    private void QSWorkspaceClearConfirm()
     {
-        if (!ReferenceEquals(answer, qsWorkspaceAnswer))
-        {
-            return;
-        }
         LOptionsFact result = ((LOptionsPort)csOptions).CSOptionsWorkspaceClear();
         QContract.QContractFind<TextBlock>(psWorkspace!, "PSWorkspaceSize").Text =
             QSWorkspaceUpdate(result.LOptionsFactSize);
-        answer.QSWorkspaceAnnouncementShow(
+        qsWorkspaceAnswer!.QSWorkspaceAnnouncementShow(
             QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearWorkspaceTitle"),
             QLocalizationCatalog.QLocalizationTextRead("Options.System.WorkspaceReset"));
     }

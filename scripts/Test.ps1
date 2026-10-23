@@ -49,7 +49,7 @@
 .PARAMETER List
     Discover and list matching tests without running them. Cannot be combined with Repeat.
 .PARAMETER Repeat
-    Number of test runs. Execution stops on the first failure. Defaults to 1.
+    Number of test runs. A failing run still finishes every project, and no later run starts. Defaults to 1.
 .PARAMETER Verbosity
     dotnet test logging verbosity. Defaults to minimal.
 .PARAMETER AdditionalArguments
@@ -88,7 +88,7 @@
     Run tests whose fully-qualified names match the filter.
 .EXAMPLE
     test -Repeat 10 -NoBuild
-    Reuse existing build output and stop at the first failure across ten runs.
+    Reuse existing build output and run up to ten times; a failing run finishes every project, then no later run starts.
 .EXAMPLE
     test -List
     List discovered tests without executing them.
@@ -218,7 +218,8 @@ OPTIONS
         List matching tests without running them. Cannot be used with -Repeat.
 
     -Repeat <count>
-        Number of runs, stopping at the first failure. Defaults to 1.
+        Number of runs. A failing run still finishes every project, and no
+        later run starts. Defaults to 1.
 
     -Verbosity <level>
         dotnet test logging verbosity. Defaults to minimal.
@@ -261,7 +262,8 @@ EXAMPLES
         Run tests whose fully-qualified names match the filter.
 
     test -Repeat 10 -NoBuild
-        Reuse build output and stop at the first failure across ten runs.
+        Reuse build output and run up to ten times; a failing run finishes
+        every project, then no later run starts.
 
     test -List
         List discovered tests without executing them.
@@ -501,6 +503,22 @@ function ConvertTo-Argument {
     return '"' + (($Text -replace '(\\*)"', '$1$1\"') -replace '(\\+)$', '$1$1') + '"'
 }
 
+function Read-TestOutput {
+    # File.ReadAllLines lets no other handle write, so a process still holding the file open for writing
+    # would fail the read and end the script. Sharing ReadWrite lets a live writer stay; no retry is needed.
+    param([string]$Path)
+    $stream = [System.IO.FileStream]::new($Path, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
+    try {
+        $reader = [System.IO.StreamReader]::new($stream, [Console]::OutputEncoding)
+        while ($null -ne ($line = $reader.ReadLine())) {
+            $line
+        }
+    }
+    finally {
+        $stream.Dispose()
+    }
+}
+
 $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
 $exitCode = 0
 $running = @()
@@ -529,8 +547,9 @@ try {
             }
 
             $arguments = @('test', $testProject.FullName) + $filterArguments + $commonArguments
-            $outputPath = Join-Path $outputRoot "$($testProject.BaseName).out"
-            $errorPath = Join-Path $outputRoot "$($testProject.BaseName).err"
+            # Each run writes its own files, so no run reopens a file a leftover process of an earlier run still holds.
+            $outputPath = Join-Path $outputRoot "$($testProject.BaseName).$run.out"
+            $errorPath = Join-Path $outputRoot "$($testProject.BaseName).$run.err"
             $process = Start-Process -FilePath $dotnet.Source -ArgumentList (@($arguments | ForEach-Object { ConvertTo-Argument $_ }) -join ' ') `
                 -WorkingDirectory $root -NoNewWindow -PassThru -RedirectStandardOutput $outputPath -RedirectStandardError $errorPath
             # Windows PowerShell 5.1 reports no exit code for a process whose handle was never read.
@@ -544,7 +563,7 @@ try {
                 $entry.Shown = $true
                 Write-Host ('{0} ({1:N1}s)' -f $entry.Project.BaseName, ($entry.Process.ExitTime - $entry.Process.StartTime).TotalSeconds) -ForegroundColor Cyan
                 foreach ($path in @($entry.Output, $entry.Error)) {
-                    [System.IO.File]::ReadAllLines($path, [Console]::OutputEncoding)
+                    Read-TestOutput -Path $path
                 }
             }
 
@@ -573,7 +592,23 @@ finally {
         }
     }
 
-    Remove-Item -LiteralPath $outputRoot -Recurse -Force -ErrorAction SilentlyContinue
+    # A process that outlives its project may still hold an output file for a moment, so the removal is
+    # tried again; a folder that stays is named rather than left behind in silence.
+    for ($attempt = 1; $attempt -le 5; $attempt++) {
+        try {
+            Remove-Item -LiteralPath $outputRoot -Recurse -Force -ErrorAction Stop
+            break
+        }
+        catch {
+            if ($attempt -eq 5) {
+                Write-Host "The test output folder could not be removed: $outputRoot ($($_.Exception.Message))" -ForegroundColor Yellow
+            }
+            else {
+                Start-Sleep -Milliseconds 500
+            }
+        }
+    }
+
     Pop-Location
     $stopwatch.Stop()
 }

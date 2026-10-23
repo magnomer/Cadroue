@@ -8,7 +8,6 @@ internal static class PSField
 {
     internal const double PSFieldFontSize = 12;
     internal const double PSFieldControlHeight = 32;
-    internal const double PSFieldLabelWidth = 130;
     internal const double PSFieldChipHeight = 26;
 
     internal static readonly Brush PSFieldLine = PSFieldBrushCreate(0xD9, 0xDE, 0xE7);
@@ -29,27 +28,4 @@ internal static class PSField
         Foreground = PSFieldMuted,
         VerticalAlignment = VerticalAlignment.Center
     };
-
-    internal static UIElement PSFieldBuild(string pLabel, Control pControl)
-    {
-        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9), MinHeight = PSFieldControlHeight };
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSFieldLabelWidth) });
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pGrid.Children.Add(PSFieldLabelBuild(pLabel));
-        pControl.MinHeight = PSFieldControlHeight;
-        Grid.SetColumn(pControl, 1);
-        pGrid.Children.Add(pControl);
-        return pGrid;
-    }
-
-    internal static UIElement PSFieldBuild(string pLabel, UIElement pContent)
-    {
-        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9), MinHeight = PSFieldControlHeight };
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSFieldLabelWidth) });
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pGrid.Children.Add(PSFieldLabelBuild(pLabel));
-        Grid.SetColumn(pContent, 1);
-        pGrid.Children.Add(pContent);
-        return pGrid;
-    }
 }

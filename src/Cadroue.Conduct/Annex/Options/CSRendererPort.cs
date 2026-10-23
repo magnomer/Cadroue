@@ -1,10 +1,8 @@
 namespace Cadroue.Conduct;
 
-public sealed record CSRendererFact(
-    bool CSRendererFactProgram,
-    bool CSRendererFactLibrary);
-
 public interface CSRendererPort
 {
-    CSRendererFact CSRendererPortRead(string path);
+    bool CSRendererProgramCheck(string path);
+
+    bool CSRendererLibraryCheck(string path);
 }

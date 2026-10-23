@@ -73,8 +73,6 @@ namespace Cadroue.Core
     {
         LOptionsSnapshot CSOptionsSnapshotRead();
 
-        LOptionsState CSOptionsDraftRead<LOptionsState>() where LOptionsState : class;
-
         LOptionsApplyResult CSOptionsApply();
 
         void CSOptionsUpdate(

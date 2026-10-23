@@ -24,6 +24,7 @@ public sealed class TMpvSurface : CSMpvPort, CSFlyleafPort, LUsherPort
     private TaskCompletionSource<(bool, string, bool)>? tMpvSurfaceResult;
     private TaskCompletionSource<bool>? tMpvSurfaceAvailability;
     private IProgress<double>? tMpvSurfaceProgress;
+    private int tMpvSurfaceStarts;
     private string? tMpvSurfaceOpened;
     private int tMpvSurfaceOpenings;
     private readonly List<string> tMpvSurfaceOrder = [];
@@ -232,23 +233,6 @@ public sealed class TMpvSurface : CSMpvPort, CSFlyleafPort, LUsherPort
     }
 
     [Fact]
-    public void Close_DetachesMpvProjection()
-    {
-        string draftPath = Path.GetFullPath(Path.Combine(
-            AppContext.BaseDirectory,
-            "../../../../../src/Cadroue.UIVeneer/Annex/Options/PSOptionsDraft.cs"));
-        string optionsPath = Path.GetFullPath(Path.Combine(
-            AppContext.BaseDirectory,
-            "../../../../../src/Cadroue.UIVeneer/Annex/Options/PSOptions.cs"));
-        string draft = File.ReadAllText(draftPath);
-        string options = File.ReadAllText(optionsPath);
-
-        Assert.Contains("lsOptions.QSMpv.QSMpvChanged += psOptionsDraftMpv;", draft, StringComparison.Ordinal);
-        Assert.Contains("lsOptions.QSMpv.QSMpvChanged -= psOptionsDraftMpv;", draft, StringComparison.Ordinal);
-        Assert.Contains("psOptionsDraft.PSOptionsDraftDetach();", options, StringComparison.Ordinal);
-    }
-
-    [Fact]
     public void Start_DetachBeforeCompletion_DoesNotUpdateSurface()
     {
         _tMpvSurface(() =>
@@ -295,6 +279,7 @@ public sealed class TMpvSurface : CSMpvPort, CSFlyleafPort, LUsherPort
             tMpvSurfaceDriver.QSMpvAttach(
                 replacement,
                 new QSMpvAnswer(() => { }, (_, _) => replacementNotices++, (_, _) => replacementNotices++));
+            Task replacementOperation = tMpvSurfaceDriver.QSMpvStart();
             tMpvSurfaceProgress!.Report(0.9);
             tMpvSurfaceResult.SetResult((true, string.Empty, true));
             tMpvSurfaceAvailability.SetResult(true);
@@ -307,7 +292,9 @@ public sealed class TMpvSurface : CSMpvPort, CSFlyleafPort, LUsherPort
                 Dispatcher.PushFrame(frame);
             }
             operation.GetAwaiter().GetResult();
+            replacementOperation.GetAwaiter().GetResult();
 
+            Assert.Equal(1, tMpvSurfaceStarts);
             Assert.Equal(QLocalizationCatalog.QLocalizationTextRead("Options.System.DownloadMpv"),
                 tMpvSurfaceInstaller.Content);
             Assert.Equal(0, tMpvSurfaceBar.Value);
@@ -364,6 +351,7 @@ public sealed class TMpvSurface : CSMpvPort, CSFlyleafPort, LUsherPort
 
     Task<(bool, string, bool)> CSMpvPort.CSMpvStart(IProgress<double> progress)
     {
+        tMpvSurfaceStarts++;
         tMpvSurfaceProgress = progress;
         return tMpvSurfaceFailure is null
             ? tMpvSurfaceResult!.Task

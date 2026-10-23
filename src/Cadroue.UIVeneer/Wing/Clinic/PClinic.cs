@@ -15,8 +15,6 @@ public sealed class PClinic : UserControl
     public const double PClinicStripWidth = 48;
 
     public event Action<bool>? PClinicMinimizeChanged;
-    public event Action? PClinicDiagnosisExecuted;
-
     private UIElement pClinicFullBody = null!;
     private UIElement pClinicStripBody = null!;
     private TextBlock pClinicTitleLabel = null!;
@@ -260,7 +258,7 @@ public sealed class PClinic : UserControl
         pClinicApplyBox.Unchecked += (_, _) => QClinic.QClinicActiveSet(false);
         pClinicPersistentBox.Checked += (_, _) => QClinic.QClinicPersistentSet(true);
         pClinicPersistentBox.Unchecked += (_, _) => QClinic.QClinicPersistentSet(false);
-        pClinicDiagnosisButton.Click += (_, _) => PClinicDiagnosisExecuted?.Invoke();
+        pClinicDiagnosisButton.Click += (_, _) => QClinic.QClinicDiagnosisRun();
         QClinic.QClinicChanged += PClinicUpdate;
         QClinic.QClinicMinimizeChanged += PClinicMinimizeHandle;
     }

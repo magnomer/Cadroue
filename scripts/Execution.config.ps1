@@ -9,16 +9,16 @@ project-specific value appears here: this file is identical in every project at 
 generation.
 #>
 #requires -Version 5.1
-# EXECUTION.CONFIG - EXECUTION GENERATION 2.
+# EXECUTION.CONFIG - EXECUTION GENERATION 3.
 # A generation is not a revision count. It names functionality, not edits, so editing one of these
 # files is never on its own a reason to raise it. Raise it only when the executed outcome changes.
 # A configuration is total: every key in the schema must be present, a missing key is an error rather
 # than a default, and an unknown key is an error rather than a silent no-op. A typo that quietly does
 # nothing is the worst failure mode a configuration like this has, so it is made loud.
 # Execution.json holds every project-specific value the family reads: the project name, the project
-# file and executable, the historical project names, the publish runtime and properties, the folder
-# layout, the git remote and commit-subject shape, and the version file with its keys. The scripts
-# hold none of them.
+# file and executable, the historical project names, the publish runtime, shape and properties, the
+# folder layout, the git remote and commit-subject shape, and the version file with its keys. The
+# scripts hold none of them.
 # A historical version is resolved by one ladder shared by every script: a snapshot folder holding an
 # executable is launched as it is; otherwise the commit whose subject carries the version is built;
 # otherwise the remote is fetched once and the commit looked for again; a fetch that fails stops the
@@ -28,14 +28,20 @@ generation.
 # entry appended per run with the same fields the console block shows, and on failure the error, the
 # kept temp folder, and the tail of the dotnet output. A record changes nothing that is built or
 # launched, so it does not move the generation.
-# Generation 2: the family lives in <project root>/scripts with its configuration beside it, only the
-# version file staying at the root. A running instance never blocks the next install: when a live
-# process runs from the install folder, the fresh build goes into an eight-digit slot folder inside it
-# and launches from there; slots no process runs from are reaped before the next install. Every launch
-# is written to the ledger named by layout.ledger with its process id and start instant, so Stop.ps1
-# can end exactly what the family launched and a reused process id is never mistaken for a live one.
+# Generation 3: the family lives in <project root>/scripts with its configuration beside it, only the
+# version file staying at the root. publish.shape decides how every script publishes: folder leaves
+# every published file beside the executable, other launchers included; single-file packs them into
+# the executable. PublishSingleFile is derived from the shape alone, so a property naming it is refused.
+# The executable of a folder is found by its configured or historical name, so the other programs a
+# folder publish holds are never mistaken for it. A running instance never blocks the next install:
+# when a live process runs from the install folder, the fresh build goes into an eight-digit slot
+# folder inside it and launches from there; slots no process runs from are reaped before the next
+# install. A process counts when its image carries the executable's base name under any extension, so
+# a console launcher beside the executable keeps its folder busy too. Every launch is written to the
+# ledger named by layout.ledger with its process id and start instant, so Stop.ps1 can end exactly
+# what the family launched and a reused process id is never mistaken for a live one.
 
-$script:ExecutionGeneration = 2
+$script:ExecutionGeneration = 3
 
 # dotnet and git write UTF-8. A console still on the OEM code page, as one opened by the dispatcher
 # without a profile is, would show every non-ASCII line garbled, so this process reads and writes
@@ -44,7 +50,7 @@ $script:ExecutionGeneration = 2
 $OutputEncoding = [Console]::OutputEncoding
 
 # Each entry is a path through the document and the kind of value that must be found there.
-# 'string', 'int', 'bool', or 'string[]'.
+# 'string', 'int', 'bool', 'string[]', or a closed set of words joined by '|', one of which is the value.
 $script:ExecutionSchema = [ordered]@{
     'generation'                = 'int'
     'project'                   = 'string'
@@ -53,6 +59,7 @@ $script:ExecutionSchema = [ordered]@{
     'source.historicalProjects' = 'string[]'
     'publish.runtime'           = 'string'
     'publish.selfContained'     = 'bool'
+    'publish.shape'             = 'folder|single-file'
     'publish.properties'        = 'string[]'
     'layout.run'                = 'string'
     'layout.build'              = 'string'
@@ -135,6 +142,10 @@ function Test-ExecutionValue {
         $Value
     )
 
+    if ($Kind.Contains('|')) {
+        return $Value -is [string] -and [System.Array]::IndexOf($Kind.Split('|'), $Value) -ge 0
+    }
+
     switch ($Kind) {
         'string' { return $Value -is [string] -and -not [string]::IsNullOrWhiteSpace($Value) }
         'int' { return $Value -is [int] -or $Value -is [long] }
@@ -183,6 +194,16 @@ function Read-ExecutionConfig {
     foreach ($path in (Get-ExecutionKeyPaths -Node $config)) {
         if (-not $script:ExecutionSchema.Contains($path)) {
             [void]$problems.Add("unknown key: $path")
+        }
+    }
+
+    # publish.shape is the one writer of PublishSingleFile; a property naming it would be a second.
+    $properties = Get-ExecutionNode -Document $config -Key 'publish.properties'
+    if ($properties.Found -and (Test-ExecutionValue -Kind 'string[]' -Value $properties.Value)) {
+        foreach ($property in $properties.Value) {
+            if ($property -match '^\s*PublishSingleFile\s*=') {
+                [void]$problems.Add("key 'publish.properties' must not set PublishSingleFile; publish.shape decides it")
+            }
         }
     }
 
@@ -267,6 +288,15 @@ function Set-ExecutionDotnetQuiet {
     $env:DOTNET_NOLOGO = '1'
     $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
     $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = '1'
+}
+
+function Get-ExecutionPublishArguments {
+    # The MSBuild properties every publish passes, derived here once so a Release and a Debug publish
+    # share one shape. PublishSingleFile is always stated, so no imported default can choose it instead.
+    param([Parameter(Mandatory = $true)]$Config)
+
+    $singleFile = if ($Config.publish.shape -eq 'single-file') { 'true' } else { 'false' }
+    return , @(@("-p:PublishSingleFile=$singleFile") + @($Config.publish.properties | ForEach-Object { "-p:$_" }))
 }
 
 function Write-ExecutionSummary {
@@ -397,13 +427,39 @@ function Get-ExecutionSnapshotVersions {
             continue
         }
 
-        $executables = @(Get-ChildItem -LiteralPath $folder.FullName -Filter '*.exe' -File)
-        if ($executables.Count -eq 1) {
-            $found[$folder.Name] = $executables[0].FullName
+        $executable = Find-ExecutionExecutable -Config $Config -Folder $folder.FullName
+        if ($null -ne $executable) {
+            $found[$folder.Name] = $executable
         }
     }
 
     return $found
+}
+
+function Find-ExecutionExecutable {
+    # The executable that sits directly in a folder, or $null. A folder publish holds other programs
+    # beside it, so the configured name is looked for first, then each historical project name; a
+    # folder holding exactly one executable of any other name, as an older single-file snapshot does,
+    # still counts.
+    param(
+        [Parameter(Mandatory = $true)]$Config,
+        [Parameter(Mandatory = $true)][string]$Folder
+    )
+
+    $names = @($Config.source.executable) + @($Config.source.historicalProjects | ForEach-Object { "$_.exe" })
+    foreach ($name in $names) {
+        $path = Join-Path $Folder $name
+        if (Test-Path -LiteralPath $path -PathType Leaf) {
+            return $path
+        }
+    }
+
+    $executables = @(Get-ChildItem -LiteralPath $Folder -Filter '*.exe' -File)
+    if ($executables.Count -eq 1) {
+        return $executables[0].FullName
+    }
+
+    return $null
 }
 
 function Get-ExecutionGitVersions {
@@ -609,8 +665,9 @@ function Add-ExecutionLaunch {
 }
 
 function Get-ExecutionStrays {
-    # Processes running the project's executable from under the project root that the ledger does
-    # not know: launched by hand from Explorer or a shell.
+    # Processes running one of the project's launchers from under the project root that the ledger
+    # does not know: launched by hand from Explorer or a shell. A launcher is any image carrying the
+    # executable's base name, so a console launcher a folder publish places beside it counts too.
     param(
         [Parameter(Mandatory = $true)][string]$ProjectRoot,
         [Parameter(Mandatory = $true)]$Config
@@ -620,15 +677,18 @@ function Get-ExecutionStrays {
     $known = @(Get-ExecutionLaunches -ProjectRoot $ProjectRoot -Config $Config | ForEach-Object { [int]$_.pid })
     $prefix = $ProjectRoot.TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
 
+    # A process name drops only an .exe extension, so a launcher of another extension keeps it.
     return @(
-        Get-Process -Name $name -ErrorAction SilentlyContinue | Where-Object {
-            $_.Id -notin $known -and $null -ne $_.Path -and $_.Path.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase)
+        Get-Process -Name $name, "$name.*" -ErrorAction SilentlyContinue | Where-Object {
+            $_.Id -notin $known -and $null -ne $_.Path -and
+                $_.Path.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase) -and
+                [string]::Equals([System.IO.Path]::GetFileNameWithoutExtension($_.Path), $name, [System.StringComparison]::OrdinalIgnoreCase)
         }
     )
 }
 
 function Test-ExecutionFolderBusy {
-    # A folder is busy when a live process runs the executable that sits directly in it, whether the
+    # A folder is busy when a live process runs a launcher that sits directly in it, whether the
     # ledger knows the process or not.
     param(
         [Parameter(Mandatory = $true)][string]$ProjectRoot,

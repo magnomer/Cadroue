@@ -6,6 +6,7 @@ namespace Cadroue.Conduct;
 public sealed class CSFlyleaf
 {
     private readonly CSFlyleafPort _csFlyleafPort;
+    private bool csFlyleafActive;
 
     public CSFlyleaf(CSFlyleafPort port)
     {
@@ -15,6 +16,35 @@ public sealed class CSFlyleaf
 
     public bool CSFlyleafInstalledCheck() => _csFlyleafPort.CSFlyleafInstalledCheck();
 
-    public async Task<(bool, string, bool)> CSFlyleafStart(IProgress<double> progress) =>
-        await _csFlyleafPort.CSFlyleafStart(progress);
+    public async Task CSFlyleafStart(
+        IProgress<double> progress,
+        Action started,
+        Action<bool> completed,
+        Action<bool, string> failed)
+    {
+        if (csFlyleafActive)
+        {
+            return;
+        }
+
+        csFlyleafActive = true;
+        (bool, string, bool) result;
+        try
+        {
+            started();
+            result = await _csFlyleafPort.CSFlyleafStart(progress);
+        }
+        finally
+        {
+            csFlyleafActive = false;
+        }
+
+        (bool success, string failure, bool installed) = result;
+        if (success)
+        {
+            completed(installed);
+            return;
+        }
+        failed(installed, failure);
+    }
 }

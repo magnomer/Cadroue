@@ -167,9 +167,7 @@ public sealed class QSRenderer : CSRendererPort
 
     public string QSRendererApply() => qsRendererPath ?? qsRendererSnapshot.QSRendererSnapshotPath;
 
-    CSRendererFact CSRendererPort.CSRendererPortRead(string path)
-    {
-        LRendererReadiness facts = LRendererReadiness.LRendererReadinessRead(path);
-        return new CSRendererFact(facts.LRendererReadinessProgram, facts.LRendererReadinessLibrary);
-    }
+    bool CSRendererPort.CSRendererProgramCheck(string path) => LRendererLibrary.LRendererProgramExist(path);
+
+    bool CSRendererPort.CSRendererLibraryCheck(string path) => LRendererLibrary.LRendererFolderValidate(path);
 }

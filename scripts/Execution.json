@@ -1,5 +1,5 @@
 {
-  "generation": 2,
+  "generation": 3,
   "project": "Cadroue",
   "source": {
     "project": "src/Cadroue.UIVeneer/Cadroue.UIVeneer.csproj",
@@ -12,8 +12,8 @@
   "publish": {
     "runtime": "win-x64",
     "selfContained": true,
+    "shape": "single-file",
     "properties": [
-      "PublishSingleFile=true",
       "IncludeNativeLibrariesForSelfExtract=true"
     ]
   },

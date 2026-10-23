@@ -27,15 +27,29 @@ public sealed class QExportDrag
 
     public void QExportDragAttach(StackPanel lPanel, Action<string> lSelection)
     {
+        QExportDragDetach();
         qExportDragPanel = lPanel;
         qExportDragSelection = lSelection;
-        lPanel.PreviewMouseMove += (_, lEvent) =>
-            lEvent.Handled = QExportDragMove(
-                lEvent.GetPosition(lPanel),
-                lEvent.LeftButton == MouseButtonState.Pressed) || lEvent.Handled;
-        lPanel.MouseLeftButtonUp += (_, lEvent) =>
-            lEvent.Handled = QExportDragHandle() || lEvent.Handled;
-        lPanel.LostMouseCapture += (_, _) => QExportDragClear();
+        lPanel.PreviewMouseMove += QExportDragMove;
+        lPanel.MouseLeftButtonUp += QExportDragHandle;
+        lPanel.LostMouseCapture += QExportDragClear;
+    }
+
+    public void QExportDragDetach()
+    {
+        if (qExportDragPanel is null)
+        {
+            return;
+        }
+
+        qExportDragPanel.PreviewMouseMove -= QExportDragMove;
+        qExportDragPanel.MouseLeftButtonUp -= QExportDragHandle;
+        qExportDragPanel.LostMouseCapture -= QExportDragClear;
+        QExportDragRestore();
+        QGhostLayer.QGhostLayerClear(qExportDragRow);
+        _ = QExportDragReset();
+        qExportDragPanel = null;
+        qExportDragSelection = null;
     }
 
     public void QExportDragStart(string lPresetName, double lGrabX, double lGrabY)
@@ -150,6 +164,16 @@ public sealed class QExportDrag
 
         return true;
     }
+
+    private void QExportDragMove(object sender, MouseEventArgs pEvent) =>
+        pEvent.Handled = QExportDragMove(
+            pEvent.GetPosition((StackPanel)sender),
+            pEvent.LeftButton == MouseButtonState.Pressed) || pEvent.Handled;
+
+    private void QExportDragHandle(object sender, MouseButtonEventArgs pEvent) =>
+        pEvent.Handled = QExportDragHandle() || pEvent.Handled;
+
+    private void QExportDragClear(object sender, MouseEventArgs pEvent) => QExportDragClear();
 
     private static bool QExportDragCheck(Point lCurrent, Point lStart) =>
         Math.Abs(lCurrent.X - lStart.X) < SystemParameters.MinimumHorizontalDragDistance

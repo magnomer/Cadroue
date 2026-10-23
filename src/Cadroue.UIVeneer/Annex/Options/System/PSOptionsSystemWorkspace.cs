@@ -4,7 +4,7 @@ namespace Cadroue.UIVeneer;
 
 internal partial class PSOptionsSystemWorkspace : UserControl
 {
-    internal PSOptionsSystemWorkspace()
+    public PSOptionsSystemWorkspace()
     {
         InitializeComponent();
     }
